@@ -33,6 +33,8 @@ const CHARACTERS = {
     // Coloring scenes: outline drawings the kid fills in.
     scenes: ["stage", "star", "speaker"],
     palette: ["#E24B4A","#EF9F27","#639922","#378ADD","#7F77DD","#D4537E","#1D9E75","#FFFFFF"],
+    // Sticker Play: tap to add, drag to move, double-tap to remove.
+    playStickers: ["🎤","⭐","🌟","🎶","🌈","💖","🎸","👑","🎉","🦄"],
   },
 
   frost: {
@@ -52,5 +54,7 @@ const CHARACTERS = {
     ],
     scenes: ["snowflake", "mountain", "snowbuddy"],
     palette: ["#85B7EB","#378ADD","#7F77DD","#B5D4F4","#E6F1FB","#1D9E75","#D4537E","#FFFFFF"],
+    // Sticker Play: tap to add, drag to move, double-tap to remove.
+    playStickers: ["❄️","⛄","☃️","🏔️","💎","🧊","🐧","✨","🦌","🌟"],
   },
 };

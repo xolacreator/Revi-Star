@@ -40,10 +40,35 @@
       <div class="home-stars">⭐ <span id="home-star-count">0</span></div>
     </section>
 
-    <!-- ---------- Play screen ---------- -->
+    <!-- ---------- World hub: choose a mini-activity ---------- -->
+    <section id="hub" class="screen">
+      <div class="play-bar">
+        <button id="hub-back" class="icon-btn" aria-label="Back to worlds">🏠</button>
+        <span id="hub-title" class="world-title">Pop Star</span>
+        <button id="hub-star-chip" class="star-chip" aria-label="Stars earned">⭐ <span id="hub-star-count">0</span></button>
+      </div>
+      <div id="hub-scene" class="hub-scene">
+        <div class="activity-grid">
+          <button class="activity-card" data-activity="color">
+            <span class="activity-emoji">🎨</span><span class="activity-name">Color</span>
+          </button>
+          <button class="activity-card" data-activity="dressup">
+            <span class="activity-emoji">👗</span><span class="activity-name">Dress Up</span>
+          </button>
+          <button class="activity-card" data-activity="stickers">
+            <span class="activity-emoji">🧩</span><span class="activity-name">Sticker Play</span>
+          </button>
+          <button class="activity-card" data-activity="book">
+            <span class="activity-emoji">📖</span><span class="activity-name">My Stickers</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- Color / Dress-up play ---------- -->
     <section id="play" class="screen">
       <div class="play-bar">
-        <button id="back" class="icon-btn" aria-label="Back to worlds">🏠</button>
+        <button id="back" class="icon-btn" aria-label="Back to hub">🏠</button>
         <span id="world-title" class="world-title">Pop Star</span>
         <button id="star-chip" class="star-chip" aria-label="Stars earned">⭐ <span id="star-count">0</span></button>
         <button id="mode-toggle" class="pill-btn">Dress up</button>
@@ -56,6 +81,17 @@
       </div>
 
       <div id="toolbar"></div>
+    </section>
+
+    <!-- ---------- Sticker Play (tap & drag) ---------- -->
+    <section id="stickerplay" class="screen">
+      <div class="play-bar">
+        <button id="sp-back" class="icon-btn" aria-label="Back to hub">🏠</button>
+        <span id="sp-title" class="world-title">Sticker Play</span>
+        <button id="sp-clear" class="pill-btn">Clear</button>
+      </div>
+      <div id="sticker-stage" class="sticker-stage"></div>
+      <div id="sticker-tray" class="sticker-tray"></div>
     </section>
 
     <!-- ---------- Sticker book ---------- -->
@@ -74,6 +110,7 @@
   <div id="toast-host" aria-live="polite"></div>
 
   <script src="characters.js"></script>
+  <script src="assets.js"></script>
   <script src="game.js"></script>
   <script>
     if ('serviceWorker' in navigator) {

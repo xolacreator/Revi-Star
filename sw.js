@@ -1,11 +1,12 @@
 // Doodle Stars service worker — offline app shell caching.
 // Bump CACHE when any shell file changes so clients pull fresh copies.
-const CACHE = 'doodle-stars-v2';
+const CACHE = 'doodle-stars-v3';
 const SHELL = [
   './',
   './index.html',
   './styles.css',
   './characters.js',
+  './assets.js',
   './game.js',
   './manifest.webmanifest',
   './icon-192.png',

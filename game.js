@@ -5,7 +5,9 @@
 (function () {
   const screens = {
     home: document.getElementById('home'),
+    hub: document.getElementById('hub'),
     play: document.getElementById('play'),
+    stickerplay: document.getElementById('stickerplay'),
     stickerbook: document.getElementById('stickerbook'),
   };
   const canvas = document.getElementById('stage');
@@ -28,22 +30,41 @@
     screens[name].classList.add('active');
   }
 
-  // ---------- World selection ----------
+  // ---------- World selection → hub ----------
+  const hubScene = document.getElementById('hub-scene');
+  function enterWorld(w) {
+    world = w; worn = {}; currentScene = null; glitter = false;
+    document.getElementById('hub-title').textContent = CHARACTERS[w].name;
+    hubScene.className = 'hub-scene world-' + w;
+    DSAssets.applyBackground(hubScene, w);
+    show('hub'); refreshStars();
+  }
   document.querySelectorAll('.world-card').forEach(btn => {
-    btn.addEventListener('click', () => {
-      world = btn.dataset.world;
-      mode = 'color';
-      worn = {};
-      worldTitle.textContent = CHARACTERS[world].name;
-      currentScene = null; glitter = false;
-      show('play');
-      renderToolbar();
-      clearStage();
-      refreshStars();
-    });
+    btn.addEventListener('click', () => enterWorld(btn.dataset.world));
   });
 
-  document.getElementById('back').addEventListener('click', () => { show('home'); refreshStars(); });
+  // ---------- Hub: pick a mini-activity ----------
+  document.querySelectorAll('.activity-card').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const a = btn.dataset.activity;
+      if (a === 'color' || a === 'dressup') openPlay(a);
+      else if (a === 'stickers') openStickerPlay();
+      else if (a === 'book') openStickers();
+    });
+  });
+  function openPlay(m) {
+    mode = m;
+    worldTitle.textContent = CHARACTERS[world].name;
+    modeToggle.textContent = (mode === 'color') ? 'Dress up' : 'Color';
+    show('play'); renderToolbar(); refreshStars();
+    if (mode === 'dressup') { canvas.classList.add('hidden'); dressupLayer.classList.remove('hidden'); renderHero(); }
+    else { canvas.classList.remove('hidden'); dressupLayer.classList.add('hidden'); clearStage(); currentScene = null; }
+  }
+
+  // back buttons
+  document.getElementById('back').addEventListener('click', () => { show('hub'); refreshStars(); });
+  document.getElementById('hub-back').addEventListener('click', () => { show('home'); refreshStars(); });
+  document.getElementById('sp-back').addEventListener('click', () => { show('hub'); refreshStars(); });
 
   modeToggle.addEventListener('click', () => {
     mode = (mode === 'color') ? 'dressup' : 'color';
@@ -167,7 +188,7 @@
   function saveProg() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(prog)); } catch (e) {} }
   function hasSticker(id) { return prog.stickers.indexOf(id) !== -1; }
   function refreshStars() {
-    ['star-count', 'home-star-count', 'book-star-count'].forEach(id => {
+    ['star-count', 'home-star-count', 'book-star-count', 'hub-star-count'].forEach(id => {
       const el = document.getElementById(id); if (el) el.textContent = prog.stars;
     });
   }
@@ -245,6 +266,61 @@
   document.getElementById('open-stickers').addEventListener('click', openStickers);
   document.getElementById('star-chip').addEventListener('click', openStickers);
   document.getElementById('stickers-back').addEventListener('click', () => { show('home'); refreshStars(); });
+
+  // ============================================================
+  //  Sticker Play — tap to add, drag to move, double-tap to remove
+  // ============================================================
+  const spStage = document.getElementById('sticker-stage');
+  const spTray = document.getElementById('sticker-tray');
+
+  function openStickerPlay() {
+    document.getElementById('sp-title').textContent = CHARACTERS[world].name + ' Play';
+    spStage.className = 'sticker-stage world-' + world;
+    DSAssets.applyBackground(spStage, world);
+    buildTray();
+    show('stickerplay');
+  }
+  function buildTray() {
+    spTray.innerHTML = '';
+    (CHARACTERS[world].playStickers || []).forEach(em => {
+      const b = document.createElement('button');
+      b.className = 'tray-sticker'; b.textContent = em;
+      b.onclick = () => addSticker(em);
+      spTray.appendChild(b);
+    });
+  }
+  function addSticker(em) {
+    const r = spStage.getBoundingClientRect();
+    const s = document.createElement('div');
+    s.className = 'placed'; s.textContent = em;
+    s.style.left = (r.width / 2 + (Math.random() - 0.5) * 60) + 'px';
+    s.style.top = (r.height / 2 + (Math.random() - 0.5) * 60) + 'px';
+    makeDraggable(s);
+    spStage.appendChild(s);
+  }
+  let dragEl = null, dragDX = 0, dragDY = 0;
+  function makeDraggable(el) {
+    el.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      dragEl = el; el.setPointerCapture(e.pointerId); el.classList.add('dragging');
+      const r = spStage.getBoundingClientRect();
+      dragDX = e.clientX - (r.left + parseFloat(el.style.left));
+      dragDY = e.clientY - (r.top + parseFloat(el.style.top));
+      el.parentNode.appendChild(el);   // bring to front
+    });
+    el.addEventListener('pointermove', (e) => {
+      if (dragEl !== el) return;
+      const r = spStage.getBoundingClientRect();
+      const nx = Math.max(0, Math.min(r.width, e.clientX - r.left - dragDX));
+      const ny = Math.max(0, Math.min(r.height, e.clientY - r.top - dragDY));
+      el.style.left = nx + 'px'; el.style.top = ny + 'px';
+    });
+    const drop = () => { if (dragEl === el) { el.classList.remove('dragging'); dragEl = null; } };
+    el.addEventListener('pointerup', drop);
+    el.addEventListener('pointercancel', drop);
+    el.addEventListener('dblclick', () => el.remove());
+  }
+  document.getElementById('sp-clear').addEventListener('click', () => { spStage.innerHTML = ''; });
 
   // ---------- Color helpers ----------
   // Lighten (amt>0) or darken (amt<0) a #rrggbb color. amt in -1..1.
