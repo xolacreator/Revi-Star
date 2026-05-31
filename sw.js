@@ -1,6 +1,6 @@
 // Doodle Stars service worker — offline app shell caching.
 // Bump CACHE when any shell file changes so clients pull fresh copies.
-const CACHE = 'starbound-hunters-v4';
+const CACHE = 'starbound-hunters-v5';
 const SHELL = [
   './',
   './index.html',
@@ -29,10 +29,33 @@ self.addEventListener('activate', (e) => {
   );
 });
 
-// Cache-first for the app shell; fall back to network for everything else.
+// Strategy:
+//  - HTML / JS (navigations + app code): NETWORK-FIRST, so new deploys show up
+//    immediately; fall back to cache only when offline.
+//  - Everything else (vendored Three.js, images, fonts): CACHE-FIRST for speed.
 self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET') return;
-  e.respondWith(
-    caches.match(e.request).then((hit) => hit || fetch(e.request).catch(() => caches.match('./index.html')))
-  );
+  const url = new URL(e.request.url);
+  const isAppCode = e.request.mode === 'navigate' ||
+    /\.(html|js|webmanifest)$/.test(url.pathname) && !url.pathname.includes('/vendor/');
+
+  if (isAppCode) {
+    e.respondWith(
+      fetch(e.request)
+        .then((res) => {
+          const copy = res.clone();
+          caches.open(CACHE).then((c) => c.put(e.request, copy));
+          return res;
+        })
+        .catch(() => caches.match(e.request).then((hit) => hit || caches.match('./index.html')))
+    );
+  } else {
+    e.respondWith(
+      caches.match(e.request).then((hit) => hit || fetch(e.request).then((res) => {
+        const copy = res.clone();
+        caches.open(CACHE).then((c) => c.put(e.request, copy));
+        return res;
+      }))
+    );
+  }
 });
