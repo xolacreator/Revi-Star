@@ -3,7 +3,11 @@
 // ============================================================
 
 (function () {
-  const screens = { home: document.getElementById('home'), play: document.getElementById('play') };
+  const screens = {
+    home: document.getElementById('home'),
+    play: document.getElementById('play'),
+    stickerbook: document.getElementById('stickerbook'),
+  };
   const canvas = document.getElementById('stage');
   const ctx = canvas.getContext('2d');
   const W = canvas.width, H = canvas.height;
@@ -31,13 +35,15 @@
       mode = 'color';
       worn = {};
       worldTitle.textContent = CHARACTERS[world].name;
+      currentScene = null; glitter = false;
       show('play');
       renderToolbar();
       clearStage();
+      refreshStars();
     });
   });
 
-  document.getElementById('back').addEventListener('click', () => show('home'));
+  document.getElementById('back').addEventListener('click', () => { show('home'); refreshStars(); });
 
   modeToggle.addEventListener('click', () => {
     mode = (mode === 'color') ? 'dressup' : 'color';
@@ -106,10 +112,17 @@
     const t = e.touches ? e.touches[0] : e;
     return { x: (t.clientX - r.left) * (W / r.width), y: (t.clientY - r.top) * (H / r.height) };
   }
-  function startDraw(e) { e.preventDefault(); drawing = true; const p = pos(e); lastX = p.x; lastY = p.y; dab(p.x, p.y); }
+  function startDraw(e) {
+    e.preventDefault(); drawing = true; const p = pos(e); lastX = p.x; lastY = p.y; dab(p.x, p.y);
+    if (mode === 'color' && currentScene && SCENE_STICKER[currentScene]) {
+      strokeCount++;
+      if (strokeCount >= STROKES_TO_FINISH) earnSticker(SCENE_STICKER[currentScene]);
+    }
+  }
   function moveDraw(e) {
     if (!drawing) return; e.preventDefault(); const p = pos(e);
-    ctx.lineWidth = brushSize; ctx.lineCap = 'round'; ctx.strokeStyle = brushColor;
+    ctx.lineWidth = brushSize; ctx.lineCap = 'round';
+    ctx.strokeStyle = glitter ? CONFETTI_COLORS[(Math.random() * CONFETTI_COLORS.length) | 0] : brushColor;
     ctx.beginPath(); ctx.moveTo(lastX, lastY); ctx.lineTo(p.x, p.y); ctx.stroke();
     lastX = p.x; lastY = p.y;
   }
@@ -122,6 +135,116 @@
   canvas.addEventListener('touchstart', startDraw, { passive: false });
   canvas.addEventListener('touchmove', moveDraw, { passive: false });
   canvas.addEventListener('touchend', endDraw);
+
+  // ============================================================
+  //  Progression & rewards — stars + sticker book (saved locally)
+  //  Toca-Boca spirit: no fails, no timers — just happy collecting.
+  // ============================================================
+  const STICKERS = [
+    { id: 'mic',      emoji: '🎤', label: 'On Stage',    world: 'pop',   hint: 'Color the Stage' },
+    { id: 'star',     emoji: '⭐', label: 'Superstar',   world: 'pop',   hint: 'Color the Star' },
+    { id: 'speaker',  emoji: '🔊', label: 'Loud & Proud',world: 'pop',   hint: 'Color the Speaker' },
+    { id: 'stylist',  emoji: '🌈', label: 'Hair Artist', world: 'pop',   hint: 'Try 3 hairstyles' },
+    { id: 'flake',    emoji: '❄️', label: 'Snowflake',   world: 'frost', hint: 'Color the Flake' },
+    { id: 'mountain', emoji: '⛰️', label: 'Explorer',    world: 'frost', hint: 'Color the Mountain' },
+    { id: 'buddy',    emoji: '☃️', label: 'Best Buddy',  world: 'frost', hint: 'Color the Buddy' },
+    { id: 'royal',    emoji: '👑', label: 'Royalty',     world: 'frost', hint: 'Wear the Ice crown' },
+  ];
+  const SCENE_STICKER = { stage: 'mic', star: 'star', speaker: 'speaker',
+    snowflake: 'flake', mountain: 'mountain', snowbuddy: 'buddy' };
+  const STROKES_TO_FINISH = 6;     // playful "you colored it!" threshold
+  const GLITTER_UNLOCK = 12;       // stars to unlock the glitter brush
+  const CONFETTI_COLORS = ['#E24B4A','#EF9F27','#639922','#378ADD','#7F77DD','#D4537E','#FFD45E'];
+
+  let currentScene = null, strokeCount = 0, glitter = false;
+
+  const SAVE_KEY = 'doodlestars.save.v1';
+  const prog = loadProg();
+  function loadProg() {
+    try { return Object.assign({ stars: 0, stickers: [], tried: [] }, JSON.parse(localStorage.getItem(SAVE_KEY) || '{}')); }
+    catch (e) { return { stars: 0, stickers: [], tried: [] }; }
+  }
+  function saveProg() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(prog)); } catch (e) {} }
+  function hasSticker(id) { return prog.stickers.indexOf(id) !== -1; }
+  function refreshStars() {
+    ['star-count', 'home-star-count', 'book-star-count'].forEach(id => {
+      const el = document.getElementById(id); if (el) el.textContent = prog.stars;
+    });
+  }
+  function addStars(n) { prog.stars += n; refreshStars(); saveProg(); }
+  function earnSticker(id) {
+    if (hasSticker(id)) return;
+    const s = STICKERS.find(x => x.id === id); if (!s) return;
+    prog.stickers.push(id); prog.stars += 5; refreshStars(); saveProg();
+    confettiBurst();
+    showReward(`${s.emoji} New sticker!`, `${s.label} · +5 ⭐`);
+  }
+
+  // ---------- reward toast ----------
+  const toastHost = document.getElementById('toast-host');
+  let toastTimer = null;
+  function showReward(title, sub) {
+    toastHost.innerHTML = `<div class="reward"><div class="reward-emoji">🎉</div>
+      <div><div class="reward-title">${title}</div>${sub ? `<div class="reward-sub">${sub}</div>` : ''}</div></div>`;
+    const el = toastHost.firstElementChild;
+    requestAnimationFrame(() => el && el.classList.add('in'));
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => {
+      if (el) { el.classList.remove('in'); setTimeout(() => { toastHost.innerHTML = ''; }, 350); }
+    }, 2300);
+  }
+
+  // ---------- confetti particle burst (on the #fx overlay) ----------
+  const fx = document.getElementById('fx');
+  const fxc = fx.getContext('2d');
+  let parts = [], fxRAF = 0;
+  function confettiBurst(n = 90) {
+    for (let i = 0; i < n; i++) {
+      parts.push({
+        x: W / 2 + (Math.random() - 0.5) * 80, y: H * 0.42,
+        vx: (Math.random() - 0.5) * 7, vy: -4 - Math.random() * 7,
+        g: 0.18 + Math.random() * 0.12, r: 3 + Math.random() * 4,
+        a: 1, rot: Math.random() * 6.28, vr: (Math.random() - 0.5) * 0.4,
+        c: CONFETTI_COLORS[(Math.random() * CONFETTI_COLORS.length) | 0],
+      });
+    }
+    if (!fxRAF) fxRAF = requestAnimationFrame(fxTick);
+  }
+  function fxTick() {
+    fxc.clearRect(0, 0, W, H);
+    for (const p of parts) {
+      p.vy += p.g; p.x += p.vx; p.y += p.vy; p.rot += p.vr; p.a -= 0.008;
+      fxc.save(); fxc.globalAlpha = Math.max(0, p.a); fxc.translate(p.x, p.y); fxc.rotate(p.rot);
+      fxc.fillStyle = p.c; fxc.fillRect(-p.r, -p.r * 0.6, p.r * 2, p.r * 1.2); fxc.restore();
+    }
+    parts = parts.filter(p => p.a > 0 && p.y < H + 20);
+    if (parts.length) fxRAF = requestAnimationFrame(fxTick);
+    else { fxc.clearRect(0, 0, W, H); fxRAF = 0; }
+  }
+
+  // ---------- wardrobe goals ----------
+  function noteTried(item) {
+    if (prog.tried.indexOf(item.id) === -1) { prog.tried.push(item.id); addStars(1); }
+    const popHair = CHARACTERS.pop.wardrobe.filter(w => w.slot === 'hair').map(w => w.id);
+    if (popHair.filter(id => prog.tried.indexOf(id) !== -1).length >= 3) earnSticker('stylist');
+    if (prog.tried.indexOf('crown-ice') !== -1) earnSticker('royal');
+  }
+
+  // ---------- sticker book ----------
+  const stickerGrid = document.getElementById('sticker-grid');
+  function renderStickerBook() {
+    stickerGrid.innerHTML = STICKERS.map(s => {
+      const got = hasSticker(s.id);
+      return `<div class="sticker ${got ? 'got' : 'locked'}">
+        <div class="sticker-emoji">${got ? s.emoji : '❓'}</div>
+        <div class="sticker-label">${got ? s.label : s.hint}</div></div>`;
+    }).join('');
+    refreshStars();
+  }
+  function openStickers() { renderStickerBook(); show('stickerbook'); }
+  document.getElementById('open-stickers').addEventListener('click', openStickers);
+  document.getElementById('star-chip').addEventListener('click', openStickers);
+  document.getElementById('stickers-back').addEventListener('click', () => { show('home'); refreshStars(); });
 
   // ---------- Color helpers ----------
   // Lighten (amt>0) or darken (amt<0) a #rrggbb color. amt in -1..1.
@@ -261,11 +384,11 @@
       const sceneRow = document.createElement('div'); sceneRow.className = 'tool-row';
       cfg.scenes.forEach(s => {
         const b = document.createElement('button'); b.className = 'tool-btn'; b.textContent = sceneLabel(s);
-        b.onclick = () => SCENES[s]();
+        b.onclick = () => { SCENES[s](); currentScene = s; strokeCount = 0; };
         sceneRow.appendChild(b);
       });
       const blank = document.createElement('button'); blank.className = 'tool-btn'; blank.textContent = '✏️ Blank';
-      blank.onclick = clearStage; sceneRow.appendChild(blank);
+      blank.onclick = () => { clearStage(); currentScene = null; }; sceneRow.appendChild(blank);
       toolbar.appendChild(sceneRow);
 
       // color swatches
@@ -283,9 +406,16 @@
       [['Small', 8], ['Medium', 18], ['Big', 34]].forEach(([label, size]) => {
         const b = document.createElement('button'); b.className = 'tool-btn'; b.textContent = label;
         if (size === 18) b.classList.add('active');
-        b.onclick = () => { brushSize = size; ctrlRow.querySelectorAll('.tool-btn').forEach(x => x.classList.remove('active')); b.classList.add('active'); };
+        b.onclick = () => { brushSize = size; glitter = false; ctrlRow.querySelectorAll('.tool-btn').forEach(x => x.classList.remove('active')); b.classList.add('active'); };
         ctrlRow.appendChild(b);
       });
+      // Unlockable glitter brush — earned at GLITTER_UNLOCK stars.
+      if (prog.stars >= GLITTER_UNLOCK) {
+        const g = document.createElement('button'); g.className = 'tool-btn glitter-btn'; g.textContent = '✨ Glitter';
+        if (glitter) g.classList.add('active');
+        g.onclick = () => { glitter = !glitter; g.classList.toggle('active', glitter); };
+        ctrlRow.appendChild(g);
+      }
       toolbar.appendChild(ctrlRow);
 
     } else {
@@ -293,7 +423,7 @@
       const grid = document.createElement('div'); grid.className = 'wardrobe-grid';
       cfg.wardrobe.forEach(item => {
         const b = document.createElement('button'); b.className = 'ward-item'; b.textContent = item.label;
-        b.onclick = () => { worn[item.slot] = item; renderHero(); };
+        b.onclick = () => { worn[item.slot] = item; renderHero(); noteTried(item); };
         grid.appendChild(b);
       });
       const reset = document.createElement('button'); reset.className = 'ward-item'; reset.textContent = '🔄 Reset';
@@ -308,4 +438,7 @@
       snowflake: '❄️ Flake', mountain: '⛰️ Mountain', snowbuddy: '☃️ Buddy' };
     return labels[s] || s;
   }
+
+  // ---------- init ----------
+  refreshStars();
 })();
