@@ -186,6 +186,58 @@ html, body {
 }
 .tray-sticker:active { transform: translateY(2px); }
 
+/* ---------- 3D world HUD ---------- */
+body.game3d { margin: 0; overflow: hidden; background: #bfe3ff; height: 100%; }
+#scene-root { position: fixed; inset: 0; }
+#scene-root canvas { display: block; touch-action: none; }
+#hud { position: fixed; inset: 0; pointer-events: none; padding: env(safe-area-inset-top) 14px 0; }
+.hud-top {
+  display: flex; justify-content: space-between; align-items: center; margin-top: 12px;
+}
+.hud-title {
+  font-family: 'Baloo 2', system-ui, sans-serif; font-weight: 800; font-size: 20px; color: #fff;
+  text-shadow: 0 2px 6px rgba(80,40,120,0.55);
+}
+.hud-pals {
+  font-family: 'Baloo 2', system-ui, sans-serif; font-weight: 800; font-size: 18px; color: #fff;
+  background: rgba(106,75,196,0.65); padding: 6px 14px; border-radius: 999px;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+.hud-hint {
+  position: absolute; left: 0; right: 0; bottom: 120px; text-align: center;
+  font-family: 'Baloo 2', system-ui, sans-serif; font-weight: 700; font-size: 16px; color: #fff;
+  text-shadow: 0 2px 6px rgba(80,40,120,0.6); transition: opacity .6s; opacity: .95;
+}
+.hud-hint.fade { opacity: 0; }
+.prompt {
+  position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(28px + env(safe-area-inset-bottom));
+  display: flex; align-items: center; gap: 12px; pointer-events: auto;
+  background: rgba(255,255,255,0.95); border-radius: 999px; padding: 10px 12px 10px 20px;
+  box-shadow: 0 8px 24px rgba(80,40,120,0.35);
+  font-family: 'Baloo 2', system-ui, sans-serif; font-weight: 700; color: #4a2d78; font-size: 17px;
+  animation: pop-in .3s cubic-bezier(.34,1.56,.64,1) both;
+}
+.prompt.hidden, .loading.hidden { display: none; }
+.prompt-btn {
+  border: none; border-radius: 999px; padding: 12px 22px; font-family: inherit; font-weight: 800;
+  font-size: 17px; color: #fff; background: linear-gradient(160deg,#ff8fcf,#6a4bc4); cursor: pointer;
+}
+.prompt-btn:active { transform: translateY(2px); }
+.loading {
+  position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 14px; background: linear-gradient(160deg,#6a4bc4,#b96ad0); color: #fff; z-index: 20;
+  font-family: 'Baloo 2', system-ui, sans-serif; font-weight: 700; font-size: 18px;
+}
+.loading-star { font-size: 64px; animation: spin 1.6s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.toast3d {
+  position: fixed; left: 50%; top: 80px; transform: translateX(-50%) translateY(-12px);
+  background: rgba(106,75,196,0.95); color: #fff; padding: 12px 22px; border-radius: 999px;
+  font-family: 'Baloo 2', system-ui, sans-serif; font-weight: 800; font-size: 17px; pointer-events: none;
+  opacity: 0; transition: opacity .25s, transform .25s; z-index: 30;
+}
+.toast3d.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
 /* reward toast */
 #toast-host { position: fixed; left: 0; right: 0; top: 18px; display: flex; justify-content: center; z-index: 50; pointer-events: none; }
 .reward {
