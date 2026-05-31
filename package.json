@@ -1,0 +1,12 @@
+{
+  "name": "doodle-stars",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A bright, touch-friendly coloring & dress-up game for kids (ages 5-8). Original characters, two themed worlds.",
+  "scripts": {
+    "start": "python3 -m http.server 8080",
+    "serve": "npx --yes serve -l 8080 ."
+  },
+  "keywords": ["kids", "game", "coloring", "dress-up", "canvas", "svg"],
+  "license": "MIT"
+}

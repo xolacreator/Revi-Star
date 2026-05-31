@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#FFF8F0">
+  <title>Doodle Stars</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="app">
+
+    <!-- ---------- Home / world picker ---------- -->
+    <section id="home" class="screen active">
+      <h1 class="logo">Doodle Stars</h1>
+      <p class="tagline">Pick a world to play!</p>
+      <div class="world-grid">
+        <button class="world-card world-pop" data-world="pop">
+          <span class="world-emoji">🎤</span>
+          <span class="world-name">Pop Star</span>
+        </button>
+        <button class="world-card world-frost" data-world="frost">
+          <span class="world-emoji">❄️</span>
+          <span class="world-name">Frosty</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- ---------- Play screen ---------- -->
+    <section id="play" class="screen">
+      <div class="play-bar">
+        <button id="back" class="icon-btn" aria-label="Back to worlds">🏠</button>
+        <span id="world-title" class="world-title">Pop Star</span>
+        <button id="mode-toggle" class="pill-btn">Dress up</button>
+      </div>
+
+      <div id="stage-wrap">
+        <canvas id="stage" width="360" height="360"></canvas>
+        <div id="dressup-layer" class="hidden"></div>
+      </div>
+
+      <div id="toolbar"></div>
+    </section>
+
+  </div>
+
+  <script src="characters.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>
