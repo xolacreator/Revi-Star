@@ -1,0 +1,64 @@
+{
+  "_note": "Sample Star Pals. Full set of 50 in companion-system.md §4. Schema mirrors CompanionDef (unity-architecture.md §4).",
+  "schemaVersion": 1,
+  "companions": [
+    {
+      "id": "twinkle",
+      "displayNameKey": "pal.twinkle.name",
+      "district": "HarmonyHarbor",
+      "theme": "glow-fox",
+      "personalityKey": "pal.twinkle.personality",
+      "ability": "HintFirstSound",
+      "forms": [
+        { "form": 0, "name": "Sparklet", "bondRequired": 0 },
+        { "form": 1, "name": "Glimmerfox", "bondRequired": 50 },
+        { "form": 2, "name": "Radiant Twinkle", "bondRequired": 150 }
+      ],
+      "accessories": ["bow", "scarf", "star-clip"]
+    },
+    {
+      "id": "pippa",
+      "displayNameKey": "pal.pippa.name",
+      "district": "StarlightStation",
+      "theme": "star-sprite",
+      "personalityKey": "pal.pippa.personality",
+      "ability": "CountAloud",
+      "forms": [
+        { "form": 0, "name": "Sprig", "bondRequired": 0 },
+        { "form": 1, "name": "Starpip", "bondRequired": 50 },
+        { "form": 2, "name": "Radiant Pippa", "bondRequired": 150 }
+      ],
+      "accessories": ["number-cap", "comet-tail"]
+    },
+    {
+      "id": "scout-jr",
+      "displayNameKey": "pal.scout.name",
+      "district": "LogicLabyrinth",
+      "theme": "light-lynx",
+      "personalityKey": "pal.scout.personality",
+      "ability": "ShowSafeStep",
+      "forms": [
+        { "form": 0, "name": "Cublet", "bondRequired": 0 },
+        { "form": 1, "name": "Lightlynx", "bondRequired": 50 },
+        { "form": 2, "name": "Radiant Scout", "bondRequired": 150 }
+      ],
+      "accessories": ["explorer-hat", "lantern"]
+    },
+    {
+      "id": "starling",
+      "displayNameKey": "pal.starling.name",
+      "district": "FriendshipPlaza",
+      "theme": "baby-star (anniversary)",
+      "personalityKey": "pal.starling.personality",
+      "ability": "AllRounderBuddy",
+      "rarity": "event-legendary-cute",
+      "returnsWithinSeasons": 2,
+      "forms": [
+        { "form": 0, "name": "Twinklet", "bondRequired": 0 },
+        { "form": 1, "name": "Starling", "bondRequired": 60 },
+        { "form": 2, "name": "Radiant Starling", "bondRequired": 180 }
+      ],
+      "accessories": ["crown", "cape", "halo"]
+    }
+  ]
+}

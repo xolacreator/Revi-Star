@@ -1,0 +1,126 @@
+{
+  "_note": "Representative SAMPLE of the 100 missions defined in learning-design.md §4. Full set authored in the LiveOps CMS. Schema mirrors ChallengeDef (unity-architecture.md §4).",
+  "schemaVersion": 1,
+  "challenges": [
+    {
+      "id": "phon.letter.sound.sing-the-letterling",
+      "name": "Sing the Letterling",
+      "skillId": "phon.letter.sound",
+      "domain": "Phonics",
+      "band": "Discover",
+      "type": "TapToHearRepeat",
+      "storyHookKey": "hook.harbor.letterling_lost_sound",
+      "promptVoKey": "vo.phon.letter.sound.sing",
+      "items": [{ "letter": "m", "sound": "/m/", "asset": "letterling_m" }],
+      "reward": { "sparkles": 5, "starGems": 1, "tier": "small" }
+    },
+    {
+      "id": "phon.cvc.blend.bubble-blend",
+      "name": "Bubble Blend",
+      "skillId": "phon.cvc.blend",
+      "domain": "Phonics",
+      "band": "Practice",
+      "type": "SequenceTap",
+      "storyHookKey": "hook.harbor.bubbles_pop_in_order",
+      "promptVoKey": "vo.phon.cvc.blend.cat",
+      "items": [{ "word": "cat", "sounds": ["/c/", "/a/", "/t/"] }],
+      "reward": { "sparkles": 8, "starGems": 1, "tier": "small" }
+    },
+    {
+      "id": "read.sentence.read-the-sign",
+      "name": "Read the Sign",
+      "skillId": "read.sentence",
+      "domain": "Reading",
+      "band": "Practice",
+      "type": "TapWordsInOrder",
+      "storyHookKey": "hook.harbor.lost_pal_needs_sign",
+      "promptVoKey": "vo.read.sentence.help_pal",
+      "items": [{ "sentence": "go this way", "tapToHear": true }],
+      "reward": { "sparkles": 10, "starGems": 2, "tier": "medium" }
+    },
+    {
+      "id": "math.count20.comet-carnival",
+      "name": "Comet Carnival 20",
+      "skillId": "math.count20",
+      "domain": "Math",
+      "band": "Practice",
+      "type": "TapToCount",
+      "storyHookKey": "hook.station.comets_to_count",
+      "promptVoKey": "vo.math.count20",
+      "items": [{ "count": 17 }],
+      "reward": { "sparkles": 8, "starGems": 1, "tier": "small" }
+    },
+    {
+      "id": "math.add10.make-10-machine",
+      "name": "Make 10 Machine",
+      "skillId": "math.add10",
+      "domain": "Math",
+      "band": "Master",
+      "type": "DragToTarget",
+      "storyHookKey": "hook.station.make_ten",
+      "promptVoKey": "vo.math.add10.make_ten",
+      "items": [{ "target": 10, "have": 6 }],
+      "reward": { "sparkles": 12, "starGems": 2, "tier": "medium" }
+    },
+    {
+      "id": "pat.ABC.extend.triple-twinkle",
+      "name": "Triple Twinkle",
+      "skillId": "pat.ABC.extend",
+      "domain": "Patterns",
+      "band": "Practice",
+      "type": "TapChoose",
+      "storyHookKey": "hook.forest.extend_glow",
+      "promptVoKey": "vo.pat.abc.extend",
+      "items": [{ "pattern": ["blue", "green", "pink"], "ask": "next" }],
+      "reward": { "sparkles": 8, "starGems": 1, "tier": "small" }
+    },
+    {
+      "id": "logic.sort2.two-way-sort",
+      "name": "Two-Way Sort",
+      "skillId": "logic.sort2",
+      "domain": "Logic",
+      "band": "Master",
+      "type": "DragSortGrid",
+      "storyHookKey": "hook.labyrinth.sort_two_ways",
+      "promptVoKey": "vo.logic.sort2",
+      "items": [{ "attributes": ["color", "shape"], "grid": "2x2" }],
+      "reward": { "sparkles": 12, "starGems": 2, "tier": "medium" }
+    },
+    {
+      "id": "mem.seq4.color-code-lock",
+      "name": "Color Code Lock",
+      "skillId": "mem.seq4",
+      "domain": "Memory",
+      "band": "Master",
+      "type": "SequenceTap",
+      "storyHookKey": "hook.meadow.open_chest",
+      "promptVoKey": "vo.mem.seq4",
+      "items": [{ "sequenceLength": 4, "palette": ["red", "blue", "green", "yellow"] }],
+      "reward": { "sparkles": 12, "starGems": 2, "tier": "medium" }
+    },
+    {
+      "id": "cre.colormix.mix-to-match",
+      "name": "Mix to Match",
+      "skillId": "cre.colormix",
+      "domain": "Creativity",
+      "band": "Master",
+      "type": "MixColors",
+      "storyHookKey": "hook.atelier.match_purple",
+      "promptVoKey": "vo.cre.colormix.purple",
+      "items": [{ "target": "purple", "sources": ["red", "blue"] }],
+      "reward": { "sparkles": 10, "starGems": 2, "tier": "medium" }
+    },
+    {
+      "id": "cre.openart.my-masterpiece",
+      "name": "My Masterpiece",
+      "skillId": "cre.openart",
+      "domain": "Creativity",
+      "band": "Discover",
+      "type": "FreeCreate",
+      "storyHookKey": "hook.atelier.free_paint",
+      "promptVoKey": "vo.cre.openart.paint",
+      "items": [{ "canvas": "free", "alwaysSucceeds": true }],
+      "reward": { "sparkles": 6, "starGems": 1, "tier": "small" }
+    }
+  ]
+}
