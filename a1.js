@@ -62,10 +62,16 @@ const FOG_GRAY=new THREE.Color('#b9b3c6'), FOG_BRIGHT=new THREE.Color('#cdefff')
 scene.background=FOG_GRAY.clone(); scene.fog=new THREE.Fog(FOG_GRAY.clone(),22,60);
 const camera=new THREE.PerspectiveCamera(56, innerWidth/innerHeight,0.1,200);
 const CAM_OFF=new THREE.Vector3(0,7.5,10);
-const hemi=new THREE.HemisphereLight('#ffffff','#cabfe0',0.62); scene.add(hemi);
-const sun=new THREE.DirectionalLight('#fff3da',0.85); sun.position.set(8,16,6); sun.castShadow=true;
+// ---- Stylized 3-point lighting (warm KEY / cool-blue FILL / purple RIM) — HUNTRIX stage look ----
+const hemi=new THREE.HemisphereLight('#eaf2ff','#b6a9d8',0.45); scene.add(hemi); // soft ambient keeps characters readable
+const sun=new THREE.DirectionalLight('#fff0d0',1.0); sun.position.set(8,16,6); sun.castShadow=true; // KEY (warm)
 sun.shadow.mapSize.set(1024,1024); sun.shadow.camera.left=-22; sun.shadow.camera.right=22; sun.shadow.camera.top=22; sun.shadow.camera.bottom=-22; scene.add(sun);
-const rimLight=new THREE.DirectionalLight('#bfe0ff',0.5); rimLight.position.set(-7,6,-9); scene.add(rimLight); // cool back-rim for anime separation
+const fillLight=new THREE.DirectionalLight('#5a8cff',0.38); fillLight.position.set(-9,5,7); scene.add(fillLight); // FILL (cool blue)
+const rimLight=new THREE.DirectionalLight('#b06aff',0.7); rimLight.position.set(-4,7,-10); scene.add(rimLight); // RIM (purple) — supernatural edge
+// ---- Cheap stylized "bloom": additive glow sprites on emissive focal points (mobile-friendly, no post FX) ----
+function glowTex(){ const cv=document.createElement('canvas'); cv.width=cv.height=64; const x=cv.getContext('2d'); const g=x.createRadialGradient(32,32,0,32,32,32); g.addColorStop(0,'rgba(255,255,255,1)'); g.addColorStop(0.4,'rgba(255,255,255,0.5)'); g.addColorStop(1,'rgba(255,255,255,0)'); x.fillStyle=g; x.fillRect(0,0,64,64); return new THREE.CanvasTexture(cv); }
+const GLOW_TEX=glowTex();
+function addGlow(parent,{color='#FFD24D',size=1,opacity=0.7,pos=[0,0,0]}={}){ const s=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW_TEX,color:new THREE.Color(color),transparent:true,opacity,blending:THREE.AdditiveBlending,depthWrite:false})); s.scale.set(size,size,1); s.position.set(pos[0],pos[1],pos[2]); parent.add(s); return s; }
 
 // ---- Anime visual pass: toon ramp + inverted-hull outline ----
 function makeRamp(arr,w){ const t=new THREE.DataTexture(new Uint8Array(arr),w,1,THREE.RGBAFormat); t.minFilter=THREE.NearestFilter; t.magFilter=THREE.NearestFilter; t.needsUpdate=true; return t; }
@@ -99,7 +105,7 @@ function house(x,z,col){ const g=new THREE.Group();
 [['#f4b98a',-7,-2],['#9ad2d8',7,-2],['#f3a6c4',-6,3],['#cdb8f0',6,3]].forEach(h=>house(h[1],h[2],h[0]));
 // sparkles
 const sparkles=[];
-function makeSparkle(x,z){ const m=new THREE.Mesh(new THREE.OctahedronGeometry(.32),new THREE.MeshStandardMaterial({color:'#FFD24D',emissive:'#FFC83D',emissiveIntensity:.7})); m.position.set(x,1.2,z); scene.add(m); sparkles.push({m,magnet:false,pop:0,seed:Math.random()*6}); }
+function makeSparkle(x,z){ const m=new THREE.Mesh(new THREE.OctahedronGeometry(.32),new THREE.MeshStandardMaterial({color:'#FFD24D',emissive:'#FFC83D',emissiveIntensity:.7})); m.position.set(x,1.2,z); addGlow(m,{color:'#FFD24D',size:0.85,opacity:0.6}); scene.add(m); sparkles.push({m,magnet:false,pop:0,seed:Math.random()*6}); }
 [[-3,1],[3,.5],[-1.5,-2],[2,-3.5],[-4,-4]].forEach(p=>makeSparkle(p[0],p[1]));
 
 // ---------------- Environment polish: sky, clouds, ambient sparkles, glow, flowers ----------------
@@ -135,7 +141,9 @@ function rebuildHair(style){ if(avHair) avatar.remove(avHair); avHair=new THREE.
 rebuildHair(state.avatar.style||'short');
 avatar.position.set(0,0,5); scene.add(avatar);
 [avBody,avHead].forEach(m=>addOutline(m,'#2a2138',0.02)); // anime outline on the hero
+let avStarGlow=addGlow(avStar,{color:state.avatar.color,size:0.95,opacity:0.85}); // color-identity glow on the hero's star-tool
 function applyAvatar(){ avBodyMat.color.set(state.avatar.color); avHairMat.color.set(state.avatar.hair); avSkinMat.color.set(state.avatar.skin);
+  if(avStarGlow) avStarGlow.material.color.set(state.avatar.color);
   if(heroLoaded && heroOutfitMats.length) heroOutfitMats.forEach(m=>m.color.set(state.avatar.color)); }
 function addHat(){ if(!state.avatar.cosmetics.includes('hat')) state.avatar.cosmetics.push('hat'); if(heroLoaded) return; if(avHat)return; avHat=new THREE.Mesh(new THREE.ConeGeometry(.45,.5,16),new THREE.MeshStandardMaterial({color:'#FF8FCF',roughness:.6})); avHat.position.y=2.15; avatar.add(avHat); }
 function addCape(){ if(!state.avatar.cosmetics.includes('cape')) state.avatar.cosmetics.push('cape'); if(heroLoaded) return; if(avCape)return; avCape=new THREE.Mesh(new THREE.ConeGeometry(.55,1,12,1,true),new THREE.MeshStandardMaterial({color:'#7B4FC4',side:THREE.DoubleSide,roughness:.7})); avCape.position.set(0,.95,-.28); avatar.add(avCape); }
@@ -186,7 +194,7 @@ let rumiCape=null,rumiCrown=null;
   const bstar=new THREE.Mesh(new THREE.OctahedronGeometry(.14),new THREE.MeshStandardMaterial({color:'#FFD24D',emissive:'#a98a00',emissiveIntensity:.5})); bstar.position.set(-.62,.7,.2);
   const staff=new THREE.Mesh(new THREE.CylinderGeometry(.05,.05,1.1,8),new THREE.MeshStandardMaterial({color:'#e8e2f0'})); staff.position.set(.55,1.1,0);
   const mic=new THREE.Mesh(new THREE.SphereGeometry(.16,12,12),new THREE.MeshStandardMaterial({color:'#FFD24D',emissive:'#FFC83D',emissiveIntensity:.6})); mic.position.set(.55,1.7,0);
-  rumi.add(j,core,head,hair,braid,bstar,staff,mic); addOutline(j,'#3a2a1a',0.02); addOutline(head,'#3a2a1a',0.02); }
+  rumi.add(j,core,head,hair,braid,bstar,staff,mic); addOutline(j,'#3a2a1a',0.02); addOutline(head,'#3a2a1a',0.02); addGlow(mic,{color:'#FFE08A',size:1.15,opacity:0.85}); addGlow(bstar,{color:'#FFD24D',size:0.5,opacity:0.7}); }
 rumi.position.set(-2.2,0,3); rumi.rotation.y=.4; scene.add(rumi);
 
 // Gloomling + Twinkle
@@ -202,12 +210,12 @@ const twinkle=new THREE.Group(); let twTailStar=null, twCape=null;
   const tail=new THREE.Mesh(new THREE.SphereGeometry(.38,16,16),new THREE.MeshToonMaterial({color:'#fff0cf',gradientMap:TOON_RAMP})); tail.position.set(-.5,.6,-.3);
   twTailStar=new THREE.Mesh(new THREE.OctahedronGeometry(.18),new THREE.MeshStandardMaterial({color:'#FFD24D',emissive:'#FFC83D',emissiveIntensity:.8})); twTailStar.position.set(-.78,.75,-.45);
   const eye=x=>{const m=new THREE.Mesh(new THREE.SphereGeometry(.07,10,10),new THREE.MeshBasicMaterial({color:'#241B3A'}));m.position.set(x,1.15,.36);return m;};
-  twinkle.add(body,head,ear(-.18),ear(.18),tail,twTailStar,eye(-.14),eye(.14)); addOutline(body,'#5a3aa0',0.018); addOutline(head,'#5a3aa0',0.018); }
+  twinkle.add(body,head,ear(-.18),ear(.18),tail,twTailStar,eye(-.14),eye(.14)); addOutline(body,'#5a3aa0',0.018); addOutline(head,'#5a3aa0',0.018); addGlow(twTailStar,{color:'#FFD24D',size:0.72,opacity:0.8}); }
 twinkle.position.copy(gloomling.position); twinkle.visible=false; scene.add(twinkle);
 let twinkleFollows=false;
 
 const marker=new THREE.Mesh(new THREE.TorusGeometry(.7,.12,8,24),new THREE.MeshStandardMaterial({color:'#FFD24D',emissive:'#FFC83D',emissiveIntensity:.7}));
-marker.rotation.x=-Math.PI/2; marker.visible=false; scene.add(marker);
+marker.rotation.x=-Math.PI/2; marker.visible=false; addGlow(marker,{color:'#FFD24D',size:1.3,opacity:0.5}); scene.add(marker);
 function setMarker(p){ if(!p){marker.visible=false;return;} marker.position.set(p.x,.1,p.z); marker.visible=true; }
 
 // movement
@@ -605,7 +613,7 @@ function tick(now){ const dt=Math.min((now-lastT)/1000,.05); lastT=now; const t=
   rumi.position.y=Math.sin(t*1.6)*.04;
   if(reached===false && controlEnabled && Math.hypot(gloomling.position.x-avatar.position.x,gloomling.position.z-avatar.position.z)<2.0){ reachSpot(); }
   if(blooming&&bloom<1){ bloom=Math.min(1,bloom+dt*.6); skyMat.color.copy(new THREE.Color('#8a86a0')).lerp(new THREE.Color('#ffffff'),bloom); scene.fog.color.copy(FOG_GRAY).lerp(FOG_BRIGHT,bloom);
-    hemi.intensity=.62+.5*bloom; water.material.color.copy(new THREE.Color('#7fb6bf')).lerp(new THREE.Color('#3fc8d2'),bloom); water.material.emissiveIntensity=0.1*bloom; dock.material.color.copy(new THREE.Color('#e7c9a6')).lerp(new THREE.Color('#ffe3b0'),bloom);
+    hemi.intensity=.45+.35*bloom; water.material.color.copy(new THREE.Color('#7fb6bf')).lerp(new THREE.Color('#3fc8d2'),bloom); water.material.emissiveIntensity=0.1*bloom; dock.material.color.copy(new THREE.Color('#e7c9a6')).lerp(new THREE.Color('#ffe3b0'),bloom);
     flowers.forEach((f,i)=>f.scale.setScalar(Math.max(0,Math.min(1,bloom*1.3-i*0.02))*(0.85+0.3*Math.sin(i)))); }
   for(let i=bursts.length-1;i>=0;i--){ const b=bursts[i]; b.life-=dt*1.4; b.m.position.addScaledVector(b.v,dt); b.v.y-=dt*4; if(b.life<=0){ scene.remove(b.m); bursts.splice(i,1);} }
   // VFX 2.0 updates: magic star fountain, expanding rings, spotlight disc
