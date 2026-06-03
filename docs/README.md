@@ -25,6 +25,7 @@ This suite follows the project's master prompt collection. Each prompt → one p
 | **Unity Development** (architecture + C#) | [`unity-architecture.md`](unity-architecture.md) | ✅ |
 | **Franchise Development** | [`franchise-bible.md`](franchise-bible.md) | ✅ |
 | **Art Bible** (+ mockup boards) | [`art-bible.md`](art-bible.md) · [`art/mockups/`](art/mockups/) | ✅ |
+| **Hero Production Package** (Rumi, 10 phases) | [`hero-package-rumi.md`](hero-package-rumi.md) | ✅ |
 
 Supporting: [`schemas/`](schemas/) (ScriptableObjects + sample data) · [`art/`](art/) (drop the HUNTRIX sheet here as `concept-sheet.png`).
 
