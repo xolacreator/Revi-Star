@@ -39,6 +39,18 @@ function chime(type='good'){ try{ actx=actx||new(window.AudioContext||window.web
   const seq=type==='good'?[660,880]:type==='win'?[660,880,1320]:[520];
   seq.forEach((f,i)=>{ const o=actx.createOscillator(),g=actx.createGain(); o.type='sine'; o.frequency.value=f; o.connect(g); g.connect(actx.destination);
     const t=actx.currentTime+i*0.12; g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.25,t+0.02); g.gain.exponentialRampToValueAtTime(0.0001,t+0.3); o.start(t); o.stop(t+0.32);});}catch(e){} }
+// ---- Phase 1A: tap feedback + collection juice helpers ----
+function haptic(ms){ try{ if(navigator.vibrate) navigator.vibrate(ms); }catch(e){} }
+function tapRing(x,y){ const r=document.createElement('div'); r.className='tap-ring'; r.style.left=x+'px'; r.style.top=y+'px'; document.body.appendChild(r); setTimeout(()=>r.remove(),450); }
+let comboN=0, comboT=0;
+function collectChime(){ try{ actx=actx||new(window.AudioContext||window.webkitAudioContext)();
+  const now=actx.currentTime; if(now-comboT>1.2) comboN=0; comboT=now; const step=Math.min(comboN,8); comboN++;
+  const base=660*Math.pow(2,step/12); // upgraded sound: warm chord + shimmer, rising pitch on a combo
+  [[base,'triangle',0,0.22],[base*1.5,'sine',0.05,0.16],[base*2,'sine',0.09,0.12]].forEach(([f,type,off,vol])=>{ const o=actx.createOscillator(),g=actx.createGain(); o.type=type; o.frequency.value=f; o.connect(g); g.connect(actx.destination);
+    const tt=now+off; g.gain.setValueAtTime(0.0001,tt); g.gain.exponentialRampToValueAtTime(vol,tt+0.015); g.gain.exponentialRampToValueAtTime(0.0001,tt+0.28); o.start(tt); o.stop(tt+0.3); }); }catch(e){} }
+let avatarPop=0; function avatarReact(){ avatarPop=1; }
+function collectStar(pos){ burst(pos,'#FFD24D',14); collectChime(); haptic(12);
+  if(delight.reward===null){ delight.reward=Math.round(performance.now()-launchT); log('first_reward',{ms:delight.reward}); } }
 
 // ---------------- Renderer / scene ----------------
 const root=$('scene-root');
@@ -73,7 +85,7 @@ function house(x,z,col){ const g=new THREE.Group();
 [['#f4b98a',-7,-2],['#9ad2d8',7,-2],['#f3a6c4',-6,3],['#cdb8f0',6,3]].forEach(h=>house(h[1],h[2],h[0]));
 // sparkles
 const sparkles=[];
-function makeSparkle(x,z){ const m=new THREE.Mesh(new THREE.OctahedronGeometry(.32),new THREE.MeshStandardMaterial({color:'#FFD24D',emissive:'#FFC83D',emissiveIntensity:.7})); m.position.set(x,1.2,z); scene.add(m); sparkles.push(m); }
+function makeSparkle(x,z){ const m=new THREE.Mesh(new THREE.OctahedronGeometry(.32),new THREE.MeshStandardMaterial({color:'#FFD24D',emissive:'#FFC83D',emissiveIntensity:.7})); m.position.set(x,1.2,z); scene.add(m); sparkles.push({m,magnet:false,pop:0,seed:Math.random()*6}); }
 [[-3,1],[3,.5],[-1.5,-2],[2,-3.5],[-4,-4]].forEach(p=>makeSparkle(p[0],p[1]));
 
 const skin=c=>new THREE.MeshStandardMaterial({color:c,roughness:.7});
@@ -175,8 +187,9 @@ let controlEnabled=false;
 function tapGround(cx,cy){ if(!controlEnabled)return; ndc.x=(cx/innerWidth)*2-1; ndc.y=-(cy/innerHeight)*2+1; ray.setFromCamera(ndc,camera);
   const hit=ray.intersectObject(water,false)[0];
   if(hit&&Math.hypot(hit.point.x,hit.point.z)<=WORLD_R-1){ target.copy(hit.point); target.y=0; $('hint').style.opacity=0;
+    burst(new THREE.Vector3(hit.point.x,0.06,hit.point.z),'#FFE9A8',6); avatarReact(); // tap = small ground sparkle + avatar reaction
     if(delight.interaction===null){ delight.interaction=Math.round(performance.now()-launchT); log('first_interaction',{ms:delight.interaction}); } } }
-renderer.domElement.addEventListener('pointerdown',e=>{ if(controlEnabled) tapGround(e.clientX,e.clientY); });
+renderer.domElement.addEventListener('pointerdown',e=>{ tapRing(e.clientX,e.clientY); haptic(8); if(controlEnabled) tapGround(e.clientX,e.clientY); });
 
 // bursts / confetti / bloom
 const bursts=[];
@@ -507,6 +520,7 @@ function tick(now){ const dt=Math.min((now-lastT)/1000,.05); lastT=now; const t=
   let moving=false; const dx=target.x-avatar.position.x, dz=target.z-avatar.position.z, d=Math.hypot(dx,dz);
   if(d>.08){ moving=true; const step=Math.min(6*dt,d); avatar.position.x+=dx/d*step; avatar.position.z+=dz/d*step; avatar.rotation.y=Math.atan2(dx,dz); }
   avatar.position.y= (moving && !heroLoaded)?Math.abs(Math.sin(t*10))*.12:0;
+  if(avatarPop>0.001){ avatarPop*=Math.exp(-dt*9); const p=avatarPop; avatar.scale.set(1+p*0.08,1-p*0.10,1+p*0.08); } else if(avatar.scale.y!==1){ avatar.scale.set(1,1,1); avatarPop=0; }
   if(heroMixer) heroMixer.update(dt);
   if(heroLoaded && !heroPerforming) playHero(moving && heroActions.walk ? 'walk' : 'idle');
   if(creationMode){ // live close-up while customizing YOUR hero
@@ -519,9 +533,12 @@ function tick(now){ const dt=Math.min((now-lastT)/1000,.05); lastT=now; const t=
     camera.position.lerp(avatar.position.clone().add(CAM_OFF),1-Math.exp(-dt*6)); camera.lookAt(avatar.position.x,1.2,avatar.position.z);
   }
   if(marker.visible){ marker.rotation.z+=dt*2; marker.position.y=.1+Math.sin(t*3)*.08; }
-  for(let i=sparkles.length-1;i>=0;i--){ const s=sparkles[i]; s.rotation.y+=dt*2; s.position.y=1.2+Math.sin(t*3+i)*.12;
-    if(controlEnabled && Math.hypot(s.position.x-avatar.position.x,s.position.z-avatar.position.z)<1.1){ burst(s.position,'#FFD24D',8); chime('good'); scene.remove(s); sparkles.splice(i,1);
-      if(delight.reward===null){ delight.reward=Math.round(performance.now()-launchT); log('first_reward',{ms:delight.reward}); } } }
+  for(let i=sparkles.length-1;i>=0;i--){ const s=sparkles[i], m=s.m; m.rotation.y+=dt*2.4;
+    if(!s.magnet){ m.position.y=1.2+Math.sin(t*3+s.seed)*.12;
+      if(controlEnabled && Math.hypot(m.position.x-avatar.position.x,m.position.z-avatar.position.z)<3.0) s.magnet=true; }
+    if(s.magnet){ s.pop=Math.min(1,s.pop+dt*5); m.scale.setScalar(1+0.6*Math.sin(s.pop*Math.PI)); // scale up before collection
+      const goal=new THREE.Vector3(avatar.position.x,1.0,avatar.position.z); m.position.lerp(goal,1-Math.exp(-dt*11)); // fly into the avatar
+      if(m.position.distanceTo(goal)<0.45){ collectStar(m.position.clone()); scene.remove(m); sparkles.splice(i,1); } } }
   if(gloomling.visible) gloomling.position.y=Math.sin(t*2)*.1;
   if(twinkle.visible){ const baseY=Math.sin(t*3)*.12; if(twinkleFollows){ const behind=new THREE.Vector3(Math.sin(avatar.rotation.y)*-1.6,0,Math.cos(avatar.rotation.y)*-1.6); const goal=avatar.position.clone().add(behind); twinkle.position.lerp(new THREE.Vector3(goal.x, twinkle.position.y, goal.z),1-Math.exp(-dt*4)); twinkle.position.y=1.4+baseY; } else twinkle.position.y=baseY+0.0+gloomling.position.y*0; if(twTailStar) twTailStar.material.emissiveIntensity=.8+Math.sin(t*6)*.3; }
   rumi.position.y=Math.sin(t*1.6)*.04;

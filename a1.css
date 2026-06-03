@@ -2,6 +2,12 @@
 .day-chip{font-weight:800;color:#fff;background:rgba(106,75,196,.7);padding:8px 14px;border-radius:999px;font-size:15px;white-space:nowrap}
 .parent-open{position:absolute;top:calc(env(safe-area-inset-top) + 14px);right:14px;border:none;width:46px;height:46px;border-radius:50%;font-size:22px;background:rgba(255,255,255,.85);pointer-events:auto;box-shadow:0 4px 12px rgba(80,40,120,.25)}
 
+/* Phase 1A: tap ring (expanding ring at the touch point) */
+.tap-ring{position:fixed;width:26px;height:26px;margin:-13px 0 0 -13px;border-radius:50%;
+  border:3px solid #FFD24D;box-shadow:0 0 10px rgba(255,210,77,.6);pointer-events:none;z-index:50;
+  animation:tapring .45s ease-out forwards}
+@keyframes tapring{0%{transform:scale(.4);opacity:.9}100%{transform:scale(2.5);opacity:0}}
+
 /* avatar creation — bottom sheet so the live 3D hero shows above it */
 .sheet{position:fixed;left:0;right:0;bottom:0;z-index:12;background:linear-gradient(160deg,#7d5bd6,#FF8FCF);
   border-radius:28px 28px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom));
