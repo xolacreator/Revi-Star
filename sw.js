@@ -1,12 +1,15 @@
 // Doodle Stars service worker — offline app shell caching.
 // Bump CACHE when any shell file changes so clients pull fresh copies.
-const CACHE = 'starbound-hunters-v5';
+const CACHE = 'little-legends-harbor-v6';
 const SHELL = [
   './',
   './index.html',
-  './world3d.js',
+  './harbor.js',
+  './harbor.css',
   './vendor/three.module.min.js',
   './vendor/three.core.min.js',
+  './demo-explore.html',
+  './world3d.js',
   './styles.css',
   './classic.html',
   './characters.js',

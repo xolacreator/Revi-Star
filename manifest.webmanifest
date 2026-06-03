@@ -1,7 +1,7 @@
 {
-  "name": "Starbound Hunters: Little Legends",
-  "short_name": "Starbound Hunters",
-  "description": "Explore a magical 3D district as a Star Hunter — sing to rescue Gloomlings, collect cute Star Pals, design outfits, and perform!",
+  "name": "Starbound: Little Legends — Harmony Harbor",
+  "short_name": "Little Legends",
+  "description": "A magical reading adventure for ages 5-7. Explore Harmony Harbor, read with Rumi to relight the lighthouse, befriend Twinkle, and watch Rumi transform!",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

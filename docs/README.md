@@ -26,6 +26,10 @@ This suite follows the project's master prompt collection. Each prompt → one p
 | **Franchise Development** | [`franchise-bible.md`](franchise-bible.md) | ✅ |
 | **Art Bible** (+ mockup boards) | [`art-bible.md`](art-bible.md) · [`art/mockups/`](art/mockups/) | ✅ |
 | **Hero Production Package** (Rumi, 10 phases) | [`hero-package-rumi.md`](hero-package-rumi.md) | ✅ |
+| **Vertical Slice — User Testing Kit** | [`vertical-slice-user-testing.md`](vertical-slice-user-testing.md) | ✅ |
+
+## Playable vertical slice
+The repo root is now the **Harmony Harbor vertical slice** (`index.html` + `harbor.js` + `harbor.css`) — a web build that runs the full loop (explore → read with Rumi → befriend Twinkle → transformation → reward → "again?") with **audio narration** and **no-fail** learning, for testing with real 5–7s. Live: `https://xolacreator.github.io/Revi-Star/`. Prior demos preserved as `demo-explore.html` / `classic.html`.
 
 Supporting: [`schemas/`](schemas/) (ScriptableObjects + sample data) · [`art/`](art/) (drop the HUNTRIX sheet here as `concept-sheet.png`).
 
