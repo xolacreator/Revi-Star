@@ -29,6 +29,8 @@ This suite follows the project's master prompt collection. Each prompt → one p
 | **Vertical Slice — User Testing Kit** | [`vertical-slice-user-testing.md`](vertical-slice-user-testing.md) | ✅ |
 | **Strategic Review** (slice evaluation) | [`vertical-slice-strategic-review.md`](vertical-slice-strategic-review.md) | ✅ |
 | **Week-One Loop — Milestone Spec** | [`week-one-loop-spec.md`](week-one-loop-spec.md) | ✅ |
+| **Milestone A1 — Three-Day Proof** (build notes) | [`milestone-a1-three-day-proof.md`](milestone-a1-three-day-proof.md) | ✅ |
+| **Three-Day Proof — Recruiting & Testing Kit** | [`three-day-proof-research-kit.md`](three-day-proof-research-kit.md) | ✅ |
 
 ## Playable vertical slice
 The repo root is now the **Harmony Harbor vertical slice** (`index.html` + `harbor.js` + `harbor.css`) — a web build that runs the full loop (explore → read with Rumi → befriend Twinkle → transformation → reward → "again?") with **audio narration** and **no-fail** learning, for testing with real 5–7s. Live: `https://xolacreator.github.io/Revi-Star/`. Prior demos preserved as `demo-explore.html` / `classic.html`.
