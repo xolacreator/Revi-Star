@@ -120,6 +120,21 @@ function radialTex(){ const cv=document.createElement('canvas'); cv.width=cv.hei
 const lhHalo=new THREE.Sprite(new THREE.SpriteMaterial({map:radialTex(),color:'#FFE9A8',transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false})); lhHalo.scale.set(5,5,1); lhHalo.position.set(0,4.85,-6); scene.add(lhHalo);
 const flowers=[], FCOL=['#ff8fcf','#ffd24d','#8fd0ff','#7ef0c0','#b69cff']; for(let i=0;i<12;i++){ const a=(i/12)*Math.PI*2,r=5+Math.random()*3; const f=new THREE.Mesh(new THREE.SphereGeometry(0.22,8,8),new THREE.MeshToonMaterial({color:FCOL[i%5],gradientMap:TOON_RAMP})); f.position.set(Math.cos(a)*r,0.2,Math.sin(a)*r); f.scale.setScalar(0); flowers.push(f); scene.add(f); }
 water.material.emissive=new THREE.Color('#2faab0'); water.material.emissiveIntensity=0;
+// ---- Supernatural urban-magic props: glowing crystals + rotating magic-glyph circles ----
+const CRYSTAL_COLS=['#ff4fa6','#b06aff','#4fd8ff','#ffd24d','#7ef0c0']; // HUNTRIX color families
+const crystals=[];
+function makeCrystal(x,z,col,h){ const g=new THREE.Group();
+  const c=new THREE.Mesh(new THREE.ConeGeometry(0.35,h,6),new THREE.MeshToonMaterial({color:col,gradientMap:TOON_RAMP,emissive:new THREE.Color(col),emissiveIntensity:0.5})); c.position.y=h/2; c.castShadow=true;
+  const tip=new THREE.Mesh(new THREE.OctahedronGeometry(0.24),new THREE.MeshToonMaterial({color:col,gradientMap:TOON_RAMP,emissive:new THREE.Color(col),emissiveIntensity:0.6})); tip.position.y=h+0.1;
+  g.add(c,tip); addGlow(g,{color:col,size:1.6,opacity:0.5,pos:[0,h*0.7,0]}); g.position.set(x,0,z); g.rotation.y=Math.random()*6; scene.add(g); crystals.push({g,seed:Math.random()*6}); }
+[[-9,-5],[9,-5],[-11,1],[11,2],[-6,6],[6,7]].forEach((p,i)=>makeCrystal(p[0],p[1],CRYSTAL_COLS[i%CRYSTAL_COLS.length],1.1+Math.random()*0.9));
+const glyphs=[];
+function makeGlyph(x,z,col,r){ const g=new THREE.Group();
+  const ring=new THREE.Mesh(new THREE.TorusGeometry(r,0.04,6,48),new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:0.7})); ring.rotation.x=-Math.PI/2;
+  const ring2=new THREE.Mesh(new THREE.TorusGeometry(r*0.6,0.03,6,40),new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:0.55})); ring2.rotation.x=-Math.PI/2;
+  const band=new THREE.Mesh(new THREE.RingGeometry(r*0.62,r*0.66,16,1),new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:0.35,side:THREE.DoubleSide})); band.rotation.x=-Math.PI/2;
+  g.add(ring,ring2,band); g.position.set(x,0.06,z); scene.add(g); glyphs.push({g,seed:Math.random()*6,r1:ring}); }
+makeGlyph(0,0,'#b06aff',3.2); makeGlyph(-7,-1,'#4fd8ff',1.6); makeGlyph(7,-1,'#ff4fa6',1.6);
 
 const skin=c=>new THREE.MeshToonMaterial({color:c, gradientMap:TOON_RAMP});
 // avatar (child) — materials kept for customization + cosmetics
@@ -643,6 +658,8 @@ function tick(now){ const dt=Math.min((now-lastT)/1000,.05); lastT=now; const t=
   for(const c of clouds){ c.position.x+=dt*0.6; if(c.position.x>34) c.position.x=-34; }
   if(ambient){ ambient.rotation.y+=dt*0.03; ambient.material.opacity=0.35+0.2*Math.sin(t*1.5); }
   { const lit=lhLightMat.emissiveIntensity>0.1; lhHalo.material.opacity+=((lit?0.7+0.18*Math.sin(t*3):0)-lhHalo.material.opacity)*Math.min(1,dt*4); }
+  for(const c of crystals){ const e=0.5+Math.sin(t*1.5+c.seed)*0.25; c.g.children[0].material.emissiveIntensity=e; c.g.children[1].material.emissiveIntensity=e+0.12; } // energy-infused pulse
+  for(const gl of glyphs){ gl.g.rotation.y+=dt*0.25; gl.r1.material.opacity=0.55+0.25*Math.sin(t*1.2+gl.seed); } // slowly turning magic glyphs
   renderer.render(scene,camera); requestAnimationFrame(tick);
 }
 addEventListener('resize',()=>{ camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth,innerHeight); });
