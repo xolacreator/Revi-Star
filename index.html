@@ -4,36 +4,42 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="theme-color" content="#6A4BC4">
-  <title>Harmony Harbor — Starbound: Little Legends</title>
-
+  <title>Harmony Harbor — Three-Day Proof</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon-192.png">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Little Legends">
-
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="harbor.css">
+  <link rel="stylesheet" href="a1.css">
 </head>
 <body>
   <div id="scene-root"></div>
 
-  <!-- HUD: Harmony Energy meter + hint -->
+  <!-- researcher observer bar (only with ?observe=1) -->
+  <div id="observer" class="observer hidden">
+    <span>👀 Observer:</span>
+    <button id="mark-smile">First smile 🙂</button>
+    <button id="mark-excited">First "wow!" 🗣️</button>
+    <span id="obs-readout"></span>
+  </div>
+
+  <!-- HUD -->
   <div id="hud" class="hidden">
     <div class="hud-top">
-      <div class="energy">
-        <span class="energy-label">Harmony Energy</span>
-        <div class="energy-bar"><div id="energy-fill"></div></div>
-      </div>
+      <div class="day-chip">Day <span id="day-num">1</span> · ⭐<span id="star-num">0</span></div>
+      <div class="energy"><span class="energy-label">Harmony Energy</span><div class="energy-bar"><div id="energy-fill"></div></div></div>
       <button id="hear-btn" class="hear-btn" title="Hear it again">🔊</button>
     </div>
     <div id="hint" class="hint"></div>
+    <button id="parent-open" class="parent-open" title="Grown-ups">👪</button>
   </div>
 
-  <!-- Speech bubble (Rumi / characters) -->
+  <!-- Speech bubble -->
   <div id="bubble" class="bubble hidden"><span id="bubble-name"></span><p id="bubble-text"></p><button id="bubble-next" class="bubble-next">Tap ▶</button></div>
 
   <!-- Intro -->
@@ -45,9 +51,27 @@
     <small>Best with sound on 🔊</small>
   </div>
 
+  <!-- Avatar creation -->
+  <div id="avatar-create" class="overlay avatar-create hidden">
+    <h1>Make your Star Hunter!</h1>
+    <div class="ac-row"><span>Skin</span><div id="ac-skin" class="swatches"></div></div>
+    <div class="ac-row"><span>Hair</span><div id="ac-hair" class="swatches"></div></div>
+    <div class="ac-row"><span>Color</span><div id="ac-color" class="swatches"></div></div>
+    <button id="ac-done" class="big-btn">That's me! ✨</button>
+  </div>
+
+  <!-- Star Check (pre/post test) -->
+  <div id="starcheck" class="overlay starcheck hidden">
+    <h2 id="sc-title">Twinkle's Star Check ⭐</h2>
+    <p id="sc-sub">A fun little game — just try your best!</p>
+    <div id="sc-pic" class="ch-pic">⭐</div>
+    <h3 id="sc-prompt"></h3>
+    <div id="sc-options" class="ch-options"></div>
+  </div>
+
   <!-- Learning challenge -->
   <div id="challenge" class="overlay challenge hidden">
-    <div class="ch-lights"><span class="lite" data-i="0">○</span><span class="lite" data-i="1">○</span><span class="lite" data-i="2">○</span></div>
+    <div class="ch-lights" id="ch-lights"></div>
     <div id="ch-pic" class="ch-pic">☀️</div>
     <h2 id="ch-prompt">Let's read!</h2>
     <div id="ch-options" class="ch-options"></div>
@@ -57,41 +81,63 @@
     </div>
   </div>
 
-  <!-- Transformation -->
+  <!-- Transformation / evolution -->
   <div id="transform" class="overlay transform hidden">
     <div class="tf-rays"></div>
-    <div class="tf-star">🌟</div>
+    <div class="tf-star" id="tf-emoji">🌟</div>
     <h1 id="tf-title">RUMI is transforming!</h1>
     <p id="tf-sub">✨ RISING STAR ✨</p>
   </div>
 
   <!-- Reward -->
   <div id="reward" class="overlay reward hidden">
-    <h1>You did it! 🎉</h1>
-    <div class="reward-cards">
-      <div class="rcard"><div class="rc-ico">⭐</div><b>Reading Star</b><small>You read 3 words!</small></div>
-      <div class="rcard"><div class="rc-ico">🦊</div><b>Twinkle</b><small>A new friend!</small></div>
-      <div class="rcard"><div class="rc-ico">💛</div><b>+Harmony</b><small>The harbor glows!</small></div>
-    </div>
+    <h1 id="reward-h">You did it! 🎉</h1>
+    <div class="reward-cards" id="reward-cards"></div>
     <button id="reward-next" class="big-btn">Yay! ▶</button>
   </div>
 
-  <!-- Hub return -->
-  <div id="hub" class="overlay hub hidden">
-    <div class="intro-star">🏠</div>
-    <h1>Great adventure!</h1>
-    <p>Twinkle and Rumi can't wait to play again.</p>
-    <button id="play-again" class="big-btn">Another Adventure! 🔁</button>
-    <button id="all-done" class="text-btn">All done for now 💛</button>
+  <!-- Tomorrow tease / day gate -->
+  <div id="daygate" class="overlay hub hidden">
+    <div class="intro-star" id="dg-emoji">🌙</div>
+    <h1 id="dg-title">See you tomorrow!</h1>
+    <p id="dg-text">Come back tomorrow for the next adventure.</p>
+    <button id="dg-close" class="text-btn">Okay 💛</button>
+  </div>
+
+  <!-- Parent gate -->
+  <div id="parent-gate" class="overlay pgate hidden">
+    <h2>Grown-ups only 🔒</h2>
+    <p id="pg-prompt">Tap the numbers: <b id="pg-seq">3 · 7 · 1</b></p>
+    <div id="pg-pad" class="pg-pad"></div>
+    <button id="pg-cancel" class="text-btn">Back</button>
+  </div>
+
+  <!-- Parent dashboard -->
+  <div id="parent" class="overlay parent hidden">
+    <div class="parent-card">
+      <div class="pc-head"><b id="pc-name">Star Hunter</b> · Day <span id="pc-day">1</span> of 3 <span id="pc-streak" class="streak">🔥 1</span></div>
+      <div class="pc-bar"><span>📖 Reading</span><div class="bar"><div id="pc-reading"></div></div><i id="pc-reading-l">Growing!</i></div>
+      <div class="pc-bar"><span>💪 Confidence</span><div class="bar"><div id="pc-conf"></div></div><i id="pc-conf-l">Growing!</i></div>
+      <div class="pc-bar"><span>⭐ Streak</span><div id="pc-dots" class="dots"></div></div>
+      <div class="pc-takeaway"><b>✅ Today your child practiced READING:</b><ul id="pc-today"></ul></div>
+      <div class="pc-stars">Starting Stars ⭐ <span id="pc-pre">–</span>/6 → After Day 3 ⭐ <span id="pc-post">–</span>/6</div>
+    </div>
+    <div id="reengage" class="reengage hidden">
+      <p><b>If your child asked to play again tomorrow, would you encourage it?</b></p>
+      <div class="re-btns"><button data-v="yes">Yes 💛</button><button data-v="maybe">Maybe</button><button data-v="no">No</button></div>
+    </div>
+    <div class="pc-tools">
+      <button id="pc-export" class="pill">⬇️ Export data</button>
+      <button id="pc-sim" class="pill">⏭️ Simulate next day</button>
+      <button id="pc-reset" class="pill">♻️ Reset test</button>
+    </div>
+    <button id="pc-close" class="big-btn">Done</button>
   </div>
 
   <noscript><p style="color:#fff;padding:20px">Please enable JavaScript to play.</p></noscript>
-
-  <script type="module" src="harbor.js"></script>
+  <script type="module" src="a1.js"></script>
   <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
-    }
+    if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(()=>{}));
   </script>
 </body>
 </html>
