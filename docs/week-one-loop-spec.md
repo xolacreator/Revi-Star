@@ -191,6 +191,62 @@ Test cohort: **~20 recruited, engaged families** (parents who opted into a 7-day
 
 ---
 
+## 8. Metric Framework — Green / Yellow / Red (calibrated for 10–20 families)
+
+> **Small-sample caveat (read first):** with **n = 10–20**, each family ≈ **5–10 points**. Thresholds are **directional decision aids, not statistically powered**. Rule: trust a color only when **≥2 metrics converge** and **qualitative observation agrees**. Report **ranges**, not point estimates. Cohort = *recruited, motivated families* — real-world funnels will run lower and are judged separately.
+
+| Metric | What it measures | Why it matters | How it's measured | 🟢 Green (strong) | 🟡 Yellow (iterate) | 🔴 Red (pivot risk) |
+|---|---|---|---|---|---|---|
+| **D1 retention** | % of starters who return for session 2 | If they won't come back **once**, nothing else matters | `next_day_returned` within ~36h | **≥ 80%** | 60–79% | **< 60%** |
+| **D3 retention** | % reaching Day 3 within ~4 calendar days | Pull **beyond the Day-1 novelty** | `day_complete` dayIndex ≥ 3 | **≥ 65%** | 45–64% | **< 45%** |
+| **D7 retention** | % completing all 7 days within ~10 days | **The hypothesis** — durable daily habit | `day_complete` day 7 | **≥ 50%** | 30–49% | **< 30%** |
+| **Child-initiated return** | Days the child *asks to play unprompted* | Intrinsic pull vs. parent nudging | nightly 1-tap: "who started it?" | self-initiates **≥4/7 days for ≥60% of kids** | 2–3/7, or ~40% of kids | **≤1/7**, or <25% of kids |
+| **Hint usage** | Hints per item + its **trend** D1→D7 | Independence / whether they're actually learning | `hintsUsed / items` per day | **downward trend**, ends **< 0.5/item** | flat 0.5–1.0 | **rising**, or > 1.5/item |
+| **Independent reading attempts** | First-try, zero-hint correct rate | Competence & confidence (the real skill) | `firstTryCorrect & hints=0 / items` | **≥ 60% by D7 and rising** | 40–59%, flat | **< 40%**, or falling |
+| **Modeled rate** (guard-rail) | % items "won" only via model-after-2-misses | Detects **pattern-tapping** of the no-fail | `modeled / items` | **< 10%** | 10–25% | **> 25%** |
+| **Learning gain** (pre/post) | Post − Pre Stars on **transfer** items | **Educational validation** — fun ≠ learning | "Star Check" pre (Day 0) & post (Day 7), hint-free, *parallel* words | **median ≥ +2**, ≥70% improve, transfers | +1, 50–69% improve, partial transfer | **≤ +0.5**, <50% improve, or gains **only on identical** items |
+| **Parent "sees value"** | % agreeing *"I can clearly see what my child learned"* | The **adoption gate** (parents are the buyer) | end-of-week 1-tap survey | **≥ 75%** | 50–74% | **< 50%** |
+| **Dashboard comprehension** | Grasping the dashboard in **<30s** | Whether value is *legible* fast | moderated: time-to-understand | **≥ 80% under 30s** | 60–79% | **< 60%** |
+| **Parent satisfaction / pay-intent** | Rating + "would you subscribe?" | Monetization signal (stated — weight lightly) | survey 1-tap | mean **≥ 4.2/5** & **≥50% would pay** | 3.5–4.1 / 30–49% | **< 3.5** / **<30% pay** |
+| **Child excitement / delight** | Unprompted joy beats; session abandonment | Durable delight vs. one-day novelty | observation + nightly smiley 😐🙂😄 | sustained joy in **≥70% of kids**, low abandon | excitement **fades mid-week** | **flat by Day 3**, or frequent abandonment |
+
+**Composite read:** GO requires Green on **D7 retention + Learning gain + Parent "sees value"** *and* no Red on the guard-rails (Modeled rate, Hint trend). Any single Red on those three = stop and diagnose.
+
+## 9. Founders Review
+
+### If the Week-One Loop **succeeds**
+**Build next (in order):**
+1. **The content pipeline / authoring tool** — variety is the proven engine; make new activities + item banks cheap to produce (this is the real scaling unlock, not new art).
+2. **A monetization test** — a soft subscription/paywall on a Week-2+ extension, to convert proven parent value into proven *willingness to pay* (move from stated to revealed).
+3. **One adjacent expansion to test breadth** — a **2nd district + 2nd hero/skill** (e.g., Nova/Math) to confirm the loop generalizes beyond reading and that cross-skill progression holds.
+4. **A production-quality pass on Rumi + real VO** — a single polished hero to validate that "premium" art/voice lifts parent trust and store conversion.
+
+**Deliberately do NOT build yet:**
+- The full **6-hero roster** or all **8 districts** (breadth before the pipeline + paywall are proven = the scaling trap).
+- The **dress-up store, pet-care depth, story cutscene production, seasonal LiveOps infra, social systems.**
+- A **native Unity port**, if the web build still answers the next question cheaply. Port when performance/feel or store presence demands it — not before.
+
+### If the Week-One Loop **fails**
+**Assumptions invalidated (by failure mode):**
+- **Retention fails (D7 Red):** the assumption that *"daily progression + transformation fantasy gives a 5–7yo a reason to return"* is wrong — the daily hook isn't strong enough.
+- **Learning fails (gain Red / modeled Red):** *"learning hidden in adventure actually teaches"* is wrong — the activities entertain but don't build skill (or kids game the no-fail).
+- **Parent value fails (sees-value / pay Red):** *"a 30-second dashboard makes parents perceive (and pay for) educational value"* is wrong — the buyer isn't convinced.
+
+**The 3 most likely pivots:**
+1. **Game-depth pivot (learn-but-don't-return, or return-but-don't-learn):** if they return but don't learn → deepen activity rigor & adaptivity; if they learn but don't return → lean harder into **collection/progression/companion** hooks and a stronger daily ritual. Rebalance toward whichever side is weak.
+2. **Buyer pivot (kids love it, parents won't pay):** move the buyer — **co-play / parent-guided model**, or **B2B2C (preschools, SLPs, libraries)** with a teacher/therapist dashboard, where an institution pays and efficacy is the sell.
+3. **Format / anchor-skill pivot (the 3D idol-reading frame underperforms):** narrow to a **cheaper, more focused format** (2D activity app), re-anchor on a skill that tests better (**music/rhythm or math**), or **invert the hook** — make the **Star Pal the core** (nurture as the loop, learning as the care mechanic) if the companion out-tests the hero.
+
+## 10. The single most predictive metric
+
+**→ Day-7 *child-initiated* return rate** (the child *willingly chooses* to play through Day 7, unprompted).
+
+**Why this one above all:**
+- **Retention is the compounding engine of a subscription product.** D7 is the leading indicator of D30, which is the leading indicator of LTV. No retention, no business — no matter how good the pedagogy.
+- It is a **revealed preference**, not a stated one (unlike pay-intent surveys, which are notoriously unreliable from parents).
+- It is an **implicit AND-gate:** a child only self-initiates for 7 days if the loop is *fun enough* (delight), the *progression works* (motivation), and the *learning isn't punishing* (no-fail + right difficulty). It silently certifies the whole child-side experience.
+- **Paired gate:** retention alone could describe a sugar-water game, so it must be **bounded by the Learning-gain metric** (≥ +2 transfer Stars). *Sustainable* = **D7 child-initiated return × positive transfer learning.** If you may track only one number to predict survival, track **how many children chose to come back on Day 7 — and keep an eye that they actually learned.**
+
 ## Build checklist to run this test (minimal)
 1. Avatar creation (3 picks: skin, hair, color) + 7-star Star Path + 4 daily cosmetic unlocks.
 2. Day controller (7 days, return detection, tomorrow-tease) over the existing slice.
