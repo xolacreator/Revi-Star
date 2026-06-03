@@ -15,7 +15,7 @@ const KEY='ll_a1', EKEY='ll_a1_events';
 function load(){ try{ return JSON.parse(localStorage.getItem(KEY)) || null; }catch(e){ return null; } }
 function save(){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} }
 let state = load() || {
-  avatar:{created:false, skin:'#ffd9b8', hair:'#5a3a2a', color:'#5ec8c0', stars:0, cosmetics:[]},
+  avatar:{created:false, skin:'#ffd9b8', hair:'#5a3a2a', color:'#5ec8c0', style:'short', name:'', stars:0, cosmetics:[]},
   day:1, completedDays:[], lastCompletedDate:null,
   rumiStage:1, twinkleForm:0,
   pre:null, post:null,
@@ -79,16 +79,25 @@ const skin=c=>new THREE.MeshStandardMaterial({color:c,roughness:.7});
 // avatar (child) — materials kept for customization + cosmetics
 const avatar=new THREE.Group();
 const avBodyMat=skin(state.avatar.color), avHairMat=skin(state.avatar.hair), avSkinMat=skin(state.avatar.skin);
-let avHat=null, avCape=null;
-{ const body=new THREE.Mesh(new THREE.CapsuleGeometry(.4,.6,6,12),avBodyMat); body.position.y=.85; body.castShadow=true;
-  const head=new THREE.Mesh(new THREE.SphereGeometry(.45,18,18),avSkinMat); head.position.y=1.7; head.castShadow=true;
-  const hair=new THREE.Mesh(new THREE.SphereGeometry(.5,18,18,0,6.3,0,1.9),avHairMat); hair.position.y=1.75;
-  const star=new THREE.Mesh(new THREE.OctahedronGeometry(.18),new THREE.MeshStandardMaterial({color:'#FFD24D',emissive:'#a98a00',emissiveIntensity:.4})); star.position.set(0,1.05,.4);
-  avatar.add(body,head,hair,star); }
+let avHat=null, avCape=null, avHair=null;
+const avBody=new THREE.Mesh(new THREE.CapsuleGeometry(.4,.6,6,12),avBodyMat); avBody.position.y=.85; avBody.castShadow=true;
+const avHead=new THREE.Mesh(new THREE.SphereGeometry(.45,18,18),avSkinMat); avHead.position.y=1.7; avHead.castShadow=true;
+const avEye=x=>{const m=new THREE.Mesh(new THREE.SphereGeometry(.055,8,8),new THREE.MeshStandardMaterial({color:'#241B3A'}));m.position.set(x,1.74,.4);return m;};
+const avStar=new THREE.Mesh(new THREE.OctahedronGeometry(.18),new THREE.MeshStandardMaterial({color:'#FFD24D',emissive:'#a98a00',emissiveIntensity:.4})); avStar.position.set(0,1.05,.4);
+avatar.add(avBody,avHead,avEye(-.15),avEye(.15),avStar);
+function rebuildHair(style){ if(avHair) avatar.remove(avHair); avHair=new THREE.Group();
+  const cap=new THREE.Mesh(new THREE.SphereGeometry(.5,18,18,0,6.3,0,1.9),avHairMat); cap.position.y=1.75; avHair.add(cap);
+  if(style==='ponytail'){ const p=new THREE.Mesh(new THREE.CapsuleGeometry(.14,.7,4,8),avHairMat); p.position.set(0,1.5,-.42); avHair.add(p); }
+  else if(style==='puffs'){ [-.5,.5].forEach(x=>{ const s=new THREE.Mesh(new THREE.SphereGeometry(.24,12,12),avHairMat); s.position.set(x,1.85,0); avHair.add(s); }); }
+  else if(style==='bun'){ const b=new THREE.Mesh(new THREE.SphereGeometry(.26,12,12),avHairMat); b.position.set(0,2.18,0); avHair.add(b); }
+  else if(style==='long'){ const l=new THREE.Mesh(new THREE.CapsuleGeometry(.22,.8,6,10),avHairMat); l.position.set(0,1.4,-.3); avHair.add(l); }
+  avatar.add(avHair); }
+rebuildHair(state.avatar.style||'short');
 avatar.position.set(0,0,5); scene.add(avatar);
 function applyAvatar(){ avBodyMat.color.set(state.avatar.color); avHairMat.color.set(state.avatar.hair); avSkinMat.color.set(state.avatar.skin); }
-function addHat(){ if(avHat)return; avHat=new THREE.Mesh(new THREE.ConeGeometry(.45,.5,16),new THREE.MeshStandardMaterial({color:'#FF8FCF',roughness:.6})); avHat.position.y=2.15; avatar.add(avHat); }
-function addCape(){ if(avCape)return; avCape=new THREE.Mesh(new THREE.ConeGeometry(.55,1,12,1,true),new THREE.MeshStandardMaterial({color:'#7B4FC4',side:THREE.DoubleSide,roughness:.7})); avCape.position.set(0,.95,-.28); avatar.add(avCape); }
+function addHat(){ if(avHat)return; avHat=new THREE.Mesh(new THREE.ConeGeometry(.45,.5,16),new THREE.MeshStandardMaterial({color:'#FF8FCF',roughness:.6})); avHat.position.y=2.15; avatar.add(avHat); if(!state.avatar.cosmetics.includes('hat')) state.avatar.cosmetics.push('hat'); }
+function addCape(){ if(avCape)return; avCape=new THREE.Mesh(new THREE.ConeGeometry(.55,1,12,1,true),new THREE.MeshStandardMaterial({color:'#7B4FC4',side:THREE.DoubleSide,roughness:.7})); avCape.position.set(0,.95,-.28); avatar.add(avCape); if(!state.avatar.cosmetics.includes('cape')) state.avatar.cosmetics.push('cape'); }
+function addStar(){ avStar.scale.setScalar(1.7); avStar.material.emissiveIntensity=.95; if(!state.avatar.cosmetics.includes('star')) state.avatar.cosmetics.push('star'); }
 
 // Rumi
 const rumi=new THREE.Group(); const rumiJacket=new THREE.MeshStandardMaterial({color:'#FFC83D',roughness:.55,emissive:'#000',emissiveIntensity:0});
@@ -151,6 +160,19 @@ function speak(name,text,btn,next){ $('bubble-name').textContent=name; $('bubble
   if(audioOn) say(text); $('bubble-next').onclick=()=>{ hide('bubble'); if(next) next(); }; }
 function setEnergy(p){ $('energy-fill').style.width=p+'%'; }
 function setHint(t){ $('hint').textContent=t; $('hint').style.opacity=1; }
+function heroName(){ return (state.avatar.name&&state.avatar.name.trim())?state.avatar.name.trim():'Star Hunter'; }
+let creationMode=false, focusAvatarUntil=0;
+// The headline daily moment: the CHILD's avatar grows (Rumi/Twinkle are supporting cast).
+function avatarTransform(accessoryFn,label,then){
+  if(accessoryFn) accessoryFn();
+  $('tf-emoji').textContent='🌟'; $('tf-title').textContent=`${heroName()} grew today!`; $('tf-sub').textContent='✨ '+label+' ✨';
+  show('transform'); chime('win'); burst(avatar.position,'#FFE9A8',44);
+  if(audioOn) say(`Wow ${heroName()}! YOUR Star Hunter grew today! You unlocked a ${label}!`);
+  let g=0; const pulse=()=>{ g+=.05; avBodyMat.emissive.set('#FFD24D'); avBodyMat.emissiveIntensity=Math.max(0,Math.sin(g*Math.PI))*0.5; if(g<1) requestAnimationFrame(pulse); else { avBodyMat.emissiveIntensity=.12; } };
+  pulse();
+  setTimeout(()=>{ hide('transform'); focusAvatarUntil=performance.now()+2300; if(audioOn) say(`Look at you, ${heroName()}!`); save(); },3000);
+  setTimeout(()=>{ if(then) then(); },5400);
+}
 function recordExcitement(kind){ if(delight[kind]===null){ delight[kind]=Math.round(performance.now()-launchT); log('delight_'+kind,{ms:delight[kind]}); $('obs-readout').textContent=`smile ${delight.smile??'–'}ms · wow ${delight.excited??'–'}ms`; } }
 
 // =====================================================================
@@ -293,21 +315,19 @@ function dayProgress(){
   if(state.day===1){
     relightLighthouse();
     setTimeout(()=>{ gloomling.visible=false; twinkle.visible=true; twinkle.position.copy(gloomling.position); state.twinkleForm=1; burst(twinkle.position,'#7EF0C0',30);
-      speak('Rumi',"You read the words — the Lighthouse is shining! Look! The Gloomling became a happy Star Pal. Tap your new friend!","Tap Twinkle! 🦊",enableTwinkleTap); },1500);
+      speak('Rumi',`Amazing reading, ${heroName()}! The Lighthouse is shining and the Gloomling became a happy Star Pal. Tap your new friend!`,"Tap Twinkle! 🦊",enableTwinkleTap); },1500);
   } else if(state.day===2){
-    addHat(); if(!state.avatar.cosmetics.includes('hat')) state.avatar.cosmetics.push('hat');
-    burst(avatar.position,'#FF8FCF',26);
-    speak('Rumi',"Brilliant reading! Here's a shiny new hat for you. And look — Twinkle is glowing… almost ready to evolve tomorrow!",'▶',()=>{ twTailStar.material.emissiveIntensity=1.4; rewardDay(); });
+    twTailStar.material.emissiveIntensity=1.4;
+    avatarTransform(addHat,'Stylish New Hat',()=>{ speak('Rumi',`Wonderful, ${heroName()}! Look — Twinkle is glowing… almost ready to evolve tomorrow!`,'▶',rewardDay); });
   } else if(state.day===3){
-    // Twinkle evolves
-    twinkleEvolve(()=>{ addCape(); if(!state.avatar.cosmetics.includes('cape')) state.avatar.cosmetics.push('cape'); burst(avatar.position,'#FFD24D',30);
-      speak('Rumi',"You read a whole word ALL by yourself — and Twinkle evolved! You're a true Star Hunter.",'▶',()=>{ runStarCheck('post',()=>rewardDay()); }); });
+    twinkleEvolve(()=> avatarTransform(addCape,'Hero Cape',()=> runStarCheck('post',()=>rewardDay()) ));
   }
 }
 function enableTwinkleTap(){ controlEnabled=false; setHint('Tap Twinkle to befriend! 🦊✨');
   const tap=e=>{ ndc.x=(e.clientX/innerWidth)*2-1; ndc.y=-(e.clientY/innerHeight)*2+1; ray.setFromCamera(ndc,camera);
     if(ray.intersectObject(twinkle,true).length){ renderer.domElement.removeEventListener('pointerdown',tap); burst(twinkle.position,'#FF8FCF',30); chime('good'); $('hint').style.opacity=0; twinkleFollows=true;
-      speak('Twinkle',"*happy twinkle!* 🦊💛","Aww! ▶",()=>rumiTransform(2,'RISING STAR','🌟',rewardDay)); } };
+      // Rumi gets a quick Rising-Star moment, then the HEADLINE: the child's own avatar grows.
+      speak('Twinkle',"*happy twinkle!* 🦊💛","Aww! ▶",()=>rumiTransform(2,'RISING STAR','🌟',()=>avatarTransform(addStar,'Star Hunter Trainee',rewardDay))); } };
   renderer.domElement.addEventListener('pointerdown',tap);
 }
 function rumiTransform(stage,label,emoji,then){ state.rumiStage=Math.max(state.rumiStage,stage); log('rumi_evolve',{stage});
@@ -329,10 +349,11 @@ function twinkleEvolve(then){ log('twinkle_evolve',{form:2}); state.twinkleForm=
 }
 
 function rewardDay(){ // reward cards per day
-  const cards = state.day===1 ? [['⭐','Reading Star','You read 2 words!'],['🦊','Twinkle','A new friend!'],['💛','+Harmony','The harbor glows!']]
-    : state.day===2 ? [['⭐','Day 2 Star','You read more!'],['🎩','New Hat','For your hero!'],['✨','Twinkle','Almost evolving!']]
-    : [['⭐','Day 3 Star','You blended words!'],['🦊','Glimmerfox','Twinkle evolved!'],['🦸','New Cape','Star Hunter!']];
-  $('reward-h').textContent= state.day===3 ? 'Three days — amazing! 🎉' : 'You did it! 🎉';
+  const nm=heroName();
+  const cards = state.day===1 ? [['🌟','My Star Hunter','You leveled up!'],['🦊','Twinkle','A new friend!'],['⭐','Reading Star','You read 2 words!']]
+    : state.day===2 ? [['🎩','New Hat',nm+"'s style!"],['🌟','Day 2 Star','Your hero grew!'],['✨','Twinkle','Almost evolving!']]
+    : [['🦸','Hero Cape',nm+' shines!'],['🌟','Star Hunter!','3 days strong!'],['🦊','Glimmerfox','Twinkle evolved!']];
+  $('reward-h').textContent= state.day===3 ? `${nm}, you did it — 3 days! 🎉` : `Great job, ${nm}! 🎉`;
   $('reward-cards').innerHTML=''; cards.forEach(c=>{ const d=document.createElement('div'); d.className='rcard'; d.innerHTML=`<div class="rc-ico">${c[0]}</div><b>${c[1]}</b><small>${c[2]}</small>`; $('reward-cards').appendChild(d); });
   show('reward'); confetti(); chime('win'); if(audioOn) say("Great job today, Star Hunter!");
   $('reward-next').onclick=()=>{ hide('reward'); completeDay(); };
@@ -409,17 +430,28 @@ function boot(){
     else routeDay();
   };
 }
-function showAvatarCreate(){ show('avatar-create');
+function showAvatarCreate(){ show('avatar-create'); creationMode=true; controlEnabled=false;
   const skins=['#ffd9b8','#e8b48a','#a9744f','#6e4a32'], hairs=['#5a3a2a','#7B4FC4','#2a2340','#c23e6b'], colors=['#5ec8c0','#FF8FCF','#FFC83D','#8FD0FF'];
-  const mk=(host,arr,key)=>{ const el=$(host); el.innerHTML=''; arr.forEach((c,i)=>{ const s=document.createElement('div'); s.className='sw'+(state.avatar[key]===c||(i===0&&!state.avatar['_'+key])?'':''); s.style.background=c;
-    if(state.avatar[key]===c) s.classList.add('sel'); s.onclick=()=>{ state.avatar[key]=c; [...el.children].forEach(x=>x.classList.remove('sel')); s.classList.add('sel'); applyAvatar(); }; el.appendChild(s); }); };
+  const styles=[['short','Short'],['ponytail','Ponytail'],['puffs','Puffs'],['bun','Bun'],['long','Long']];
+  const names=['Star','Sunny','Sky','Rae','Kai','Mimi'];
+  const mk=(host,arr,key)=>{ const el=$(host); el.innerHTML=''; arr.forEach(c=>{ const s=document.createElement('div'); s.className='sw'+(state.avatar[key]===c?' sel':''); s.style.background=c;
+    s.onclick=()=>{ state.avatar[key]=c; [...el.children].forEach(x=>x.classList.remove('sel')); s.classList.add('sel'); applyAvatar(); }; el.appendChild(s); }); };
+  const styleEl=$('ac-style'); styleEl.innerHTML=''; styles.forEach(([v,lbl])=>{ const b=document.createElement('button'); b.className='chip'+(((state.avatar.style||'short')===v)?' sel':''); b.textContent=lbl;
+    b.onclick=()=>{ state.avatar.style=v; [...styleEl.children].forEach(x=>x.classList.remove('sel')); b.classList.add('sel'); rebuildHair(v); }; styleEl.appendChild(b); });
+  const nameEl=$('ac-names'); nameEl.innerHTML=''; names.forEach(n=>{ const b=document.createElement('button'); b.className='chip'; b.textContent=n;
+    b.onclick=()=>{ state.avatar.name=n; $('ac-name').value=n; if(audioOn) say(n,{rate:.85}); }; nameEl.appendChild(b); });
+  $('ac-name').value=state.avatar.name||''; $('ac-name').oninput=e=>{ state.avatar.name=e.target.value; };
   mk('ac-skin',skins,'skin'); mk('ac-hair',hairs,'hair'); mk('ac-color',colors,'color'); applyAvatar();
-  $('ac-done').onclick=()=>{ state.avatar.created=true; save(); log('avatar_created',{skin:state.avatar.skin,hair:state.avatar.hair,color:state.avatar.color}); hide('avatar-create');
-    // pre-test before Day 1
-    runStarCheck('pre',()=>routeDay()); };
+  if(audioOn) say("Make your very own Star Hunter! Pick your hair, your colors, and your name.");
+  $('ac-done').onclick=()=>{ state.avatar.created=true; creationMode=false; save();
+    log('avatar_created',{skin:state.avatar.skin,hair:state.avatar.hair,color:state.avatar.color,style:state.avatar.style,named:!!(state.avatar.name&&state.avatar.name.trim())}); hide('avatar-create');
+    if(audioOn) say(`Welcome, ${heroName()}! Let's go to Harmony Harbor!`,{then:()=>runStarCheck('pre',()=>routeDay())}); else runStarCheck('pre',()=>routeDay()); };
 }
 function routeDay(){ // restore prior cosmetics/rumi/twinkle visual state
-  if(state.avatar.cosmetics.includes('hat')) addHat(); if(state.avatar.cosmetics.includes('cape')) addCape();
+  rebuildHair(state.avatar.style||'short'); applyAvatar();
+  if(state.avatar.cosmetics.includes('star')) addStar();
+  if(state.avatar.cosmetics.includes('hat')) addHat();
+  if(state.avatar.cosmetics.includes('cape')) addCape();
   if(state.rumiStage>=2){ rumiJacket.emissive.set('#FFC83D'); rumiJacket.emissiveIntensity=.6; }
   const d=decideDay();
   if(d===-1){ $('dg-emoji').textContent='🌙'; $('dg-title').textContent='See you tomorrow!'; $('dg-text').textContent='You already played today — come back tomorrow for the next adventure! (Grown-ups can tap 👪 to continue testing.)'; show('hud'); show('daygate'); $('dg-close').onclick=()=>hide('daygate'); if(audioOn) say("See you tomorrow!"); return; }
@@ -433,7 +465,15 @@ function tick(now){ const dt=Math.min((now-lastT)/1000,.05); lastT=now; const t=
   let moving=false; const dx=target.x-avatar.position.x, dz=target.z-avatar.position.z, d=Math.hypot(dx,dz);
   if(d>.08){ moving=true; const step=Math.min(6*dt,d); avatar.position.x+=dx/d*step; avatar.position.z+=dz/d*step; avatar.rotation.y=Math.atan2(dx,dz); }
   avatar.position.y= moving?Math.abs(Math.sin(t*10))*.12:0;
-  camera.position.lerp(avatar.position.clone().add(CAM_OFF),1-Math.exp(-dt*6)); camera.lookAt(avatar.position.x,1.2,avatar.position.z);
+  if(creationMode){ // live close-up while customizing YOUR hero
+    camera.position.lerp(new THREE.Vector3(avatar.position.x,2.05,avatar.position.z+4.6),1-Math.exp(-dt*6)); camera.lookAt(avatar.position.x,1.5,avatar.position.z);
+    avatar.rotation.y=Math.sin(t*0.6)*0.5;
+  } else if(now<focusAvatarUntil){ // "show off your hero" beat after a transformation
+    camera.position.lerp(new THREE.Vector3(avatar.position.x,2.1,avatar.position.z+4.8),1-Math.exp(-dt*5)); camera.lookAt(avatar.position.x,1.45,avatar.position.z);
+    avatar.rotation.y+=dt*1.4;
+  } else {
+    camera.position.lerp(avatar.position.clone().add(CAM_OFF),1-Math.exp(-dt*6)); camera.lookAt(avatar.position.x,1.2,avatar.position.z);
+  }
   if(marker.visible){ marker.rotation.z+=dt*2; marker.position.y=.1+Math.sin(t*3)*.08; }
   for(let i=sparkles.length-1;i>=0;i--){ const s=sparkles[i]; s.rotation.y+=dt*2; s.position.y=1.2+Math.sin(t*3+i)*.12;
     if(controlEnabled && Math.hypot(s.position.x-avatar.position.x,s.position.z-avatar.position.z)<1.1){ burst(s.position,'#FFD24D',8); chime('good'); scene.remove(s); sparkles.splice(i,1);

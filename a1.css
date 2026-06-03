@@ -2,14 +2,22 @@
 .day-chip{font-weight:800;color:#fff;background:rgba(106,75,196,.7);padding:8px 14px;border-radius:999px;font-size:15px;white-space:nowrap}
 .parent-open{position:absolute;top:calc(env(safe-area-inset-top) + 14px);right:14px;border:none;width:46px;height:46px;border-radius:50%;font-size:22px;background:rgba(255,255,255,.85);pointer-events:auto;box-shadow:0 4px 12px rgba(80,40,120,.25)}
 
-/* avatar creation */
-.avatar-create{background:linear-gradient(160deg,#7d5bd6,#FF8FCF);gap:10px}
-.avatar-create h1{color:#fff;font-size:30px;text-shadow:0 2px 0 rgba(0,0,0,.12)}
-.ac-row{display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.16);padding:10px 16px;border-radius:18px}
-.ac-row>span{color:#fff;font-weight:800;width:62px;font-size:18px}
-.swatches{display:flex;gap:10px}
-.sw{width:50px;height:50px;border-radius:50%;border:4px solid transparent}
+/* avatar creation — bottom sheet so the live 3D hero shows above it */
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:12;background:linear-gradient(160deg,#7d5bd6,#FF8FCF);
+  border-radius:28px 28px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom));
+  display:flex;flex-direction:column;gap:8px;max-height:66vh;overflow-y:auto;box-shadow:0 -10px 30px rgba(0,0,0,.3)}
+.sheet h1{color:#fff;font-size:23px;margin:2px 0 4px;text-align:center;text-shadow:0 2px 0 rgba(0,0,0,.12)}
+.you{color:#FFD24D}
+.ac-row{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.16);padding:9px 14px;border-radius:16px}
+.ac-row>span{color:#fff;font-weight:800;width:58px;font-size:16px;flex:none}
+.swatches{display:flex;gap:10px;flex-wrap:wrap}
+.sw{width:46px;height:46px;border-radius:50%;border:4px solid transparent}
 .sw.sel{border-color:#fff;box-shadow:0 0 0 3px #FFD24D}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{border:none;background:rgba(255,255,255,.88);color:#4a2d78;font-family:var(--font);font-weight:800;font-size:15px;padding:9px 14px;border-radius:999px}
+.chip.sel{background:#FFD24D;box-shadow:0 0 0 3px #fff}
+#ac-name{border:none;border-radius:12px;padding:11px 14px;font-family:var(--font);font-size:17px;font-weight:700;color:#241B3A;flex:1;min-width:0}
+.avatar-create .big-btn{align-self:center;margin-top:6px}
 
 /* star check */
 .starcheck{background:linear-gradient(160deg,#8FD0FF,#B69CFF)}
