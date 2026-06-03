@@ -2,6 +2,10 @@
 .day-chip{font-weight:800;color:#fff;background:rgba(106,75,196,.7);padding:8px 14px;border-radius:999px;font-size:15px;white-space:nowrap}
 .parent-open{position:absolute;top:calc(env(safe-area-inset-top) + 14px);right:14px;border:none;width:46px;height:46px;border-radius:50%;font-size:22px;background:rgba(255,255,255,.85);pointer-events:auto;box-shadow:0 4px 12px rgba(80,40,120,.25)}
 
+/* VFX 2.0: soft white screen flash on transformation reveal */
+.flash{position:fixed;inset:0;background:#fff;z-index:45;pointer-events:none;animation:flashfade .42s ease-out forwards}
+@keyframes flashfade{0%{opacity:.82}100%{opacity:0}}
+
 /* Phase 1A: tap ring (expanding ring at the touch point) */
 .tap-ring{position:fixed;width:26px;height:26px;margin:-13px 0 0 -13px;border-radius:50%;
   border:3px solid #FFD24D;box-shadow:0 0 10px rgba(255,210,77,.6);pointer-events:none;z-index:50;

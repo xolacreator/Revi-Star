@@ -49,7 +49,7 @@ function collectChime(){ try{ actx=actx||new(window.AudioContext||window.webkitA
   [[base,'triangle',0,0.22],[base*1.5,'sine',0.05,0.16],[base*2,'sine',0.09,0.12]].forEach(([f,type,off,vol])=>{ const o=actx.createOscillator(),g=actx.createGain(); o.type=type; o.frequency.value=f; o.connect(g); g.connect(actx.destination);
     const tt=now+off; g.gain.setValueAtTime(0.0001,tt); g.gain.exponentialRampToValueAtTime(vol,tt+0.015); g.gain.exponentialRampToValueAtTime(0.0001,tt+0.28); o.start(tt); o.stop(tt+0.3); }); }catch(e){} }
 let avatarPop=0; function avatarReact(){ avatarPop=1; }
-function collectStar(pos){ burst(pos,'#FFD24D',14); collectChime(); haptic(12);
+function collectStar(pos){ burst(pos,'#FFD24D',14); collectChime(); haptic(12); twCheerUntil=performance.now()+450; // Twinkle celebrates collections
   if(delight.reward===null){ delight.reward=Math.round(performance.now()-launchT); log('first_reward',{ms:delight.reward}); } }
 
 // ---------------- Renderer / scene ----------------
@@ -217,6 +217,21 @@ function confetti(){ const cols=['#FFC83D','#FF8FCF','#8FD0FF','#7EF0C0','#B69CF
 let bloom=0, blooming=false; function startBloom(){ blooming=true; }
 function relightLighthouse(){ lhMat.color.set('#f3ead8'); lhRoof.material.color.set('#e23e6b'); lhLightMat.emissive.set('#FFD24D'); lhLightMat.emissiveIntensity=1.2; burst(lighthouse.position,'#FFD24D',40); }
 
+// ---------------- VFX 2.0: magic particles, rings, spotlight, flash, cinematic cam, Twinkle reactions ----------------
+const magic=[];
+function magicBurst(pos,n=46,color='#FFE9A8'){ for(let i=0;i<n;i++){ const star=new THREE.Mesh(new THREE.OctahedronGeometry(0.07+Math.random()*0.06),new THREE.MeshBasicMaterial({color,transparent:true}));
+  const a=Math.random()*Math.PI*2, r=Math.random()*0.6; star.position.set(pos.x+Math.cos(a)*r,pos.y+0.3+Math.random()*0.5,pos.z+Math.sin(a)*r);
+  magic.push({m:star,vx:Math.cos(a)*(0.4+Math.random()*0.9),vy:1.6+Math.random()*2.6,vz:Math.sin(a)*(0.4+Math.random()*0.9),life:1,max:1+Math.random()*0.9,spin:(Math.random()-0.5)*7}); scene.add(star); } }
+const rings=[];
+function magicRing(pos,color='#FFD24D'){ const g=new THREE.Mesh(new THREE.TorusGeometry(0.5,0.06,8,40),new THREE.MeshBasicMaterial({color,transparent:true})); g.rotation.x=-Math.PI/2; g.position.set(pos.x,0.12,pos.z); scene.add(g); rings.push({m:g,life:1}); }
+const spot=new THREE.Mesh(new THREE.CircleGeometry(1.7,40),new THREE.MeshBasicMaterial({color:'#fff3c0',transparent:true,opacity:0,depthWrite:false})); spot.rotation.x=-Math.PI/2; spot.position.y=0.04; scene.add(spot);
+let spotOn=0, cineUntil=0, twSpinUntil=0, twCheerUntil=0;
+function screenFlash(){ const f=document.createElement('div'); f.className='flash'; document.body.appendChild(f); setTimeout(()=>f.remove(),420); }
+function chirp(){ try{ actx=actx||new(window.AudioContext||window.webkitAudioContext)(); const now=actx.currentTime;
+  [880,1320].forEach((f,i)=>{ const o=actx.createOscillator(),g=actx.createGain(); o.type='triangle'; o.frequency.value=f; o.connect(g); g.connect(actx.destination); const tt=now+i*0.08; g.gain.setValueAtTime(0.0001,tt); g.gain.exponentialRampToValueAtTime(0.16,tt+0.01); g.gain.exponentialRampToValueAtTime(0.0001,tt+0.16); o.start(tt); o.stop(tt+0.18); }); }catch(e){} }
+function twinkleCheer(ms=900){ twCheerUntil=performance.now()+ms; chirp(); }
+function twinkleSpin(ms=1600){ twSpinUntil=performance.now()+ms; }
+
 // ---------------- UI helpers ----------------
 function show(id){ $(id).classList.remove('hidden'); }
 function hide(id){ $(id).classList.add('hidden'); }
@@ -228,18 +243,25 @@ function heroName(){ return (state.avatar.name&&state.avatar.name.trim())?state.
 let creationMode=false, focusAvatarUntil=0;
 // The headline daily moment: the CHILD's avatar grows (Rumi/Twinkle are supporting cast).
 function avatarTransform(accessoryFn,label,then){
-  if(accessoryFn) accessoryFn();
   $('tf-emoji').textContent='🌟'; $('tf-title').textContent=`${heroName()} grew today!`; $('tf-sub').textContent='✨ '+label+' ✨';
-  show('transform'); chime('win'); burst(avatar.position,'#FFE9A8',44);
   heroPerforming=true; if(heroLoaded) playHero(heroActions.dance?'dance':'idle');
-  if(audioOn) say(`Wow ${heroName()}! YOUR Star Hunter grew today! You unlocked a ${label}!`);
-  let g=0; const pulse=()=>{ g+=.05; const e=Math.max(0,Math.sin(g*Math.PI))*0.5;
-    avBodyMat.emissive.set('#FFD24D'); avBodyMat.emissiveIntensity=e;
-    heroMats.forEach(m=>{ if(m.emissive){ m.emissive.set('#FFD24D'); m.emissiveIntensity=e*0.8; } });
-    if(g<1) requestAnimationFrame(pulse); else { avBodyMat.emissiveIntensity=.12; heroMats.forEach(m=>{ if(m.emissive) m.emissiveIntensity=.06; }); } };
-  pulse();
-  setTimeout(()=>{ hide('transform'); focusAvatarUntil=performance.now()+2300; if(audioOn) say(`Look at you, ${heroName()}!`); save(); },3000);
-  setTimeout(()=>{ heroPerforming=false; if(then) then(); },5400);
+  // 1) anticipation: spotlight rises, world dims, camera pushes in, Twinkle gets excited
+  const dimFrom=hemi.intensity; hemi.intensity=dimFrom*0.5; spotOn=1; cineUntil=performance.now()+3650; twinkleSpin(3300);
+  setTimeout(()=>{ // 2) the reveal: flash + expanding rings + star fountain + accessory + hero glow + sound sting
+    screenFlash(); chime('win'); haptic(30);
+    if(accessoryFn) accessoryFn();
+    magicRing(avatar.position,'#FFD24D'); setTimeout(()=>magicRing(avatar.position,'#FF8FCF'),150);
+    magicBurst(avatar.position,46); show('transform');
+    if(audioOn) say(`Wow ${heroName()}! YOUR Star Hunter grew today! You unlocked a ${label}!`);
+    let g=0; const pulse=()=>{ g+=.04; const e=Math.max(0,Math.sin(g*Math.PI))*0.6;
+      avBodyMat.emissive.set('#FFD24D'); avBodyMat.emissiveIntensity=e;
+      heroMats.forEach(m=>{ if(m.emissive){ m.emissive.set('#FFD24D'); m.emissiveIntensity=e*0.8; } });
+      if(g<1) requestAnimationFrame(pulse); else { avBodyMat.emissiveIntensity=.12; heroMats.forEach(m=>{ if(m.emissive) m.emissiveIntensity=.06; }); } };
+    pulse();
+  },650);
+  // 3) restore + spotlight show-off + Twinkle cheers
+  setTimeout(()=>{ hide('transform'); hemi.intensity=dimFrom; spotOn=0; focusAvatarUntil=performance.now()+2300; twinkleCheer(2000); if(audioOn) say(`Look at you, ${heroName()}!`); save(); },3650);
+  setTimeout(()=>{ heroPerforming=false; if(then) then(); },5600);
 }
 function recordExcitement(kind){ if(delight[kind]===null){ delight[kind]=Math.round(performance.now()-launchT); log('delight_'+kind,{ms:delight[kind]}); $('obs-readout').textContent=`smile ${delight.smile??'–'}ms · wow ${delight.excited??'–'}ms`; } }
 
@@ -320,7 +342,7 @@ function hintActivity(a){ itemHints++; log('hint_used',{skillId:a.skillId});
 function wrong(a,btn){ mistakes++; dayMistakes++; itemHints++; btn.classList.add('dim'); if(audioOn) say("Almost! Listen again.");
   if(mistakes>=2){ itemModeled=true; const r=[...$('ch-options').querySelectorAll('.opt')].find(b=>b.textContent===a.answer);
     if(r){ r.classList.add('glowhint'); if(audioOn) say(`This one says ${a.answer}. Tap it with me!`); r.onclick=()=>{ if(audioOn) say(a.answer,{rate:.8}); correct(a,r);}; } } }
-function correct(a,btn){ btn.classList.remove('glowhint'); btn.classList.add('correct'); chime('good'); burst(lighthouse.position,'#FFE9A8',10);
+function correct(a,btn){ btn.classList.remove('glowhint'); btn.classList.add('correct'); chime('good'); burst(lighthouse.position,'#FFE9A8',10); twCheerUntil=performance.now()+900; // Twinkle cheers learning success
   if(delight.reward===null){ delight.reward=Math.round(performance.now()-launchT); log('first_reward',{ms:delight.reward}); }
   const firstTry=(mistakes===0&&itemHints===0);
   state.history.push({day:state.day,skillId:a.skillId,correct:true,hints:itemHints,modeled:itemModeled,firstTry,ms:Math.round(performance.now()-itemStart)});
@@ -539,7 +561,9 @@ function tick(now){ const dt=Math.min((now-lastT)/1000,.05); lastT=now; const t=
   if(avatarPop>0.001){ avatarPop*=Math.exp(-dt*9); const p=avatarPop; avatar.scale.set(1+p*0.08,1-p*0.10,1+p*0.08); } else if(avatar.scale.y!==1){ avatar.scale.set(1,1,1); avatarPop=0; }
   if(heroMixer) heroMixer.update(dt);
   if(heroLoaded && !heroPerforming) playHero(moving && heroActions.walk ? 'walk' : 'idle');
-  if(creationMode){ // live close-up while customizing YOUR hero
+  if(now<cineUntil){ // cinematic push-in during the transformation reveal
+    camera.position.lerp(new THREE.Vector3(avatar.position.x+0.2,2.2,avatar.position.z+4.1),1-Math.exp(-dt*4)); camera.lookAt(avatar.position.x,1.5,avatar.position.z);
+  } else if(creationMode){ // live close-up while customizing YOUR hero
     camera.position.lerp(new THREE.Vector3(avatar.position.x,2.05,avatar.position.z+4.6),1-Math.exp(-dt*6)); camera.lookAt(avatar.position.x,1.5,avatar.position.z);
     avatar.rotation.y=Math.sin(t*0.6)*0.5;
   } else if(now<focusAvatarUntil){ // "show off your hero" beat after a transformation
@@ -556,12 +580,23 @@ function tick(now){ const dt=Math.min((now-lastT)/1000,.05); lastT=now; const t=
       const goal=new THREE.Vector3(avatar.position.x,1.0,avatar.position.z); m.position.lerp(goal,1-Math.exp(-dt*11)); // fly into the avatar
       if(m.position.distanceTo(goal)<0.45){ collectStar(m.position.clone()); scene.remove(m); sparkles.splice(i,1); } } }
   if(gloomling.visible) gloomling.position.y=Math.sin(t*2)*.1;
-  if(twinkle.visible){ const baseY=Math.sin(t*3)*.12; if(twinkleFollows){ const behind=new THREE.Vector3(Math.sin(avatar.rotation.y)*-1.6,0,Math.cos(avatar.rotation.y)*-1.6); const goal=avatar.position.clone().add(behind); twinkle.position.lerp(new THREE.Vector3(goal.x, twinkle.position.y, goal.z),1-Math.exp(-dt*4)); twinkle.position.y=1.4+baseY; } else twinkle.position.y=baseY+0.0+gloomling.position.y*0; if(twTailStar) twTailStar.material.emissiveIntensity=.8+Math.sin(t*6)*.3; }
+  if(twinkle.visible){ const np=performance.now(), cheering=np<twCheerUntil, spinning=np<twSpinUntil;
+    let baseY=Math.sin(t*3)*.12; if(cheering) baseY=Math.abs(Math.sin(t*12))*0.5; // excited hops
+    if(twinkleFollows){ const behind=new THREE.Vector3(Math.sin(avatar.rotation.y)*-1.6,0,Math.cos(avatar.rotation.y)*-1.6); const goal=avatar.position.clone().add(behind); twinkle.position.lerp(new THREE.Vector3(goal.x,twinkle.position.y,goal.z),1-Math.exp(-dt*4)); twinkle.position.y=1.4+baseY; }
+    else twinkle.position.y=baseY;
+    if(spinning) twinkle.rotation.y+=dt*10; // happy spin
+    else { const yaw=Math.atan2(avatar.position.x-twinkle.position.x,avatar.position.z-twinkle.position.z); twinkle.rotation.y+=(yaw-twinkle.rotation.y)*Math.min(1,dt*3); } // curious look toward you
+    const blink=(t%3.4<0.1)?0.15:1, e1=twinkle.children[6], e2=twinkle.children[7]; if(e1) e1.scale.y=blink; if(e2) e2.scale.y=blink;
+    if(twTailStar) twTailStar.material.emissiveIntensity=(cheering?1.6:.8)+Math.sin(t*6)*.3; }
   rumi.position.y=Math.sin(t*1.6)*.04;
   if(reached===false && controlEnabled && Math.hypot(gloomling.position.x-avatar.position.x,gloomling.position.z-avatar.position.z)<2.0){ reachSpot(); }
   if(blooming&&bloom<1){ bloom=Math.min(1,bloom+dt*.6); scene.background.copy(FOG_GRAY).lerp(FOG_BRIGHT,bloom); scene.fog.color.copy(FOG_GRAY).lerp(FOG_BRIGHT,bloom);
     hemi.intensity=.62+.5*bloom; water.material.color.copy(new THREE.Color('#7fb6bf')).lerp(new THREE.Color('#3fc8d2'),bloom); dock.material.color.copy(new THREE.Color('#e7c9a6')).lerp(new THREE.Color('#ffe3b0'),bloom); }
   for(let i=bursts.length-1;i>=0;i--){ const b=bursts[i]; b.life-=dt*1.4; b.m.position.addScaledVector(b.v,dt); b.v.y-=dt*4; if(b.life<=0){ scene.remove(b.m); bursts.splice(i,1);} }
+  // VFX 2.0 updates: magic star fountain, expanding rings, spotlight disc
+  for(let i=magic.length-1;i>=0;i--){ const p=magic[i]; p.life-=dt/p.max; p.m.position.x+=p.vx*dt; p.m.position.y+=p.vy*dt; p.m.position.z+=p.vz*dt; p.vy-=dt*1.2; p.m.rotation.y+=p.spin*dt; p.m.rotation.x+=p.spin*dt; p.m.material.opacity=Math.max(0,p.life); p.m.scale.setScalar(0.6+p.life*0.8); if(p.life<=0){ scene.remove(p.m); magic.splice(i,1);} }
+  for(let i=rings.length-1;i>=0;i--){ const r=rings[i]; r.life-=dt*1.3; const s=1+(1-r.life)*5; r.m.scale.set(s,s,1); r.m.material.opacity=Math.max(0,r.life); if(r.life<=0){ scene.remove(r.m); rings.splice(i,1);} }
+  spot.material.opacity+=((spotOn?0.5:0)-spot.material.opacity)*Math.min(1,dt*6); if(spot.material.opacity>0.01){ spot.position.x=avatar.position.x; spot.position.z=avatar.position.z; spot.rotation.z+=dt*0.6; }
   renderer.render(scene,camera); requestAnimationFrame(tick);
 }
 addEventListener('resize',()=>{ camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth,innerHeight); });
