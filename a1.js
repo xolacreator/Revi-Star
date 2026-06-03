@@ -184,6 +184,7 @@ function loadHero(){ const loader=new GLTFLoader();
 async function maybeLoadHero(){ try{ const r=await fetch(HERO_URL,{method:'HEAD'}); if(r&&r.ok) loadHero(); }catch(e){} }
 
 // Rumi
+let rumiBraid=null;
 const rumi=new THREE.Group(); const rumiJacket=new THREE.MeshToonMaterial({color:'#FFC83D',gradientMap:TOON_RAMP,emissive:'#000',emissiveIntensity:0});
 let rumiCape=null,rumiCrown=null;
 { const j=new THREE.Mesh(new THREE.CapsuleGeometry(.46,.7,6,12),rumiJacket); j.position.y=.95; j.castShadow=true;
@@ -194,7 +195,7 @@ let rumiCape=null,rumiCrown=null;
   const bstar=new THREE.Mesh(new THREE.OctahedronGeometry(.14),new THREE.MeshStandardMaterial({color:'#FFD24D',emissive:'#a98a00',emissiveIntensity:.5})); bstar.position.set(-.62,.7,.2);
   const staff=new THREE.Mesh(new THREE.CylinderGeometry(.05,.05,1.1,8),new THREE.MeshStandardMaterial({color:'#e8e2f0'})); staff.position.set(.55,1.1,0);
   const mic=new THREE.Mesh(new THREE.SphereGeometry(.16,12,12),new THREE.MeshStandardMaterial({color:'#FFD24D',emissive:'#FFC83D',emissiveIntensity:.6})); mic.position.set(.55,1.7,0);
-  rumi.add(j,core,head,hair,braid,bstar,staff,mic); addOutline(j,'#3a2a1a',0.02); addOutline(head,'#3a2a1a',0.02); addGlow(mic,{color:'#FFE08A',size:1.15,opacity:0.85}); addGlow(bstar,{color:'#FFD24D',size:0.5,opacity:0.7}); }
+  rumi.add(j,core,head,hair,braid,bstar,staff,mic); rumiBraid=braid; addOutline(j,'#3a2a1a',0.02); addOutline(head,'#3a2a1a',0.02); addGlow(mic,{color:'#FFE08A',size:1.15,opacity:0.85}); addGlow(bstar,{color:'#FFD24D',size:0.5,opacity:0.7}); }
 rumi.position.set(-2.2,0,3); rumi.rotation.y=.4; scene.add(rumi);
 
 // Gloomling + Twinkle
@@ -220,6 +221,7 @@ function setMarker(p){ if(!p){marker.visible=false;return;} marker.position.set(
 
 // movement
 const ray=new THREE.Raycaster(), ndc=new THREE.Vector2(), target=avatar.position.clone();
+let avVel=0, avHeading=0, avBank=0; // velocity + smoothed heading + bank (animation personality)
 let controlEnabled=false;
 function tapGround(cx,cy){ if(!controlEnabled)return; ndc.x=(cx/innerWidth)*2-1; ndc.y=-(cy/innerHeight)*2+1; ray.setFromCamera(ndc,camera);
   const hit=ray.intersectObject(water,false)[0];
@@ -240,6 +242,9 @@ function relightLighthouse(){ lhMat.color.set('#f3ead8'); lhRoof.material.color.
 
 // ---------------- VFX 2.0: magic particles, rings, spotlight, flash, cinematic cam, Twinkle reactions ----------------
 const magic=[];
+// energy-ribbon trail behind the hero's star-tool (color-identity)
+let trailT=0; const trail=[];
+function spawnTrail(){ const p=new THREE.Vector3(); avStar.getWorldPosition(p); const s=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW_TEX,color:new THREE.Color(state.avatar.color),transparent:true,opacity:0.6,blending:THREE.AdditiveBlending,depthWrite:false})); s.scale.set(0.5,0.5,1); s.position.copy(p); scene.add(s); trail.push({m:s,life:1}); }
 function magicBurst(pos,n=46,color='#FFE9A8'){ for(let i=0;i<n;i++){ const star=new THREE.Mesh(new THREE.OctahedronGeometry(0.07+Math.random()*0.06),new THREE.MeshBasicMaterial({color,transparent:true}));
   const a=Math.random()*Math.PI*2, r=Math.random()*0.6; star.position.set(pos.x+Math.cos(a)*r,pos.y+0.3+Math.random()*0.5,pos.z+Math.sin(a)*r);
   magic.push({m:star,vx:Math.cos(a)*(0.4+Math.random()*0.9),vy:1.6+Math.random()*2.6,vz:Math.sin(a)*(0.4+Math.random()*0.9),life:1,max:1+Math.random()*0.9,spin:(Math.random()-0.5)*7}); scene.add(star); } }
@@ -576,10 +581,23 @@ function routeDay(){ // restore prior cosmetics/rumi/twinkle visual state
 // ---------------- Main loop ----------------
 let lastT=performance.now();
 function tick(now){ const dt=Math.min((now-lastT)/1000,.05); lastT=now; const t=now/1000;
-  let moving=false; const dx=target.x-avatar.position.x, dz=target.z-avatar.position.z, d=Math.hypot(dx,dz);
-  if(d>.08){ moving=true; const step=Math.min(6*dt,d); avatar.position.x+=dx/d*step; avatar.position.z+=dz/d*step; avatar.rotation.y=Math.atan2(dx,dz); }
-  avatar.position.y= (moving && !heroLoaded)?Math.abs(Math.sin(t*10))*.12:0;
-  if(avatarPop>0.001){ avatarPop*=Math.exp(-dt*9); const p=avatarPop; avatar.scale.set(1+p*0.08,1-p*0.10,1+p*0.08); } else if(avatar.scale.y!==1){ avatar.scale.set(1,1,1); avatarPop=0; }
+  // ---- movement with personality: accel/decel, smooth turn, banking, idle life ----
+  const dx=target.x-avatar.position.x, dz=target.z-avatar.position.z, d=Math.hypot(dx,dz);
+  const want = d>0.12 ? 6 : 0;
+  avVel += (want-avVel)*Math.min(1,dt*(want>avVel?6:9)); // ease-in / faster ease-out
+  let moving = avVel>0.15;
+  if(d>0.001 && avVel>0.01){ const step=Math.min(avVel*dt,d); avatar.position.x+=dx/d*step; avatar.position.z+=dz/d*step;
+    let da=Math.atan2(dx,dz)-avHeading; da=Math.atan2(Math.sin(da),Math.cos(da)); avHeading+=da*Math.min(1,dt*7); // smooth turn (shortest angle)
+    const bankTgt=Math.max(-0.28,Math.min(0.28,-da*0.5)); avBank+=(bankTgt-avBank)*Math.min(1,dt*8); } // lean into turns
+  else avBank+=(0-avBank)*Math.min(1,dt*6);
+  const cineActive = creationMode || now<focusAvatarUntil || now<cineUntil;
+  if(!cineActive) avatar.rotation.y=avHeading; // let creation/show-off camera drive rotation otherwise
+  const sp=avVel/6, breath=moving?0:Math.sin(t*2.2)*0.02;
+  avatar.position.y = (!heroLoaded)?Math.abs(Math.sin(t*9))*0.12*sp:0; // foot bob scales with speed
+  if(avatarPop>0.001){ avatarPop*=Math.exp(-dt*9); const p=avatarPop; avatar.scale.set(1+p*0.08,1-p*0.10,1+p*0.08); avatar.rotation.z=avBank; }
+  else { avatar.scale.set(1,1+breath,1); avatar.rotation.z=avBank+(moving?0:Math.sin(t*1.1)*0.02); } // idle breathing + weight-shift
+  if(avHair){ avHair.rotation.x=-sp*0.18+Math.sin(t*2.0)*0.03; avHair.rotation.z=avBank*0.6+Math.sin(t*1.3)*0.02; } // hair never static
+  if(moving && sp>0.4){ trailT-=dt; if(trailT<=0){ trailT=0.045; spawnTrail(); } } // energy ribbon while moving
   if(heroMixer) heroMixer.update(dt);
   if(heroLoaded && !heroPerforming) playHero(moving && heroActions.walk ? 'walk' : 'idle');
   if(now<cineUntil){ // cinematic push-in during the transformation reveal
@@ -610,7 +628,7 @@ function tick(now){ const dt=Math.min((now-lastT)/1000,.05); lastT=now; const t=
     else { const yaw=Math.atan2(avatar.position.x-twinkle.position.x,avatar.position.z-twinkle.position.z); twinkle.rotation.y+=(yaw-twinkle.rotation.y)*Math.min(1,dt*3); } // curious look toward you
     const blink=(t%3.4<0.1)?0.15:1, e1=twinkle.children[6], e2=twinkle.children[7]; if(e1) e1.scale.y=blink; if(e2) e2.scale.y=blink;
     if(twTailStar) twTailStar.material.emissiveIntensity=(cheering?1.6:.8)+Math.sin(t*6)*.3; }
-  rumi.position.y=Math.sin(t*1.6)*.04;
+  rumi.position.y=Math.sin(t*1.6)*.04; if(rumiBraid){ rumiBraid.rotation.x=Math.sin(t*1.4)*0.06; rumiBraid.rotation.z=0.35+Math.sin(t*1.1)*0.04; } // braid secondary motion
   if(reached===false && controlEnabled && Math.hypot(gloomling.position.x-avatar.position.x,gloomling.position.z-avatar.position.z)<2.0){ reachSpot(); }
   if(blooming&&bloom<1){ bloom=Math.min(1,bloom+dt*.6); skyMat.color.copy(new THREE.Color('#8a86a0')).lerp(new THREE.Color('#ffffff'),bloom); scene.fog.color.copy(FOG_GRAY).lerp(FOG_BRIGHT,bloom);
     hemi.intensity=.45+.35*bloom; water.material.color.copy(new THREE.Color('#7fb6bf')).lerp(new THREE.Color('#3fc8d2'),bloom); water.material.emissiveIntensity=0.1*bloom; dock.material.color.copy(new THREE.Color('#e7c9a6')).lerp(new THREE.Color('#ffe3b0'),bloom);
@@ -619,6 +637,7 @@ function tick(now){ const dt=Math.min((now-lastT)/1000,.05); lastT=now; const t=
   // VFX 2.0 updates: magic star fountain, expanding rings, spotlight disc
   for(let i=magic.length-1;i>=0;i--){ const p=magic[i]; p.life-=dt/p.max; p.m.position.x+=p.vx*dt; p.m.position.y+=p.vy*dt; p.m.position.z+=p.vz*dt; p.vy-=dt*1.2; p.m.rotation.y+=p.spin*dt; p.m.rotation.x+=p.spin*dt; p.m.material.opacity=Math.max(0,p.life); p.m.scale.setScalar(0.6+p.life*0.8); if(p.life<=0){ scene.remove(p.m); magic.splice(i,1);} }
   for(let i=rings.length-1;i>=0;i--){ const r=rings[i]; r.life-=dt*1.3; const s=1+(1-r.life)*5; r.m.scale.set(s,s,1); r.m.material.opacity=Math.max(0,r.life); if(r.life<=0){ scene.remove(r.m); rings.splice(i,1);} }
+  for(let i=trail.length-1;i>=0;i--){ const r=trail[i]; r.life-=dt*3.5; r.m.material.opacity=Math.max(0,r.life*0.6); r.m.scale.setScalar(0.5*r.life); if(r.life<=0){ scene.remove(r.m); trail.splice(i,1);} }
   spot.material.opacity+=((spotOn?0.5:0)-spot.material.opacity)*Math.min(1,dt*6); if(spot.material.opacity>0.01){ spot.position.x=avatar.position.x; spot.position.z=avatar.position.z; spot.rotation.z+=dt*0.6; }
   // environment ambience: drifting clouds, twinkling motes, lighthouse halo
   for(const c of clouds){ c.position.x+=dt*0.6; if(c.position.x>34) c.position.x=-34; }
