@@ -65,6 +65,20 @@ const CAM_OFF=new THREE.Vector3(0,7.5,10);
 const hemi=new THREE.HemisphereLight('#ffffff','#cabfe0',0.62); scene.add(hemi);
 const sun=new THREE.DirectionalLight('#fff3da',0.85); sun.position.set(8,16,6); sun.castShadow=true;
 sun.shadow.mapSize.set(1024,1024); sun.shadow.camera.left=-22; sun.shadow.camera.right=22; sun.shadow.camera.top=22; sun.shadow.camera.bottom=-22; scene.add(sun);
+const rimLight=new THREE.DirectionalLight('#bfe0ff',0.5); rimLight.position.set(-7,6,-9); scene.add(rimLight); // cool back-rim for anime separation
+
+// ---- Anime visual pass: toon ramp + inverted-hull outline ----
+function makeRamp(arr,w){ const t=new THREE.DataTexture(new Uint8Array(arr),w,1,THREE.RGBAFormat); t.minFilter=THREE.NearestFilter; t.magFilter=THREE.NearestFilter; t.needsUpdate=true; return t; }
+const TOON_RAMP=makeRamp([70,70,92,255, 150,150,172,255, 232,232,244,255, 255,255,255,255],4); // crisp 4-band anime ramp
+const OUTLINE_RAMP=makeRamp([84,84,84,255, 84,84,84,255],2); // flat → outline stays dark under any light
+function addOutline(mesh,color='#2a2138',thk=0.022){ try{
+  const m=new THREE.MeshToonMaterial({color:new THREE.Color(color), gradientMap:OUTLINE_RAMP, side:THREE.BackSide, fog:true});
+  m.onBeforeCompile=sh=>{ sh.uniforms.uThk={value:thk};
+    sh.vertexShader='uniform float uThk;\n'+sh.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\n\ttransformed += objectNormal * uThk;'); };
+  let o; if(mesh.isSkinnedMesh){ o=new THREE.SkinnedMesh(mesh.geometry,m); o.bind(mesh.skeleton,mesh.bindMatrix); o.bindMode=mesh.bindMode; if(mesh.bindMatrixInverse) o.bindMatrixInverse.copy(mesh.bindMatrixInverse); }
+  else o=new THREE.Mesh(mesh.geometry,m);
+  o.castShadow=false; o.receiveShadow=false; o.renderOrder=(mesh.renderOrder||0)-1; mesh.add(o);
+}catch(e){} }
 
 const WORLD_R=20;
 const water=new THREE.Mesh(new THREE.CircleGeometry(WORLD_R,64), new THREE.MeshStandardMaterial({color:'#7fb6bf',roughness:.5}));
@@ -88,7 +102,7 @@ const sparkles=[];
 function makeSparkle(x,z){ const m=new THREE.Mesh(new THREE.OctahedronGeometry(.32),new THREE.MeshStandardMaterial({color:'#FFD24D',emissive:'#FFC83D',emissiveIntensity:.7})); m.position.set(x,1.2,z); scene.add(m); sparkles.push({m,magnet:false,pop:0,seed:Math.random()*6}); }
 [[-3,1],[3,.5],[-1.5,-2],[2,-3.5],[-4,-4]].forEach(p=>makeSparkle(p[0],p[1]));
 
-const skin=c=>new THREE.MeshStandardMaterial({color:c,roughness:.7});
+const skin=c=>new THREE.MeshToonMaterial({color:c, gradientMap:TOON_RAMP});
 // avatar (child) — materials kept for customization + cosmetics
 const avatar=new THREE.Group();
 const avBodyMat=skin(state.avatar.color), avHairMat=skin(state.avatar.hair), avSkinMat=skin(state.avatar.skin);
@@ -107,6 +121,7 @@ function rebuildHair(style){ if(avHair) avatar.remove(avHair); avHair=new THREE.
   avatar.add(avHair); }
 rebuildHair(state.avatar.style||'short');
 avatar.position.set(0,0,5); scene.add(avatar);
+[avBody,avHead].forEach(m=>addOutline(m,'#2a2138',0.02)); // anime outline on the hero
 function applyAvatar(){ avBodyMat.color.set(state.avatar.color); avHairMat.color.set(state.avatar.hair); avSkinMat.color.set(state.avatar.skin);
   if(heroLoaded && heroOutfitMats.length) heroOutfitMats.forEach(m=>m.color.set(state.avatar.color)); }
 function addHat(){ if(!state.avatar.cosmetics.includes('hat')) state.avatar.cosmetics.push('hat'); if(heroLoaded) return; if(avHat)return; avHat=new THREE.Mesh(new THREE.ConeGeometry(.45,.5,16),new THREE.MeshStandardMaterial({color:'#FF8FCF',roughness:.6})); avHat.position.y=2.15; avatar.add(avHat); }
@@ -119,13 +134,14 @@ const HERO_URL = QS.get('hero') || 'assets/hero/hero.glb';
 const HERO_ROT = parseFloat(QS.get('heroRotY')||'0')||0;
 function gradientRamp(){ const d=new Uint8Array([88,88,88,255, 178,178,178,255, 255,255,255,255]);
   const tex=new THREE.DataTexture(d,3,1,THREE.RGBAFormat); tex.minFilter=THREE.NearestFilter; tex.magFilter=THREE.NearestFilter; tex.needsUpdate=true; return tex; }
-function toonify(model){ const ramp=gradientRamp();
+function toonify(model){ const outlineTargets=[];
   model.traverse(o=>{ if(o.isMesh && o.material){ const arr=Array.isArray(o.material)?o.material:[o.material];
-    const out=arr.map(m=>{ const tm=new THREE.MeshToonMaterial({ color:(m.color?m.color.clone():new THREE.Color('#ffffff')), map:m.map||null, gradientMap:ramp, transparent:!!m.transparent, alphaTest:m.alphaTest||0, side:(m.side!==undefined?m.side:THREE.FrontSide) });
+    const out=arr.map(m=>{ const tm=new THREE.MeshToonMaterial({ color:(m.color?m.color.clone():new THREE.Color('#ffffff')), map:m.map||null, gradientMap:TOON_RAMP, transparent:!!m.transparent, alphaTest:m.alphaTest||0, side:(m.side!==undefined?m.side:THREE.FrontSide) });
       tm.emissive=new THREE.Color('#000'); heroMats.push(tm);
       if(/cloth|outfit|dress|jacket|shirt|tops|bottoms|body|skirt|coat/i.test(m.name||'')) heroOutfitMats.push(tm);
       return tm; });
-    o.material=Array.isArray(o.material)?out:out[0]; o.castShadow=true; o.frustumCulled=false; } }); }
+    o.material=Array.isArray(o.material)?out:out[0]; o.castShadow=true; o.frustumCulled=false; outlineTargets.push(o); } });
+  outlineTargets.forEach(o=>addOutline(o,'#241B3A',0.012)); }
 function playHero(key){ if(!heroMixer||!heroActions[key]||heroCurrent===key) return; const next=heroActions[key];
   Object.values(heroActions).forEach(a=>{ if(a!==next) a.fadeOut(0.25); }); next.reset().fadeIn(0.25).play(); heroCurrent=key; }
 function loadHero(){ const loader=new GLTFLoader();
@@ -147,7 +163,7 @@ function loadHero(){ const loader=new GLTFLoader();
 async function maybeLoadHero(){ try{ const r=await fetch(HERO_URL,{method:'HEAD'}); if(r&&r.ok) loadHero(); }catch(e){} }
 
 // Rumi
-const rumi=new THREE.Group(); const rumiJacket=new THREE.MeshStandardMaterial({color:'#FFC83D',roughness:.55,emissive:'#000',emissiveIntensity:0});
+const rumi=new THREE.Group(); const rumiJacket=new THREE.MeshToonMaterial({color:'#FFC83D',gradientMap:TOON_RAMP,emissive:'#000',emissiveIntensity:0});
 let rumiCape=null,rumiCrown=null;
 { const j=new THREE.Mesh(new THREE.CapsuleGeometry(.46,.7,6,12),rumiJacket); j.position.y=.95; j.castShadow=true;
   const core=new THREE.Mesh(new THREE.BoxGeometry(.4,.7,.3),skin('#fff')); core.position.y=1;
@@ -157,23 +173,23 @@ let rumiCape=null,rumiCrown=null;
   const bstar=new THREE.Mesh(new THREE.OctahedronGeometry(.14),new THREE.MeshStandardMaterial({color:'#FFD24D',emissive:'#a98a00',emissiveIntensity:.5})); bstar.position.set(-.62,.7,.2);
   const staff=new THREE.Mesh(new THREE.CylinderGeometry(.05,.05,1.1,8),new THREE.MeshStandardMaterial({color:'#e8e2f0'})); staff.position.set(.55,1.1,0);
   const mic=new THREE.Mesh(new THREE.SphereGeometry(.16,12,12),new THREE.MeshStandardMaterial({color:'#FFD24D',emissive:'#FFC83D',emissiveIntensity:.6})); mic.position.set(.55,1.7,0);
-  rumi.add(j,core,head,hair,braid,bstar,staff,mic); }
+  rumi.add(j,core,head,hair,braid,bstar,staff,mic); addOutline(j,'#3a2a1a',0.02); addOutline(head,'#3a2a1a',0.02); }
 rumi.position.set(-2.2,0,3); rumi.rotation.y=.4; scene.add(rumi);
 
 // Gloomling + Twinkle
 const gloomling=new THREE.Group();
-{ const b=new THREE.Mesh(new THREE.SphereGeometry(.7,18,18),new THREE.MeshStandardMaterial({color:'#8b8598',roughness:.95})); b.position.y=.8; b.castShadow=true;
-  const e=x=>{const m=new THREE.Mesh(new THREE.SphereGeometry(.1,10,10),new THREE.MeshStandardMaterial({color:'#2a2536'}));m.position.set(x,.95,.62);return m;};
-  gloomling.add(b,e(-.22),e(.22)); }
+{ const b=new THREE.Mesh(new THREE.SphereGeometry(.7,18,18),new THREE.MeshToonMaterial({color:'#8b8598',gradientMap:TOON_RAMP})); b.position.y=.8; b.castShadow=true;
+  const e=x=>{const m=new THREE.Mesh(new THREE.SphereGeometry(.1,10,10),new THREE.MeshBasicMaterial({color:'#2a2536'}));m.position.set(x,.95,.62);return m;};
+  gloomling.add(b,e(-.22),e(.22)); addOutline(b,'#2a2536',0.02); }
 gloomling.position.set(.6,0,-3.4); scene.add(gloomling);
 const twinkle=new THREE.Group(); let twTailStar=null, twCape=null;
-{ const body=new THREE.Mesh(new THREE.SphereGeometry(.55,18,18),new THREE.MeshStandardMaterial({color:'#fff0cf',emissive:'#FFE0A8',emissiveIntensity:.15,roughness:.5})); body.position.y=.55; body.castShadow=true;
-  const head=new THREE.Mesh(new THREE.SphereGeometry(.42,18,18),new THREE.MeshStandardMaterial({color:'#fff0cf',roughness:.5})); head.position.y=1.1;
-  const ear=x=>{const m=new THREE.Mesh(new THREE.ConeGeometry(.16,.4,10),new THREE.MeshStandardMaterial({color:'#9a6ae0'}));m.position.set(x,1.5,0);return m;};
-  const tail=new THREE.Mesh(new THREE.SphereGeometry(.38,16,16),new THREE.MeshStandardMaterial({color:'#fff0cf',roughness:.5})); tail.position.set(-.5,.6,-.3);
+{ const body=new THREE.Mesh(new THREE.SphereGeometry(.55,18,18),new THREE.MeshToonMaterial({color:'#fff0cf',gradientMap:TOON_RAMP,emissive:'#FFE0A8',emissiveIntensity:.15})); body.position.y=.55; body.castShadow=true;
+  const head=new THREE.Mesh(new THREE.SphereGeometry(.42,18,18),new THREE.MeshToonMaterial({color:'#fff0cf',gradientMap:TOON_RAMP})); head.position.y=1.1;
+  const ear=x=>{const m=new THREE.Mesh(new THREE.ConeGeometry(.16,.4,10),new THREE.MeshToonMaterial({color:'#9a6ae0',gradientMap:TOON_RAMP}));m.position.set(x,1.5,0);return m;};
+  const tail=new THREE.Mesh(new THREE.SphereGeometry(.38,16,16),new THREE.MeshToonMaterial({color:'#fff0cf',gradientMap:TOON_RAMP})); tail.position.set(-.5,.6,-.3);
   twTailStar=new THREE.Mesh(new THREE.OctahedronGeometry(.18),new THREE.MeshStandardMaterial({color:'#FFD24D',emissive:'#FFC83D',emissiveIntensity:.8})); twTailStar.position.set(-.78,.75,-.45);
-  const eye=x=>{const m=new THREE.Mesh(new THREE.SphereGeometry(.07,10,10),new THREE.MeshStandardMaterial({color:'#241B3A'}));m.position.set(x,1.15,.36);return m;};
-  twinkle.add(body,head,ear(-.18),ear(.18),tail,twTailStar,eye(-.14),eye(.14)); }
+  const eye=x=>{const m=new THREE.Mesh(new THREE.SphereGeometry(.07,10,10),new THREE.MeshBasicMaterial({color:'#241B3A'}));m.position.set(x,1.15,.36);return m;};
+  twinkle.add(body,head,ear(-.18),ear(.18),tail,twTailStar,eye(-.14),eye(.14)); addOutline(body,'#5a3aa0',0.018); addOutline(head,'#5a3aa0',0.018); }
 twinkle.position.copy(gloomling.position); twinkle.visible=false; scene.add(twinkle);
 let twinkleFollows=false;
 
