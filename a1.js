@@ -5,6 +5,7 @@
 //  Re-Engagement Intent. Data-driven activities = the content-pipeline seed.
 // =====================================================================
 import * as THREE from './vendor/three.module.min.js';
+import { GLTFLoader } from './vendor/GLTFLoader.js';
 
 const $ = (id) => document.getElementById(id);
 const QS = new URLSearchParams(location.search);
@@ -94,10 +95,44 @@ function rebuildHair(style){ if(avHair) avatar.remove(avHair); avHair=new THREE.
   avatar.add(avHair); }
 rebuildHair(state.avatar.style||'short');
 avatar.position.set(0,0,5); scene.add(avatar);
-function applyAvatar(){ avBodyMat.color.set(state.avatar.color); avHairMat.color.set(state.avatar.hair); avSkinMat.color.set(state.avatar.skin); }
-function addHat(){ if(avHat)return; avHat=new THREE.Mesh(new THREE.ConeGeometry(.45,.5,16),new THREE.MeshStandardMaterial({color:'#FF8FCF',roughness:.6})); avHat.position.y=2.15; avatar.add(avHat); if(!state.avatar.cosmetics.includes('hat')) state.avatar.cosmetics.push('hat'); }
-function addCape(){ if(avCape)return; avCape=new THREE.Mesh(new THREE.ConeGeometry(.55,1,12,1,true),new THREE.MeshStandardMaterial({color:'#7B4FC4',side:THREE.DoubleSide,roughness:.7})); avCape.position.set(0,.95,-.28); avatar.add(avCape); if(!state.avatar.cosmetics.includes('cape')) state.avatar.cosmetics.push('cape'); }
-function addStar(){ avStar.scale.setScalar(1.7); avStar.material.emissiveIntensity=.95; if(!state.avatar.cosmetics.includes('star')) state.avatar.cosmetics.push('star'); }
+function applyAvatar(){ avBodyMat.color.set(state.avatar.color); avHairMat.color.set(state.avatar.hair); avSkinMat.color.set(state.avatar.skin);
+  if(heroLoaded && heroOutfitMats.length) heroOutfitMats.forEach(m=>m.color.set(state.avatar.color)); }
+function addHat(){ if(!state.avatar.cosmetics.includes('hat')) state.avatar.cosmetics.push('hat'); if(heroLoaded) return; if(avHat)return; avHat=new THREE.Mesh(new THREE.ConeGeometry(.45,.5,16),new THREE.MeshStandardMaterial({color:'#FF8FCF',roughness:.6})); avHat.position.y=2.15; avatar.add(avHat); }
+function addCape(){ if(!state.avatar.cosmetics.includes('cape')) state.avatar.cosmetics.push('cape'); if(heroLoaded) return; if(avCape)return; avCape=new THREE.Mesh(new THREE.ConeGeometry(.55,1,12,1,true),new THREE.MeshStandardMaterial({color:'#7B4FC4',side:THREE.DoubleSide,roughness:.7})); avCape.position.set(0,.95,-.28); avatar.add(avCape); }
+function addStar(){ if(!state.avatar.cosmetics.includes('star')) state.avatar.cosmetics.push('star'); if(heroLoaded) return; avStar.scale.setScalar(1.7); avStar.material.emissiveIntensity=.95; }
+
+// ---------- Optional rigged anime character (drop-in; silently falls back to the blob) ----------
+let heroMixer=null, heroActions={}, heroLoaded=false, heroPerforming=false, heroMats=[], heroOutfitMats=[], heroCurrent=null;
+const HERO_URL = QS.get('hero') || 'assets/hero/hero.glb';
+const HERO_ROT = parseFloat(QS.get('heroRotY')||'0')||0;
+function gradientRamp(){ const d=new Uint8Array([88,88,88,255, 178,178,178,255, 255,255,255,255]);
+  const tex=new THREE.DataTexture(d,3,1,THREE.RGBAFormat); tex.minFilter=THREE.NearestFilter; tex.magFilter=THREE.NearestFilter; tex.needsUpdate=true; return tex; }
+function toonify(model){ const ramp=gradientRamp();
+  model.traverse(o=>{ if(o.isMesh && o.material){ const arr=Array.isArray(o.material)?o.material:[o.material];
+    const out=arr.map(m=>{ const tm=new THREE.MeshToonMaterial({ color:(m.color?m.color.clone():new THREE.Color('#ffffff')), map:m.map||null, gradientMap:ramp, transparent:!!m.transparent, alphaTest:m.alphaTest||0, side:(m.side!==undefined?m.side:THREE.FrontSide) });
+      tm.emissive=new THREE.Color('#000'); heroMats.push(tm);
+      if(/cloth|outfit|dress|jacket|shirt|tops|bottoms|body|skirt|coat/i.test(m.name||'')) heroOutfitMats.push(tm);
+      return tm; });
+    o.material=Array.isArray(o.material)?out:out[0]; o.castShadow=true; o.frustumCulled=false; } }); }
+function playHero(key){ if(!heroMixer||!heroActions[key]||heroCurrent===key) return; const next=heroActions[key];
+  Object.values(heroActions).forEach(a=>{ if(a!==next) a.fadeOut(0.25); }); next.reset().fadeIn(0.25).play(); heroCurrent=key; }
+function loadHero(){ const loader=new GLTFLoader();
+  loader.load(HERO_URL, gltf=>{ try{
+    const model=gltf.scene;
+    const box=new THREE.Box3().setFromObject(model), size=new THREE.Vector3(); box.getSize(size);
+    const s=1.8/(size.y||1); model.scale.setScalar(s); model.rotation.y=HERO_ROT;
+    const box2=new THREE.Box3().setFromObject(model); model.position.y-=box2.min.y; // feet to ground
+    toonify(model);
+    [avBody,avHead,avStar].forEach(m=>m.visible=false); if(avHair) avHair.visible=false;
+    avatar.add(model); heroLoaded=true; applyAvatar();
+    if(gltf.animations && gltf.animations.length){ heroMixer=new THREE.AnimationMixer(model);
+      gltf.animations.forEach(c=>{ const n=(c.name||'').toLowerCase(); const k=/idle/.test(n)?'idle':(/walk|run/.test(n)?'walk':(/dance/.test(n)?'dance':null)); if(k&&!heroActions[k]) heroActions[k]=heroMixer.clipAction(c); });
+      if(!heroActions.idle) heroActions.idle=heroMixer.clipAction(gltf.animations[0]);
+      playHero('idle'); }
+    log('hero_model_loaded',{anims:(gltf.animations||[]).map(a=>a.name)});
+  }catch(e){ heroLoaded=false; } },
+  undefined, ()=>{ heroLoaded=false; }); }
+async function maybeLoadHero(){ try{ const r=await fetch(HERO_URL,{method:'HEAD'}); if(r&&r.ok) loadHero(); }catch(e){} }
 
 // Rumi
 const rumi=new THREE.Group(); const rumiJacket=new THREE.MeshStandardMaterial({color:'#FFC83D',roughness:.55,emissive:'#000',emissiveIntensity:0});
@@ -167,11 +202,15 @@ function avatarTransform(accessoryFn,label,then){
   if(accessoryFn) accessoryFn();
   $('tf-emoji').textContent='🌟'; $('tf-title').textContent=`${heroName()} grew today!`; $('tf-sub').textContent='✨ '+label+' ✨';
   show('transform'); chime('win'); burst(avatar.position,'#FFE9A8',44);
+  heroPerforming=true; if(heroLoaded) playHero(heroActions.dance?'dance':'idle');
   if(audioOn) say(`Wow ${heroName()}! YOUR Star Hunter grew today! You unlocked a ${label}!`);
-  let g=0; const pulse=()=>{ g+=.05; avBodyMat.emissive.set('#FFD24D'); avBodyMat.emissiveIntensity=Math.max(0,Math.sin(g*Math.PI))*0.5; if(g<1) requestAnimationFrame(pulse); else { avBodyMat.emissiveIntensity=.12; } };
+  let g=0; const pulse=()=>{ g+=.05; const e=Math.max(0,Math.sin(g*Math.PI))*0.5;
+    avBodyMat.emissive.set('#FFD24D'); avBodyMat.emissiveIntensity=e;
+    heroMats.forEach(m=>{ if(m.emissive){ m.emissive.set('#FFD24D'); m.emissiveIntensity=e*0.8; } });
+    if(g<1) requestAnimationFrame(pulse); else { avBodyMat.emissiveIntensity=.12; heroMats.forEach(m=>{ if(m.emissive) m.emissiveIntensity=.06; }); } };
   pulse();
   setTimeout(()=>{ hide('transform'); focusAvatarUntil=performance.now()+2300; if(audioOn) say(`Look at you, ${heroName()}!`); save(); },3000);
-  setTimeout(()=>{ if(then) then(); },5400);
+  setTimeout(()=>{ heroPerforming=false; if(then) then(); },5400);
 }
 function recordExcitement(kind){ if(delight[kind]===null){ delight[kind]=Math.round(performance.now()-launchT); log('delight_'+kind,{ms:delight[kind]}); $('obs-readout').textContent=`smile ${delight.smile??'–'}ms · wow ${delight.excited??'–'}ms`; } }
 
@@ -421,6 +460,7 @@ function decideDay(){ const forced=QS.get('day'); if(forced){ return Math.max(1,
   return next;
 }
 function boot(){
+  maybeLoadHero();
   if(QS.get('observe')==='1'){ show('observer'); $('mark-smile').onclick=()=>recordExcitement('smile'); $('mark-excited').onclick=()=>recordExcitement('excited'); }
   if(QS.get('reset')==='1'){ localStorage.removeItem(KEY); localStorage.removeItem(EKEY); location.search=''; }
   $('start-btn').onclick=()=>{ audioOn=true; try{ actx=new(window.AudioContext||window.webkitAudioContext)(); }catch(e){}
@@ -442,7 +482,9 @@ function showAvatarCreate(){ show('avatar-create'); creationMode=true; controlEn
     b.onclick=()=>{ state.avatar.name=n; $('ac-name').value=n; if(audioOn) say(n,{rate:.85}); }; nameEl.appendChild(b); });
   $('ac-name').value=state.avatar.name||''; $('ac-name').oninput=e=>{ state.avatar.name=e.target.value; };
   mk('ac-skin',skins,'skin'); mk('ac-hair',hairs,'hair'); mk('ac-color',colors,'color'); applyAvatar();
-  if(audioOn) say("Make your very own Star Hunter! Pick your hair, your colors, and your name.");
+  // With a real rigged model loaded, hair/skin/style picks don't map to its mesh yet — keep Outfit color + Name.
+  if(heroLoaded){ ['ac-style','ac-hair','ac-skin'].forEach(id=>{ const el=$(id); const row=el&&el.closest('.ac-row'); if(row) row.style.display='none'; }); }
+  if(audioOn) say(heroLoaded?"Meet your Star Hunter! Pick your color and your name.":"Make your very own Star Hunter! Pick your hair, your colors, and your name.");
   $('ac-done').onclick=()=>{ state.avatar.created=true; creationMode=false; save();
     log('avatar_created',{skin:state.avatar.skin,hair:state.avatar.hair,color:state.avatar.color,style:state.avatar.style,named:!!(state.avatar.name&&state.avatar.name.trim())}); hide('avatar-create');
     if(audioOn) say(`Welcome, ${heroName()}! Let's go to Harmony Harbor!`,{then:()=>runStarCheck('pre',()=>routeDay())}); else runStarCheck('pre',()=>routeDay()); };
@@ -464,7 +506,9 @@ let lastT=performance.now();
 function tick(now){ const dt=Math.min((now-lastT)/1000,.05); lastT=now; const t=now/1000;
   let moving=false; const dx=target.x-avatar.position.x, dz=target.z-avatar.position.z, d=Math.hypot(dx,dz);
   if(d>.08){ moving=true; const step=Math.min(6*dt,d); avatar.position.x+=dx/d*step; avatar.position.z+=dz/d*step; avatar.rotation.y=Math.atan2(dx,dz); }
-  avatar.position.y= moving?Math.abs(Math.sin(t*10))*.12:0;
+  avatar.position.y= (moving && !heroLoaded)?Math.abs(Math.sin(t*10))*.12:0;
+  if(heroMixer) heroMixer.update(dt);
+  if(heroLoaded && !heroPerforming) playHero(moving && heroActions.walk ? 'walk' : 'idle');
   if(creationMode){ // live close-up while customizing YOUR hero
     camera.position.lerp(new THREE.Vector3(avatar.position.x,2.05,avatar.position.z+4.6),1-Math.exp(-dt*6)); camera.lookAt(avatar.position.x,1.5,avatar.position.z);
     avatar.rotation.y=Math.sin(t*0.6)*0.5;
