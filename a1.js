@@ -73,6 +73,27 @@ function glowTex(){ const cv=document.createElement('canvas'); cv.width=cv.heigh
 const GLOW_TEX=glowTex();
 function addGlow(parent,{color='#FFD24D',size=1,opacity=0.7,pos=[0,0,0]}={}){ const s=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW_TEX,color:new THREE.Color(color),transparent:true,opacity,blending:THREE.AdditiveBlending,depthWrite:false})); s.scale.set(size,size,1); s.position.set(pos[0],pos[1],pos[2]); parent.add(s); return s; }
 
+// ---- Expressive anime faces (flat "face card" — the mobile Genshin/Honkai technique) ----
+function drawFace(g,mode,iris){ g.clearRect(0,0,128,128); g.lineCap='round'; g.lineJoin='round';
+  const ex=42,ex2=86,ey=64;
+  g.strokeStyle='#5b3a2a'; g.lineWidth=4; g.beginPath(); g.moveTo(ex-12,ey-22); g.quadraticCurveTo(ex,ey-29,ex+12,ey-22); g.moveTo(ex2-12,ey-22); g.quadraticCurveTo(ex2,ey-29,ex2+12,ey-22); g.stroke(); // brows
+  if(mode==='blink'){ g.strokeStyle='#3a2a32'; g.lineWidth=4; g.beginPath(); g.moveTo(ex-14,ey); g.quadraticCurveTo(ex,ey+8,ex+14,ey); g.moveTo(ex2-14,ey); g.quadraticCurveTo(ex2,ey+8,ex2+14,ey); g.stroke(); }
+  else if(mode==='happy'){ g.strokeStyle='#3a2a32'; g.lineWidth=5; g.beginPath(); g.moveTo(ex-14,ey+5); g.quadraticCurveTo(ex,ey-12,ex+14,ey+5); g.moveTo(ex2-14,ey+5); g.quadraticCurveTo(ex2,ey-12,ex2+14,ey+5); g.stroke();
+    g.fillStyle='rgba(255,140,170,0.5)'; g.beginPath(); g.ellipse(ex-6,ey+20,9,5,0,0,7); g.ellipse(ex2+6,ey+20,9,5,0,0,7); g.fill(); }
+  else { [ex,ex2].forEach(cx=>{ g.fillStyle='#fff'; g.beginPath(); g.ellipse(cx,ey,14,18,0,0,7); g.fill();
+    g.fillStyle=iris; g.beginPath(); g.arc(cx,ey+2,10,0,7); g.fill(); g.fillStyle='#241B3A'; g.beginPath(); g.arc(cx,ey+3,5,0,7); g.fill();
+    g.fillStyle='#fff'; g.beginPath(); g.arc(cx-4,ey-4,3.6,0,7); g.fill();
+    g.strokeStyle='#2a1f28'; g.lineWidth=3.5; g.beginPath(); g.moveTo(cx-15,ey-10); g.quadraticCurveTo(cx,ey-17,cx+15,ey-10); g.stroke(); }); }
+  g.fillStyle='rgba(120,80,90,0.45)'; g.beginPath(); g.arc(64,ey+22,2.2,0,7); g.fill(); // nose
+  g.strokeStyle='#c23a5a'; g.lineWidth=4; g.beginPath(); if(mode==='happy'){ g.moveTo(54,ey+34); g.quadraticCurveTo(64,ey+47,74,ey+34); } else { g.moveTo(57,ey+34); g.quadraticCurveTo(64,ey+41,71,ey+34); } g.stroke(); }
+function makeFaceTex(mode,iris){ const cv=document.createElement('canvas'); cv.width=cv.height=128; drawFace(cv.getContext('2d'),mode,iris); const t=new THREE.CanvasTexture(cv); t.colorSpace=THREE.SRGBColorSpace; return t; }
+const faces=[];
+function addFace(head,{iris='#c98a3a',size=0.8,z=0.45}={}){ try{
+  const tex={open:makeFaceTex('open',iris),blink:makeFaceTex('blink',iris),happy:makeFaceTex('happy',iris)};
+  const pl=new THREE.Mesh(new THREE.PlaneGeometry(size,size*0.92),new THREE.MeshBasicMaterial({map:tex.open,transparent:true,depthWrite:false,toneMapped:false}));
+  pl.position.set(0,0.02,z); pl.renderOrder=2; head.add(pl);
+  faces.push({pl,tex,next:performance.now()+2000+Math.random()*2500,blinkUntil:0}); }catch(e){} }
+
 // ---- Anime visual pass: toon ramp + inverted-hull outline ----
 function makeRamp(arr,w){ const t=new THREE.DataTexture(new Uint8Array(arr),w,1,THREE.RGBAFormat); t.minFilter=THREE.NearestFilter; t.magFilter=THREE.NearestFilter; t.needsUpdate=true; return t; }
 const TOON_RAMP=makeRamp([70,70,92,255, 150,150,172,255, 232,232,244,255, 255,255,255,255],4); // crisp 4-band anime ramp
@@ -145,7 +166,7 @@ const avBody=new THREE.Mesh(new THREE.CapsuleGeometry(.4,.6,6,12),avBodyMat); av
 const avHead=new THREE.Mesh(new THREE.SphereGeometry(.45,18,18),avSkinMat); avHead.position.y=1.7; avHead.castShadow=true;
 const avEye=x=>{const m=new THREE.Mesh(new THREE.SphereGeometry(.055,8,8),new THREE.MeshStandardMaterial({color:'#241B3A'}));m.position.set(x,1.74,.4);return m;};
 const avStar=new THREE.Mesh(new THREE.OctahedronGeometry(.18),new THREE.MeshStandardMaterial({color:'#FFD24D',emissive:'#a98a00',emissiveIntensity:.4})); avStar.position.set(0,1.05,.4);
-avatar.add(avBody,avHead,avEye(-.15),avEye(.15),avStar);
+avatar.add(avBody,avHead,avStar); addFace(avHead,{iris:'#c98a3a',size:0.8,z:0.45}); // expressive anime face
 function rebuildHair(style){ if(avHair) avatar.remove(avHair); avHair=new THREE.Group();
   const cap=new THREE.Mesh(new THREE.SphereGeometry(.5,18,18,0,6.3,0,1.9),avHairMat); cap.position.y=1.75; avHair.add(cap);
   if(style==='ponytail'){ const p=new THREE.Mesh(new THREE.CapsuleGeometry(.14,.7,4,8),avHairMat); p.position.set(0,1.5,-.42); avHair.add(p); }
@@ -210,7 +231,7 @@ let rumiCape=null,rumiCrown=null;
   const bstar=new THREE.Mesh(new THREE.OctahedronGeometry(.14),new THREE.MeshStandardMaterial({color:'#FFD24D',emissive:'#a98a00',emissiveIntensity:.5})); bstar.position.set(-.62,.7,.2);
   const staff=new THREE.Mesh(new THREE.CylinderGeometry(.05,.05,1.1,8),new THREE.MeshStandardMaterial({color:'#e8e2f0'})); staff.position.set(.55,1.1,0);
   const mic=new THREE.Mesh(new THREE.SphereGeometry(.16,12,12),new THREE.MeshStandardMaterial({color:'#FFD24D',emissive:'#FFC83D',emissiveIntensity:.6})); mic.position.set(.55,1.7,0);
-  rumi.add(j,core,head,hair,braid,bstar,staff,mic); rumiBraid=braid; addOutline(j,'#3a2a1a',0.02); addOutline(head,'#3a2a1a',0.02); addGlow(mic,{color:'#FFE08A',size:1.15,opacity:0.85}); addGlow(bstar,{color:'#FFD24D',size:0.5,opacity:0.7}); }
+  rumi.add(j,core,head,hair,braid,bstar,staff,mic); rumiBraid=braid; addOutline(j,'#3a2a1a',0.02); addOutline(head,'#3a2a1a',0.02); addGlow(mic,{color:'#FFE08A',size:1.15,opacity:0.85}); addGlow(bstar,{color:'#FFD24D',size:0.5,opacity:0.7}); addFace(head,{iris:'#e0a83a',size:0.82,z:0.46}); }
 rumi.position.set(-2.2,0,3); rumi.rotation.y=.4; scene.add(rumi);
 
 // Gloomling + Twinkle
@@ -660,6 +681,9 @@ function tick(now){ const dt=Math.min((now-lastT)/1000,.05); lastT=now; const t=
   { const lit=lhLightMat.emissiveIntensity>0.1; lhHalo.material.opacity+=((lit?0.7+0.18*Math.sin(t*3):0)-lhHalo.material.opacity)*Math.min(1,dt*4); }
   for(const c of crystals){ const e=0.5+Math.sin(t*1.5+c.seed)*0.25; c.g.children[0].material.emissiveIntensity=e; c.g.children[1].material.emissiveIntensity=e+0.12; } // energy-infused pulse
   for(const gl of glyphs){ gl.g.rotation.y+=dt*0.25; gl.r1.material.opacity=0.55+0.25*Math.sin(t*1.2+gl.seed); } // slowly turning magic glyphs
+  for(const f of faces){ const np=performance.now(); let m=f.tex.open; // blink + reactive happy expression (uses existing cheer signal)
+    if(np<twCheerUntil) m=f.tex.happy; else { if(np>=f.next){ f.blinkUntil=np+120; f.next=np+2200+Math.random()*2800; } if(np<f.blinkUntil) m=f.tex.blink; }
+    if(f.pl.material.map!==m){ f.pl.material.map=m; f.pl.material.needsUpdate=true; } }
   renderer.render(scene,camera); requestAnimationFrame(tick);
 }
 addEventListener('resize',()=>{ camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth,innerHeight); });
