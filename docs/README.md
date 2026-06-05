@@ -34,7 +34,7 @@ This suite follows the project's master prompt collection. Each prompt → one p
 | **Character Production Spec** (Rumi / Twinkle / Child) | [`character-production-spec.md`](character-production-spec.md) | ✅ |
 
 ## Playable vertical slice
-The repo root is now the **Harmony Harbor vertical slice** (`index.html` + `harbor.js` + `harbor.css`) — a web build that runs the full loop (explore → read with Rumi → befriend Twinkle → transformation → reward → "again?") with **audio narration** and **no-fail** learning, for testing with real 5–7s. Live: `https://xolacreator.github.io/Revi-Star/`. Prior demos preserved as `demo-explore.html` / `classic.html`.
+The repo root is now the **Harmony Harbor vertical slice** (`index.html` + `harbor.js` + `harbor.css`) — a web build that runs the full loop (explore → read with Rumi → befriend Twinkle → transformation → reward → "again?") with **audio narration** and **no-fail** learning, for testing with real 5–7s. Live: `https://xolacreator.github.io/revi-star/`. Prior demos preserved as `demo-explore.html` / `classic.html`.
 
 Supporting: [`schemas/`](schemas/) (ScriptableObjects + sample data) · [`art/`](art/) (drop the HUNTRIX sheet here as `concept-sheet.png`).
 

@@ -2,7 +2,7 @@
 
 > **Narrowed scope** (per founder call): build **3 days**, not 7. The real risk is whether **Day 2 and Day 3** earn the return — if they don't, D7 never matters.
 > **Success question:** *Do children voluntarily return for Day 2 and Day 3, and do parents feel good about saying yes?*
-> Built on the Harmony Harbor base. Live: `https://xolacreator.github.io/Revi-Star/` · Files: `index.html` + `a1.js` + `a1.css`.
+> Built on the Harmony Harbor base. Live: `https://xolacreator.github.io/revi-star/` · Files: `index.html` + `a1.js` + `a1.css`.
 
 ## What's in the build
 - **Avatar creation** (skin / hair / color) — the child's own Star Hunter, which grows alongside Rumi.

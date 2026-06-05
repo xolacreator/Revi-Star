@@ -4,7 +4,7 @@
 > Friends'/family/coworkers' kids. No recruiting, no surveys, no observer dashboards. **Just watch.**
 
 ## Before
-1. Play it yourself a few times: `https://xolacreator.github.io/Revi-Star/` (sound on).
+1. Play it yourself a few times: `https://xolacreator.github.io/revi-star/` (sound on).
 2. Hand the child the device at the "Tap to Start" screen. Sit beside them. Say once: *"There are no wrong answers — just have fun."* Then **be quiet**.
 
 ## Watch only three things (jot a word or two)
