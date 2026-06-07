@@ -201,9 +201,22 @@ function toonify(model){ const outlineTargets=[];
   outlineTargets.forEach(o=>addOutline(o,'#241B3A',0.012)); }
 function playHero(key){ if(!heroMixer||!heroActions[key]||heroCurrent===key) return; const next=heroActions[key];
   Object.values(heroActions).forEach(a=>{ if(a!==next) a.fadeOut(0.25); }); next.reset().fadeIn(0.25).play(); heroCurrent=key; }
+function pickCharacter(scene){ // a combined glb may hold several characters as separate objects
+  const cands=scene.children.filter(c=>{ let has=false; c.traverse(o=>{ if(o.isMesh) has=true; }); return has; });
+  const names=cands.map(c=>c.name||'(unnamed)');
+  if(cands.length<=1) return {root:scene, names, multi:false};
+  const nodeSel=QS.get('heroNode'), idxSel=QS.get('heroIndex');
+  let chosen=null;
+  if(nodeSel) chosen=cands.find(c=>(c.name||'').toLowerCase().includes(nodeSel.toLowerCase()));
+  if(!chosen && idxSel!=null) chosen=cands[parseInt(idxSel)]||null;
+  if(!chosen) chosen=cands[0];
+  return {root:chosen, names, multi:true, chosenName:chosen.name||''};
+}
 function loadHero(){ const loader=new GLTFLoader();
   loader.load(HERO_URL, gltf=>{ try{
-    const model=gltf.scene;
+    const pick=pickCharacter(gltf.scene); const model=pick.root;
+    if(pick.multi){ try{ console.log('[hero] characters in file:', pick.names.join(', '), '→ using:', pick.chosenName||pick.names[0]); }catch(e){}
+      setHint('Models: '+pick.names.join(' · ')+'  (use ?heroNode=Name)'); setTimeout(()=>{ if($('hint')) $('hint').style.opacity=0; },7000); }
     const box=new THREE.Box3().setFromObject(model), size=new THREE.Vector3(); box.getSize(size);
     const s=1.8/(size.y||1); model.scale.setScalar(s); model.rotation.y=HERO_ROT;
     const box2=new THREE.Box3().setFromObject(model); model.position.y-=box2.min.y; // feet to ground
@@ -211,10 +224,13 @@ function loadHero(){ const loader=new GLTFLoader();
     [avBody,avHead,avStar].forEach(m=>m.visible=false); if(avHair) avHair.visible=false;
     avatar.add(model); heroLoaded=true; applyAvatar();
     if(gltf.animations && gltf.animations.length){ heroMixer=new THREE.AnimationMixer(model);
-      gltf.animations.forEach(c=>{ const n=(c.name||'').toLowerCase(); const k=/idle/.test(n)?'idle':(/walk|run/.test(n)?'walk':(/dance/.test(n)?'dance':null)); if(k&&!heroActions[k]) heroActions[k]=heroMixer.clipAction(c); });
-      if(!heroActions.idle) heroActions.idle=heroMixer.clipAction(gltf.animations[0]);
+      // prefer clips named for the chosen character, then generic idle/walk/dance
+      const tag=(pick.chosenName||'').toLowerCase();
+      const clips = tag ? gltf.animations.filter(c=>(c.name||'').toLowerCase().includes(tag)).concat(gltf.animations.filter(c=>!(c.name||'').toLowerCase().includes(tag))) : gltf.animations;
+      clips.forEach(c=>{ const n=(c.name||'').toLowerCase(); const k=/idle/.test(n)?'idle':(/walk|run/.test(n)?'walk':(/dance/.test(n)?'dance':null)); if(k&&!heroActions[k]) heroActions[k]=heroMixer.clipAction(c); });
+      if(!heroActions.idle) heroActions.idle=heroMixer.clipAction(clips[0]);
       playHero('idle'); }
-    log('hero_model_loaded',{anims:(gltf.animations||[]).map(a=>a.name)});
+    log('hero_model_loaded',{characters:pick.names, used:pick.chosenName||null, anims:(gltf.animations||[]).map(a=>a.name)});
   }catch(e){ heroLoaded=false; } },
   undefined, ()=>{ heroLoaded=false; }); }
 async function maybeLoadHero(){ try{ const r=await fetch(HERO_URL,{method:'HEAD'}); if(r&&r.ok) loadHero(); }catch(e){} }
