@@ -180,57 +180,63 @@ avatar.position.set(0,0,5); scene.add(avatar);
 let avStarGlow=addGlow(avStar,{color:state.avatar.color,size:0.95,opacity:0.85}); // color-identity glow on the hero's star-tool
 function applyAvatar(){ avBodyMat.color.set(state.avatar.color); avHairMat.color.set(state.avatar.hair); avSkinMat.color.set(state.avatar.skin);
   if(avStarGlow) avStarGlow.material.color.set(state.avatar.color);
-  if(heroLoaded && heroOutfitMats.length) heroOutfitMats.forEach(m=>m.color.set(state.avatar.color)); }
+  if(heroLoaded){ // tint the real model's named material zones (the evolved creation customizes the model itself)
+    heroOutfitMats.forEach(m=>m.color.set(state.avatar.color));
+    heroHairMats.forEach(m=>m.color.set(state.avatar.hair));
+    heroSkinMats.forEach(m=>m.color.set(state.avatar.skin)); } }
 function addHat(){ if(!state.avatar.cosmetics.includes('hat')) state.avatar.cosmetics.push('hat'); if(heroLoaded) return; if(avHat)return; avHat=new THREE.Mesh(new THREE.ConeGeometry(.45,.5,16),new THREE.MeshStandardMaterial({color:'#FF8FCF',roughness:.6})); avHat.position.y=2.15; avatar.add(avHat); }
 function addCape(){ if(!state.avatar.cosmetics.includes('cape')) state.avatar.cosmetics.push('cape'); if(heroLoaded) return; if(avCape)return; avCape=new THREE.Mesh(new THREE.ConeGeometry(.55,1,12,1,true),new THREE.MeshStandardMaterial({color:'#7B4FC4',side:THREE.DoubleSide,roughness:.7})); avCape.position.set(0,.95,-.28); avatar.add(avCape); }
 function addStar(){ if(!state.avatar.cosmetics.includes('star')) state.avatar.cosmetics.push('star'); if(heroLoaded) return; avStar.scale.setScalar(1.7); avStar.material.emissiveIntensity=.95; }
 
 // ---------- Optional rigged anime character (drop-in; silently falls back to the blob) ----------
-let heroMixer=null, heroActions={}, heroLoaded=false, heroPerforming=false, heroMats=[], heroOutfitMats=[], heroCurrent=null;
+let heroMixer=null, heroActions={}, heroLoaded=false, heroPerforming=false, heroMats=[], heroOutfitMats=[], heroHairMats=[], heroSkinMats=[], heroCurrent=null, rumiMixer=null;
 const HERO_URL = QS.get('hero') || 'assets/hero/hero.glb';
 const HERO_ROT = parseFloat(QS.get('heroRotY')||'0')||0;
 function gradientRamp(){ const d=new Uint8Array([88,88,88,255, 178,178,178,255, 255,255,255,255]);
   const tex=new THREE.DataTexture(d,3,1,THREE.RGBAFormat); tex.minFilter=THREE.NearestFilter; tex.magFilter=THREE.NearestFilter; tex.needsUpdate=true; return tex; }
-function toonify(model){ const outlineTargets=[];
+function toonify(model,buckets){ const B=buckets||{}, outlineTargets=[];
   model.traverse(o=>{ if(o.isMesh && o.material){ const arr=Array.isArray(o.material)?o.material:[o.material];
     const out=arr.map(m=>{ const tm=new THREE.MeshToonMaterial({ color:(m.color?m.color.clone():new THREE.Color('#ffffff')), map:m.map||null, gradientMap:TOON_RAMP, transparent:!!m.transparent, alphaTest:m.alphaTest||0, side:(m.side!==undefined?m.side:THREE.FrontSide) });
-      tm.emissive=new THREE.Color('#000'); heroMats.push(tm);
-      if(/cloth|outfit|dress|jacket|shirt|tops|bottoms|body|skirt|coat/i.test(m.name||'')) heroOutfitMats.push(tm);
+      tm.emissive=new THREE.Color('#000'); if(B.all) B.all.push(tm);
+      const nm=((m.name||'')+' '+(o.name||'')).toLowerCase(); // sort into tintable zones by material/mesh name
+      if(B.hair && /hair|braid|bang|fringe|ponytail|bun/.test(nm)) B.hair.push(tm);
+      else if(B.outfit && /cloth|outfit|dress|jacket|shirt|top|bottom|skirt|coat|costume|pant|short|vest/.test(nm)) B.outfit.push(tm);
+      else if(B.skin && /skin|face|head|body|arm|leg|hand/.test(nm)) B.skin.push(tm);
       return tm; });
     o.material=Array.isArray(o.material)?out:out[0]; o.castShadow=true; o.frustumCulled=false; outlineTargets.push(o); } });
   outlineTargets.forEach(o=>addOutline(o,'#241B3A',0.012)); }
+// Mount any character subtree into a slot group: scale to ~1.8, ground, center, toon, animate.
+function mountCharacter(group,root,animations,{tag='',buckets=null,rot=HERO_ROT}={}){
+  const box=new THREE.Box3().setFromObject(root),size=new THREE.Vector3(); box.getSize(size);
+  const s=1.8/(size.y||1); root.scale.setScalar(s); root.rotation.y=rot;
+  const box2=new THREE.Box3().setFromObject(root); root.position.set(0,-box2.min.y,0); // center + feet to ground
+  toonify(root,buckets); group.add(root);
+  let mixer=null, actions={};
+  if(animations && animations.length){ mixer=new THREE.AnimationMixer(root);
+    const clips = tag ? animations.filter(c=>(c.name||'').toLowerCase().includes(tag)).concat(animations.filter(c=>!(c.name||'').toLowerCase().includes(tag))) : animations;
+    clips.forEach(c=>{ const n=(c.name||'').toLowerCase(); const k=/idle/.test(n)?'idle':(/walk|run/.test(n)?'walk':(/dance/.test(n)?'dance':null)); if(k&&!actions[k]) actions[k]=mixer.clipAction(c); });
+    if(!actions.idle && clips[0]) actions.idle=mixer.clipAction(clips[0]);
+    if(actions.idle) actions.idle.reset().play(); }
+  return {mixer,actions}; }
 function playHero(key){ if(!heroMixer||!heroActions[key]||heroCurrent===key) return; const next=heroActions[key];
   Object.values(heroActions).forEach(a=>{ if(a!==next) a.fadeOut(0.25); }); next.reset().fadeIn(0.25).play(); heroCurrent=key; }
-function pickCharacter(scene){ // a combined glb may hold several characters as separate objects
-  const cands=scene.children.filter(c=>{ let has=false; c.traverse(o=>{ if(o.isMesh) has=true; }); return has; });
-  const names=cands.map(c=>c.name||'(unnamed)');
-  if(cands.length<=1) return {root:scene, names, multi:false};
-  const nodeSel=QS.get('heroNode'), idxSel=QS.get('heroIndex');
-  let chosen=null;
-  if(nodeSel) chosen=cands.find(c=>(c.name||'').toLowerCase().includes(nodeSel.toLowerCase()));
-  if(!chosen && idxSel!=null) chosen=cands[parseInt(idxSel)]||null;
-  if(!chosen) chosen=cands[0];
-  return {root:chosen, names, multi:true, chosenName:chosen.name||''};
-}
 function loadHero(){ const loader=new GLTFLoader();
   loader.load(HERO_URL, gltf=>{ try{
-    const pick=pickCharacter(gltf.scene); const model=pick.root;
-    if(pick.multi){ try{ console.log('[hero] characters in file:', pick.names.join(', '), '→ using:', pick.chosenName||pick.names[0]); }catch(e){}
-      setHint('Models: '+pick.names.join(' · ')+'  (use ?heroNode=Name)'); setTimeout(()=>{ if($('hint')) $('hint').style.opacity=0; },7000); }
-    const box=new THREE.Box3().setFromObject(model), size=new THREE.Vector3(); box.getSize(size);
-    const s=1.8/(size.y||1); model.scale.setScalar(s); model.rotation.y=HERO_ROT;
-    const box2=new THREE.Box3().setFromObject(model); model.position.y-=box2.min.y; // feet to ground
-    toonify(model);
+    const cands=gltf.scene.children.filter(c=>{ let has=false; c.traverse(o=>{ if(o.isMesh) has=true; }); return has; });
+    const names=cands.map(c=>c.name||'(unnamed)');
+    const nodeSel=QS.get('heroNode'), idxSel=QS.get('heroIndex');
+    // ---- AVATAR slot (player) ----
+    let avRoot=gltf.scene;
+    if(cands.length>1){ avRoot=(nodeSel&&cands.find(c=>(c.name||'').toLowerCase().includes(nodeSel.toLowerCase()))) || (idxSel!=null&&cands[parseInt(idxSel)]) || cands[0];
+      try{ console.log('[characters] in file:',names.join(', '),'→ avatar:',avRoot.name); }catch(e){}
+      setHint('Models: '+names.join(' · ')); setTimeout(()=>{ if($('hint')) $('hint').style.opacity=0; },7000); }
     [avBody,avHead,avStar].forEach(m=>m.visible=false); if(avHair) avHair.visible=false;
-    avatar.add(model); heroLoaded=true; applyAvatar();
-    if(gltf.animations && gltf.animations.length){ heroMixer=new THREE.AnimationMixer(model);
-      // prefer clips named for the chosen character, then generic idle/walk/dance
-      const tag=(pick.chosenName||'').toLowerCase();
-      const clips = tag ? gltf.animations.filter(c=>(c.name||'').toLowerCase().includes(tag)).concat(gltf.animations.filter(c=>!(c.name||'').toLowerCase().includes(tag))) : gltf.animations;
-      clips.forEach(c=>{ const n=(c.name||'').toLowerCase(); const k=/idle/.test(n)?'idle':(/walk|run/.test(n)?'walk':(/dance/.test(n)?'dance':null)); if(k&&!heroActions[k]) heroActions[k]=heroMixer.clipAction(c); });
-      if(!heroActions.idle) heroActions.idle=heroMixer.clipAction(clips[0]);
-      playHero('idle'); }
-    log('hero_model_loaded',{characters:pick.names, used:pick.chosenName||null, anims:(gltf.animations||[]).map(a=>a.name)});
+    const a=mountCharacter(avatar,avRoot,gltf.animations,{tag:(avRoot.name||'').toLowerCase(),buckets:{all:heroMats,outfit:heroOutfitMats,hair:heroHairMats,skin:heroSkinMats}});
+    heroMixer=a.mixer; heroActions=a.actions; heroLoaded=true; applyAvatar();
+    // ---- RUMI slot (optional): a different character named "rumi" in the same file replaces her placeholder ----
+    if(cands.length>1){ try{ const rRoot=cands.find(c=>(c.name||'').toLowerCase().includes('rumi') && c!==avRoot);
+      if(rRoot){ rumi.children.slice().forEach(c=>{ c.visible=false; }); const r=mountCharacter(rumi,rRoot,gltf.animations,{tag:'rumi',buckets:null}); rumiMixer=r.mixer; } }catch(e){} }
+    log('hero_model_loaded',{characters:names, avatar:avRoot.name||null});
   }catch(e){ heroLoaded=false; } },
   undefined, ()=>{ heroLoaded=false; }); }
 async function maybeLoadHero(){ try{ const r=await fetch(HERO_URL,{method:'HEAD'}); if(r&&r.ok) loadHero(); }catch(e){} }
@@ -611,9 +617,9 @@ function showAvatarCreate(){ show('avatar-create'); creationMode=true; controlEn
     b.onclick=()=>{ state.avatar.name=n; $('ac-name').value=n; if(audioOn) say(n,{rate:.85}); }; nameEl.appendChild(b); });
   $('ac-name').value=state.avatar.name||''; $('ac-name').oninput=e=>{ state.avatar.name=e.target.value; };
   mk('ac-skin',skins,'skin'); mk('ac-hair',hairs,'hair'); mk('ac-color',colors,'color'); applyAvatar();
-  // With a real rigged model loaded, hair/skin/style picks don't map to its mesh yet — keep Outfit color + Name.
-  if(heroLoaded){ ['ac-style','ac-hair','ac-skin'].forEach(id=>{ const el=$(id); const row=el&&el.closest('.ac-row'); if(row) row.style.display='none'; }); }
-  if(audioOn) say(heroLoaded?"Meet your Star Hunter! Pick your color and your name.":"Make your very own Star Hunter! Pick your hair, your colors, and your name.");
+  // With a real rigged model, Outfit/Hair/Skin COLORS tint the model's material zones; only the hairstyle MESH-swap row needs the model to ship hair variants (hidden for now).
+  if(heroLoaded){ const el=$('ac-style'), row=el&&el.closest('.ac-row'); if(row) row.style.display='none'; }
+  if(audioOn) say("Make your very own Star Hunter! Pick your hair, your colors, and your name.");
   $('ac-done').onclick=()=>{ state.avatar.created=true; creationMode=false; save();
     log('avatar_created',{skin:state.avatar.skin,hair:state.avatar.hair,color:state.avatar.color,style:state.avatar.style,named:!!(state.avatar.name&&state.avatar.name.trim())}); hide('avatar-create');
     if(audioOn) say(`Welcome, ${heroName()}! Let's go to Harmony Harbor!`,{then:()=>runStarCheck('pre',()=>routeDay())}); else runStarCheck('pre',()=>routeDay()); };
@@ -651,6 +657,7 @@ function tick(now){ const dt=Math.min((now-lastT)/1000,.05); lastT=now; const t=
   if(avHair){ avHair.rotation.x=-sp*0.18+Math.sin(t*2.0)*0.03; avHair.rotation.z=avBank*0.6+Math.sin(t*1.3)*0.02; } // hair never static
   if(moving && sp>0.4){ trailT-=dt; if(trailT<=0){ trailT=0.045; spawnTrail(); } } // energy ribbon while moving
   if(heroMixer) heroMixer.update(dt);
+  if(rumiMixer) rumiMixer.update(dt); // Rumi NPC model animation
   if(heroLoaded && !heroPerforming) playHero(moving && heroActions.walk ? 'walk' : 'idle');
   if(now<cineUntil){ // cinematic push-in during the transformation reveal
     camera.position.lerp(new THREE.Vector3(avatar.position.x+0.2,2.2,avatar.position.z+4.1),1-Math.exp(-dt*4)); camera.lookAt(avatar.position.x,1.5,avatar.position.z);
