@@ -130,10 +130,22 @@ function makeSparkle(x,z){ const m=new THREE.Mesh(new THREE.OctahedronGeometry(.
 [[-3,1],[3,.5],[-1.5,-2],[2,-3.5],[-4,-4]].forEach(p=>makeSparkle(p[0],p[1]));
 
 // ---------------- Environment polish: sky, clouds, ambient sparkles, glow, flowers ----------------
-const SKY_TOP=new THREE.Color('#4aa6ff'), SKY_BOT=new THREE.Color('#ffd9ec');
-const skyGeo=new THREE.SphereGeometry(90,24,16);
-{ const pos=skyGeo.attributes.position, col=[]; for(let i=0;i<pos.count;i++){ const y=(pos.getY(i)/90+0.15)/0.9; const c=SKY_BOT.clone().lerp(SKY_TOP,Math.min(1,Math.max(0,y))); col.push(c.r,c.g,c.b); } skyGeo.setAttribute('color',new THREE.Float32BufferAttribute(col,3)); }
-const skyMat=new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.BackSide,fog:false,depthWrite:false}); skyMat.color.set('#8a86a0'); // dim until harmony returns
+// Enhanced 2D backdrop (temporary): a painted neon-dusk K-pop city panorama mapped on the sky dome.
+const skyGeo=new THREE.SphereGeometry(90,32,20);
+function paintBackdrop(){ const W=2048,H=1024,cv=document.createElement('canvas'); cv.width=W; cv.height=H; const x=cv.getContext('2d'); const horizon=H*0.5;
+  let g=x.createLinearGradient(0,0,0,horizon); g.addColorStop(0,'#241a52'); g.addColorStop(0.45,'#5a3aa6'); g.addColorStop(0.8,'#b65a9e'); g.addColorStop(1,'#ffb37a'); x.fillStyle=g; x.fillRect(0,0,W,horizon);
+  x.fillStyle='#1a1330'; x.fillRect(0,horizon,W,H-horizon);
+  x.globalCompositeOperation='lighter'; x.globalAlpha=0.16; ['#4fd8ff','#ff4fa6','#b06aff'].forEach((c,i)=>{ x.fillStyle=c; const y0=H*(0.12+i*0.09); x.beginPath(); x.moveTo(0,y0); for(let xx=0;xx<=W;xx+=64) x.lineTo(xx,y0+Math.sin(xx*0.004+i)*40); for(let xx=W;xx>=0;xx-=64) x.lineTo(xx,y0+130+Math.sin(xx*0.004+i)*40); x.closePath(); x.fill(); });
+  x.globalCompositeOperation='source-over'; x.globalAlpha=1;
+  x.fillStyle='#fff'; for(let i=0;i<260;i++){ x.globalAlpha=0.4+Math.random()*0.6; x.beginPath(); x.arc(Math.random()*W,Math.random()*horizon*0.9,Math.random()*1.6+0.3,0,7); x.fill(); } x.globalAlpha=1;
+  let hg=x.createRadialGradient(W*0.5,horizon,10,W*0.5,horizon,W*0.5); hg.addColorStop(0,'rgba(255,210,150,0.55)'); hg.addColorStop(1,'rgba(255,210,150,0)'); x.fillStyle=hg; x.fillRect(0,horizon-H*0.22,W,H*0.44);
+  const wc=['#4fd8ff','#ff4fa6','#ffd24d']; let bx=0; while(bx<W){ const bw=40+Math.random()*90, bh=H*(0.06+Math.random()*0.16), by=horizon-bh;
+    x.fillStyle='#2a1c4a'; x.fillRect(bx,by,bw,bh+H*0.05);
+    for(let wy=by+8; wy<horizon-6; wy+=12) for(let wx=bx+6; wx<bx+bw-6; wx+=12) if(Math.random()<0.45){ x.fillStyle=wc[(Math.random()*3)|0]; x.globalAlpha=0.85; x.fillRect(wx,wy,4,5); }
+    x.globalAlpha=1; bx+=bw+6; }
+  const t=new THREE.CanvasTexture(cv); t.colorSpace=THREE.SRGBColorSpace; return t; }
+const skyMat=new THREE.MeshBasicMaterial({map:paintBackdrop(),side:THREE.BackSide,fog:false,depthWrite:false}); skyMat.color.set('#8a86a0'); // dim until harmony returns
+const bgURL=QS.get('bg'); if(bgURL){ try{ new THREE.TextureLoader().load(bgURL,tx=>{ tx.colorSpace=THREE.SRGBColorSpace; skyMat.map=tx; skyMat.needsUpdate=true; }); }catch(e){} } // swap in a custom 2D image
 scene.add(new THREE.Mesh(skyGeo,skyMat)); scene.background=null;
 const clouds=[]; for(let i=0;i<5;i++){ const c=new THREE.Mesh(new THREE.SphereGeometry(2.2+Math.random()*1.5,10,8),new THREE.MeshBasicMaterial({color:'#ffffff',transparent:true,opacity:0.5,fog:false})); c.scale.y=0.45; c.position.set(-30+Math.random()*60,16+Math.random()*8,-18-Math.random()*30); clouds.push(c); scene.add(c); }
 let ambient=null; { const N=90,p=new Float32Array(N*3); for(let i=0;i<N;i++){ const a=Math.random()*Math.PI*2,r=2+Math.random()*18; p[i*3]=Math.cos(a)*r; p[i*3+1]=0.5+Math.random()*10; p[i*3+2]=Math.sin(a)*r; } const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.Float32BufferAttribute(p,3)); ambient=new THREE.Points(g,new THREE.PointsMaterial({color:'#FFE9A8',size:0.18,transparent:true,opacity:0,depthWrite:false})); scene.add(ambient); }
