@@ -208,7 +208,7 @@ function gradientRamp(){ const d=new Uint8Array([88,88,88,255, 178,178,178,255, 
   const tex=new THREE.DataTexture(d,3,1,THREE.RGBAFormat); tex.minFilter=THREE.NearestFilter; tex.magFilter=THREE.NearestFilter; tex.needsUpdate=true; return tex; }
 function toonify(model,buckets){ const B=buckets||{}, outlineTargets=[];
   model.traverse(o=>{ if(o.isMesh && o.material){ const arr=Array.isArray(o.material)?o.material:[o.material];
-    const out=arr.map(m=>{ const tm=new THREE.MeshToonMaterial({ color:(m.color?m.color.clone():new THREE.Color('#ffffff')), map:m.map||null, gradientMap:TOON_RAMP, transparent:!!m.transparent, alphaTest:m.alphaTest||0, side:(m.side!==undefined?m.side:THREE.FrontSide) });
+    const out=arr.map(m=>{ const tm=new THREE.MeshToonMaterial({ color:(m.color?m.color.clone():new THREE.Color('#ffffff')), map:(m.map||m.emissiveMap||null), gradientMap:TOON_RAMP, transparent:!!m.transparent, alphaTest:m.alphaTest||0, side:(m.side!==undefined?m.side:THREE.FrontSide) });
       tm.emissive=new THREE.Color('#000'); if(B.all) B.all.push(tm);
       const nm=((m.name||'')+' '+(o.name||'')).toLowerCase(); // sort into tintable zones by material/mesh name
       if(B.hair && /hair|braid|bang|fringe|ponytail|bun/.test(nm)) B.hair.push(tm);
