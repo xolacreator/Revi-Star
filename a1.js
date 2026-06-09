@@ -254,6 +254,11 @@ function loadHero(){ const loader=new GLTFLoader();
   undefined, ()=>{ heroLoaded=false; }); }
 async function maybeLoadHero(){ if(QS.get('hero3d')!=='1' && !QS.get('hero')) return; // 3D model is opt-in (?hero3d=1) until it's rig-ready; default = polished avatar
   try{ const r=await fetch(HERO_URL,{method:'HEAD'}); if(r&&r.ok) loadHero(); }catch(e){} }
+// Rumi NPC from her own folder (separate rigged model). Opt-in with the same ?hero3d=1 flag.
+async function maybeLoadRumi(){ if(QS.get('hero3d')!=='1') return;
+  try{ const url='assets/rumi/rumi.glb'; const r=await fetch(url,{method:'HEAD'}); if(!r||!r.ok) return;
+    new GLTFLoader().load(url, gltf=>{ try{ rumi.children.slice().forEach(c=>{ c.visible=false; }); const m=mountCharacter(rumi,gltf.scene,gltf.animations,{tag:'rumi',buckets:null}); rumiMixer=m.mixer; }catch(e){} }, undefined, ()=>{});
+  }catch(e){} }
 
 // Rumi
 let rumiBraid=null;
@@ -609,7 +614,7 @@ function decideDay(){ const forced=QS.get('day'); if(forced){ return Math.max(1,
   return next;
 }
 function boot(){
-  maybeLoadHero();
+  maybeLoadHero(); maybeLoadRumi();
   if(QS.get('observe')==='1'){ show('observer'); $('mark-smile').onclick=()=>recordExcitement('smile'); $('mark-excited').onclick=()=>recordExcitement('excited'); }
   if(QS.get('reset')==='1'){ localStorage.removeItem(KEY); localStorage.removeItem(EKEY); location.search=''; }
   $('start-btn').onclick=()=>{ audioOn=true; try{ actx=new(window.AudioContext||window.webkitAudioContext)(); }catch(e){}
