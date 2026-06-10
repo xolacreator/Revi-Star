@@ -217,7 +217,7 @@ function toonify(model,buckets){ const B=buckets||{}, outlineTargets=[];
       else if(B.skin && /skin|face|head|body|arm|leg|hand/.test(nm)) B.skin.push(tm);
       return tm; });
     o.material=Array.isArray(o.material)?out:out[0]; o.castShadow=true; o.frustumCulled=false; outlineTargets.push(o); } });
-  outlineTargets.forEach(o=>addOutline(o,'#241B3A',0.012)); }
+  /* outlines disabled for imported GLB — AI-generated meshes have messy normals that make the inverted-hull outline produce dark artifacts */ }
 // Mount any character subtree into a slot group: scale to ~1.8, ground, center, toon, animate.
 function mountCharacter(group,root,animations,{tag='',buckets=null,rot=HERO_ROT}={}){
   const box=new THREE.Box3().setFromObject(root),size=new THREE.Vector3(); box.getSize(size);
@@ -245,6 +245,7 @@ function loadHero(){ const loader=new GLTFLoader();
       setHint('Models: '+names.join(' · ')); setTimeout(()=>{ if($('hint')) $('hint').style.opacity=0; },7000); }
     [avBody,avHead,avStar].forEach(m=>m.visible=false); if(avHair) avHair.visible=false;
     const a=mountCharacter(avatar,avRoot,gltf.animations,{tag:(avRoot.name||'').toLowerCase(),buckets:{all:heroMats,outfit:heroOutfitMats,hair:heroHairMats,skin:heroSkinMats}});
+    avatar.children.forEach(c=>{ if(c!==avRoot) c.visible=false; }); // hide every leftover blob part, keep only the model
     heroMixer=a.mixer; heroActions=a.actions; heroLoaded=true; applyAvatar();
     // ---- RUMI slot (optional): a different character named "rumi" in the same file replaces her placeholder ----
     if(cands.length>1){ try{ const rRoot=cands.find(c=>(c.name||'').toLowerCase().includes('rumi') && c!==avRoot);
