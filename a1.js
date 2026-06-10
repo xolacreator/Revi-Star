@@ -678,6 +678,9 @@ function tick(now){ const dt=Math.min((now-lastT)/1000,.05); lastT=now; const t=
   if(avHair){ avHair.rotation.x=-sp*0.18+Math.sin(t*2.0)*0.03; avHair.rotation.z=avBank*0.6+Math.sin(t*1.3)*0.02; } // hair never static
   if(moving && sp>0.4){ trailT-=dt; if(trailT<=0){ trailT=0.045; spawnTrail(); } } // energy ribbon while moving
   if(heroMixer) heroMixer.update(dt);
+  if(heroLoaded){ // keep the primitive blob fully hidden (hair can get rebuilt after the model loads)
+    if(avBody.visible) avBody.visible=false; if(avHead.visible) avHead.visible=false; if(avStar.visible) avStar.visible=false; if(avHair&&avHair.visible) avHair.visible=false; }
+  if(INSPECT) setHint(`load:${heroLoaded?1:0} mix:${heroMixer?1:0} act:[${Object.keys(heroActions).join(',')}] cur:${heroCurrent} t:${heroMixer?heroMixer.time.toFixed(1):'-'}`);
   if(rumiMixer) rumiMixer.update(dt); // Rumi NPC model animation
   if(heroLoaded && !heroPerforming) playHero(moving && heroActions.walk ? 'walk' : 'idle');
   if(INSPECT){ // turntable: slowly orbit the character so it's clearly visible from all sides
