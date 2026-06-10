@@ -252,10 +252,10 @@ function loadHero(){ const loader=new GLTFLoader();
     log('hero_model_loaded',{characters:names, avatar:avRoot.name||null});
   }catch(e){ heroLoaded=false; } },
   undefined, ()=>{ heroLoaded=false; }); }
-async function maybeLoadHero(){ if(QS.get('hero3d')!=='1' && !QS.get('hero')) return; // 3D model is opt-in (?hero3d=1) until it's rig-ready; default = polished avatar
+async function maybeLoadHero(){ if(QS.get('hero3d')==='0') return; // 3D character ON by default now (use ?hero3d=0 for the customizable blob)
   try{ const r=await fetch(HERO_URL,{method:'HEAD'}); if(r&&r.ok) loadHero(); }catch(e){} }
-// Rumi NPC from her own folder (separate rigged model). Opt-in with the same ?hero3d=1 flag.
-async function maybeLoadRumi(){ if(QS.get('hero3d')!=='1') return;
+// Rumi NPC from her own folder (separate rigged model).
+async function maybeLoadRumi(){ if(QS.get('hero3d')==='0') return;
   try{ const url='assets/rumi/rumi.glb'; const r=await fetch(url,{method:'HEAD'}); if(!r||!r.ok) return;
     new GLTFLoader().load(url, gltf=>{ try{ rumi.children.slice().forEach(c=>{ c.visible=false; }); const m=mountCharacter(rumi,gltf.scene,gltf.animations,{tag:'rumi',buckets:null}); rumiMixer=m.mixer; }catch(e){} }, undefined, ()=>{});
   }catch(e){} }
