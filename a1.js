@@ -204,6 +204,7 @@ function addStar(){ if(!state.avatar.cosmetics.includes('star')) state.avatar.co
 let heroMixer=null, heroActions={}, heroLoaded=false, heroPerforming=false, heroMats=[], heroOutfitMats=[], heroHairMats=[], heroSkinMats=[], heroCurrent=null, rumiMixer=null;
 const HERO_URL = QS.get('hero') || 'assets/hero/hero.glb';
 const HERO_ROT = parseFloat(QS.get('heroRotY')||'0')||0;
+const INSPECT = QS.get('inspect')==='1'; // turntable debug view of the character
 function gradientRamp(){ const d=new Uint8Array([88,88,88,255, 178,178,178,255, 255,255,255,255]);
   const tex=new THREE.DataTexture(d,3,1,THREE.RGBAFormat); tex.minFilter=THREE.NearestFilter; tex.magFilter=THREE.NearestFilter; tex.needsUpdate=true; return tex; }
 function toonify(model,buckets){ const B=buckets||{}, outlineTargets=[];
@@ -679,7 +680,9 @@ function tick(now){ const dt=Math.min((now-lastT)/1000,.05); lastT=now; const t=
   if(heroMixer) heroMixer.update(dt);
   if(rumiMixer) rumiMixer.update(dt); // Rumi NPC model animation
   if(heroLoaded && !heroPerforming) playHero(moving && heroActions.walk ? 'walk' : 'idle');
-  if(now<cineUntil){ // cinematic push-in during the transformation reveal
+  if(INSPECT){ // turntable: slowly orbit the character so it's clearly visible from all sides
+    const a=t*0.5; camera.position.set(avatar.position.x+Math.sin(a)*4.5, 2.6, avatar.position.z+Math.cos(a)*4.5); camera.lookAt(avatar.position.x,1.3,avatar.position.z);
+  } else if(now<cineUntil){ // cinematic push-in during the transformation reveal
     camera.position.lerp(new THREE.Vector3(avatar.position.x+0.2,2.2,avatar.position.z+4.1),1-Math.exp(-dt*4)); camera.lookAt(avatar.position.x,1.5,avatar.position.z);
   } else if(creationMode){ // live close-up while customizing YOUR hero
     camera.position.lerp(new THREE.Vector3(avatar.position.x,2.05,avatar.position.z+4.6),1-Math.exp(-dt*6)); camera.lookAt(avatar.position.x,1.5,avatar.position.z);
