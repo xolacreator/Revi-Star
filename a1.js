@@ -52,7 +52,7 @@ function collectChime(){ try{ actx=actx||new(window.AudioContext||window.webkitA
   [[base,'triangle',0,0.22],[base*1.5,'sine',0.05,0.16],[base*2,'sine',0.09,0.12]].forEach(([f,type,off,vol])=>{ const o=actx.createOscillator(),g=actx.createGain(); o.type=type; o.frequency.value=f; o.connect(g); g.connect(actx.destination);
     const tt=now+off; g.gain.setValueAtTime(0.0001,tt); g.gain.exponentialRampToValueAtTime(vol,tt+0.015); g.gain.exponentialRampToValueAtTime(0.0001,tt+0.28); o.start(tt); o.stop(tt+0.3); }); }catch(e){} }
 let avatarPop=0; function avatarReact(){ avatarPop=1; }
-function collectStar(pos){ burst(pos,'#FFD24D',14); collectChime(); haptic(12); twCheerUntil=performance.now()+450; // Twinkle celebrates collections
+function collectStar(pos){ burst(pos,'#FFD24D',14); collectChime(); haptic(12); twCheerUntil=performance.now()+450; heroEmote('cheer',700); // Twinkle + hero celebrate collections
   if(delight.reward===null){ delight.reward=Math.round(performance.now()-launchT); log('first_reward',{ms:delight.reward}); } }
 
 // ---------------- Renderer / scene ----------------
@@ -238,12 +238,14 @@ function mountCharacter(group,root,animations,{tag='',buckets=null,rot=HERO_ROT}
   let mixer=null, actions={};
   if(animations && animations.length){ mixer=new THREE.AnimationMixer(root);
     const clips = tag ? animations.filter(c=>(c.name||'').toLowerCase().includes(tag)).concat(animations.filter(c=>!(c.name||'').toLowerCase().includes(tag))) : animations;
-    clips.forEach(c=>{ const n=(c.name||'').toLowerCase(); const k=/idle/.test(n)?'idle':(/walk|run/.test(n)?'walk':(/dance/.test(n)?'dance':null)); if(k&&!actions[k]) actions[k]=mixer.clipAction(c); });
+    clips.forEach(c=>{ const n=(c.name||'').toLowerCase(); const k=/idle/.test(n)?'idle':(/walk|run/.test(n)?'walk':(/dance/.test(n)?'dance':(/cheer|celebrat|jump/.test(n)?'cheer':null))); if(k&&!actions[k]) actions[k]=mixer.clipAction(c); });
     if(!actions.idle && clips[0]) actions.idle=mixer.clipAction(clips[0]);
     if(actions.idle) actions.idle.reset().play(); }
   return {mixer,actions}; }
 function playHero(key){ if(!heroMixer||!heroActions[key]||heroCurrent===key) return; const next=heroActions[key];
   Object.values(heroActions).forEach(a=>{ if(a!==next) a.fadeOut(0.25); }); next.reset().fadeIn(0.25).play(); heroCurrent=key; }
+let emoteUntil=0;
+function heroEmote(key,ms){ if(heroLoaded && heroActions[key]){ emoteUntil=performance.now()+ms; playHero(key); } } // one-shot (cheer) then back to idle/walk
 function loadHero(){ const loader=new GLTFLoader();
   loader.load(HERO_URL, gltf=>{ try{
     const cands=gltf.scene.children.filter(c=>{ let has=false; c.traverse(o=>{ if(o.isMesh) has=true; }); return has; });
@@ -457,7 +459,7 @@ function hintActivity(a){ itemHints++; log('hint_used',{skillId:a.skillId});
 function wrong(a,btn){ mistakes++; dayMistakes++; itemHints++; btn.classList.add('dim'); if(audioOn) say("Almost! Listen again.");
   if(mistakes>=2){ itemModeled=true; const r=[...$('ch-options').querySelectorAll('.opt')].find(b=>b.textContent===a.answer);
     if(r){ r.classList.add('glowhint'); if(audioOn) say(`This one says ${a.answer}. Tap it with me!`); r.onclick=()=>{ if(audioOn) say(a.answer,{rate:.8}); correct(a,r);}; } } }
-function correct(a,btn){ btn.classList.remove('glowhint'); btn.classList.add('correct'); chime('good'); burst(lighthouse.position,'#FFE9A8',10); twCheerUntil=performance.now()+900; // Twinkle cheers learning success
+function correct(a,btn){ btn.classList.remove('glowhint'); btn.classList.add('correct'); chime('good'); burst(lighthouse.position,'#FFE9A8',10); twCheerUntil=performance.now()+900; heroEmote('cheer',900); // Twinkle + hero cheer learning success
   if(delight.reward===null){ delight.reward=Math.round(performance.now()-launchT); log('first_reward',{ms:delight.reward}); }
   const firstTry=(mistakes===0&&itemHints===0);
   state.history.push({day:state.day,skillId:a.skillId,correct:true,hints:itemHints,modeled:itemModeled,firstTry,ms:Math.round(performance.now()-itemStart)});
@@ -692,7 +694,7 @@ function tick(now){ const dt=Math.min((now-lastT)/1000,.05); lastT=now; const t=
     if(avBody.visible) avBody.visible=false; if(avHead.visible) avHead.visible=false; if(avStar.visible) avStar.visible=false; if(avHair&&avHair.visible) avHair.visible=false; }
   if(INSPECT) setHint(`load:${heroLoaded?1:0} mix:${heroMixer?1:0} act:[${Object.keys(heroActions).join(',')}] cur:${heroCurrent} t:${heroMixer?heroMixer.time.toFixed(1):'-'}`);
   if(rumiMixer) rumiMixer.update(dt); // Rumi NPC model animation
-  if(heroLoaded && !heroPerforming) playHero(moving && heroActions.walk ? 'walk' : 'idle');
+  if(heroLoaded && !heroPerforming && performance.now()>=emoteUntil) playHero(moving && heroActions.walk ? 'walk' : 'idle');
   if(INSPECT){ // turntable: slowly orbit the character so it's clearly visible from all sides
     const a=t*0.5; camera.position.set(avatar.position.x+Math.sin(a)*4.5, 2.6, avatar.position.z+Math.cos(a)*4.5); camera.lookAt(avatar.position.x,1.3,avatar.position.z);
   } else if(now<cineUntil){ // cinematic push-in during the transformation reveal
