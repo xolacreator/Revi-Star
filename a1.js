@@ -31,9 +31,12 @@ function log(ev,data={}){ events.push({t:Date.now(), rel: launchT?Math.round((pe
 // ---------------- Audio ----------------
 let audioOn=false, voice=null, actx=null;
 function pickVoice(){ const v=speechSynthesis.getVoices();
-  voice=v.find(x=>/female|samantha|karen|moira|tessa|google us english/i.test(x.name)&&/en/i.test(x.lang))||v.find(x=>/en/i.test(x.lang))||v[0]||null; }
+  // prefer warm, friendly, kid-appropriate voices
+  voice=v.find(x=>/samantha|shelley|grandma|ava|allison|nicky|google uk english female|libby|aria|jenny|female/i.test(x.name)&&/en/i.test(x.lang))
+       ||v.find(x=>/karen|moira|tessa|google us english/i.test(x.name)&&/en/i.test(x.lang))
+       ||v.find(x=>/en/i.test(x.lang))||v[0]||null; }
 if('speechSynthesis' in window){ pickVoice(); speechSynthesis.onvoiceschanged=pickVoice; }
-function say(t,{rate=0.92,pitch=1.25,then=null}={}){ if(!('speechSynthesis' in window)){ if(then)setTimeout(then,400); return; }
+function say(t,{rate=0.9,pitch=1.32,then=null}={}){ if(!('speechSynthesis' in window)){ if(then)setTimeout(then,400); return; }
   try{ speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(t); u.rate=rate; u.pitch=pitch; if(voice)u.voice=voice; if(then)u.onend=then; speechSynthesis.speak(u);}catch(e){ if(then)setTimeout(then,400);} }
 function chime(type='good'){ try{ actx=actx||new(window.AudioContext||window.webkitAudioContext)();
   const seq=type==='good'?[660,880]:type==='win'?[660,880,1320]:[520];
@@ -132,17 +135,24 @@ function makeSparkle(x,z){ const m=new THREE.Mesh(new THREE.OctahedronGeometry(.
 // ---------------- Environment polish: sky, clouds, ambient sparkles, glow, flowers ----------------
 // Enhanced 2D backdrop (temporary): a painted neon-dusk K-pop city panorama mapped on the sky dome.
 const skyGeo=new THREE.SphereGeometry(90,32,20);
-function paintBackdrop(){ const W=2048,H=1024,cv=document.createElement('canvas'); cv.width=W; cv.height=H; const x=cv.getContext('2d'); const horizon=H*0.5;
-  let g=x.createLinearGradient(0,0,0,horizon); g.addColorStop(0,'#241a52'); g.addColorStop(0.45,'#5a3aa6'); g.addColorStop(0.8,'#b65a9e'); g.addColorStop(1,'#ffb37a'); x.fillStyle=g; x.fillRect(0,0,W,horizon);
-  x.fillStyle='#1a1330'; x.fillRect(0,horizon,W,H-horizon);
-  x.globalCompositeOperation='lighter'; x.globalAlpha=0.16; ['#4fd8ff','#ff4fa6','#b06aff'].forEach((c,i)=>{ x.fillStyle=c; const y0=H*(0.12+i*0.09); x.beginPath(); x.moveTo(0,y0); for(let xx=0;xx<=W;xx+=64) x.lineTo(xx,y0+Math.sin(xx*0.004+i)*40); for(let xx=W;xx>=0;xx-=64) x.lineTo(xx,y0+130+Math.sin(xx*0.004+i)*40); x.closePath(); x.fill(); });
+function paintBackdrop(){ const W=2048,H=1024,cv=document.createElement('canvas'); cv.width=W; cv.height=H; const x=cv.getContext('2d'); const horizon=H*0.52;
+  let g=x.createLinearGradient(0,0,0,horizon); g.addColorStop(0,'#1b1147'); g.addColorStop(0.35,'#46247f'); g.addColorStop(0.62,'#8a3a8f'); g.addColorStop(0.85,'#e85a8a'); g.addColorStop(1,'#ffcf8a'); x.fillStyle=g; x.fillRect(0,0,W,horizon);
+  x.fillStyle='#140e2a'; x.fillRect(0,horizon,W,H-horizon);
+  const mx=W*0.74,my=H*0.2; let mg=x.createRadialGradient(mx,my,0,mx,my,180); mg.addColorStop(0,'rgba(255,245,225,1)'); mg.addColorStop(0.5,'rgba(255,225,200,0.45)'); mg.addColorStop(1,'rgba(255,210,180,0)'); x.fillStyle=mg; x.beginPath(); x.arc(mx,my,180,0,7); x.fill();
+  x.fillStyle='#fff6e8'; x.beginPath(); x.arc(mx,my,60,0,7); x.fill();
+  x.globalCompositeOperation='lighter';
+  ['#4fd8ff','#ff4fa6','#b06aff','#7ef0c0'].forEach((c,i)=>{ x.globalAlpha=0.14; x.fillStyle=c; const y0=H*(0.08+i*0.08); x.beginPath(); x.moveTo(0,y0); for(let xx=0;xx<=W;xx+=48) x.lineTo(xx,y0+Math.sin(xx*0.005+i*1.7)*55); for(let xx=W;xx>=0;xx-=48) x.lineTo(xx,y0+150+Math.sin(xx*0.005+i*1.7)*55); x.closePath(); x.fill(); });
+  for(let i=0;i<40;i++){ const ox=Math.random()*W, oy=Math.random()*horizon*0.95, or=2+Math.random()*5, oc=['#4fd8ff','#ff8fcf','#ffe08a'][(Math.random()*3)|0]; let og=x.createRadialGradient(ox,oy,0,ox,oy,or*3); og.addColorStop(0,oc); og.addColorStop(1,'rgba(0,0,0,0)'); x.globalAlpha=0.5; x.fillStyle=og; x.beginPath(); x.arc(ox,oy,or*3,0,7); x.fill(); }
   x.globalCompositeOperation='source-over'; x.globalAlpha=1;
-  x.fillStyle='#fff'; for(let i=0;i<260;i++){ x.globalAlpha=0.4+Math.random()*0.6; x.beginPath(); x.arc(Math.random()*W,Math.random()*horizon*0.9,Math.random()*1.6+0.3,0,7); x.fill(); } x.globalAlpha=1;
-  let hg=x.createRadialGradient(W*0.5,horizon,10,W*0.5,horizon,W*0.5); hg.addColorStop(0,'rgba(255,210,150,0.55)'); hg.addColorStop(1,'rgba(255,210,150,0)'); x.fillStyle=hg; x.fillRect(0,horizon-H*0.22,W,H*0.44);
-  const wc=['#4fd8ff','#ff4fa6','#ffd24d']; let bx=0; while(bx<W){ const bw=40+Math.random()*90, bh=H*(0.06+Math.random()*0.16), by=horizon-bh;
-    x.fillStyle='#2a1c4a'; x.fillRect(bx,by,bw,bh+H*0.05);
-    for(let wy=by+8; wy<horizon-6; wy+=12) for(let wx=bx+6; wx<bx+bw-6; wx+=12) if(Math.random()<0.45){ x.fillStyle=wc[(Math.random()*3)|0]; x.globalAlpha=0.85; x.fillRect(wx,wy,4,5); }
-    x.globalAlpha=1; bx+=bw+6; }
+  x.fillStyle='#fff'; for(let i=0;i<320;i++){ x.globalAlpha=0.35+Math.random()*0.6; x.beginPath(); x.arc(Math.random()*W,Math.random()*horizon*0.8,Math.random()*1.6+0.3,0,7); x.fill(); } x.globalAlpha=1;
+  let hg=x.createRadialGradient(W*0.5,horizon,10,W*0.5,horizon,W*0.6); hg.addColorStop(0,'rgba(255,200,150,0.5)'); hg.addColorStop(1,'rgba(255,200,150,0)'); x.fillStyle=hg; x.fillRect(0,horizon-H*0.25,W,H*0.5);
+  let bx=0; while(bx<W){ const bw=50+Math.random()*120, bh=H*(0.04+Math.random()*0.12), by=horizon-bh; x.fillStyle='#3a2a66'; x.globalAlpha=0.7; x.fillRect(bx,by,bw,bh+H*0.06); bx+=bw+10; } x.globalAlpha=1;
+  x.globalCompositeOperation='lighter'; for(let i=0;i<5;i++){ const lx=W*(0.15+i*0.18); x.globalAlpha=0.07; x.fillStyle=['#4fd8ff','#ff4fa6','#ffe08a'][i%3]; x.beginPath(); x.moveTo(lx,horizon); x.lineTo(lx-40,horizon-H*0.42); x.lineTo(lx+40,horizon-H*0.42); x.closePath(); x.fill(); } x.globalCompositeOperation='source-over'; x.globalAlpha=1;
+  const wc=['#4fd8ff','#ff4fa6','#ffd24d','#7ef0c0']; bx=0; while(bx<W){ const bw=40+Math.random()*90, bh=H*(0.07+Math.random()*0.18), by=horizon-bh;
+    x.fillStyle='#1f1338'; x.fillRect(bx,by,bw,bh+H*0.06);
+    if(Math.random()<0.3){ x.fillStyle='#1f1338'; x.fillRect(bx+bw/2-1,by-14,2,14); x.fillStyle='#ff4fa6'; x.fillRect(bx+bw/2-2,by-16,4,4); }
+    for(let wy=by+8; wy<horizon-4; wy+=11) for(let wx=bx+5; wx<bx+bw-5; wx+=11) if(Math.random()<0.5){ x.fillStyle=wc[(Math.random()*4)|0]; x.globalAlpha=0.9; x.fillRect(wx,wy,3,5); }
+    x.globalAlpha=1; bx+=bw+5; }
   const t=new THREE.CanvasTexture(cv); t.colorSpace=THREE.SRGBColorSpace; return t; }
 const skyMat=new THREE.MeshBasicMaterial({map:paintBackdrop(),side:THREE.BackSide,fog:false,depthWrite:false}); skyMat.color.set('#8a86a0'); // dim until harmony returns
 const bgURL=QS.get('bg'); if(bgURL){ try{ new THREE.TextureLoader().load(bgURL,tx=>{ tx.colorSpace=THREE.SRGBColorSpace; skyMat.map=tx; skyMat.needsUpdate=true; }); }catch(e){} } // swap in a custom 2D image
