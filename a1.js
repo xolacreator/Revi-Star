@@ -31,9 +31,12 @@ function log(ev,data={}){ events.push({t:Date.now(), rel: launchT?Math.round((pe
 // ---------------- Audio ----------------
 let audioOn=false, voice=null, actx=null;
 function pickVoice(){ const v=speechSynthesis.getVoices();
-  voice=v.find(x=>/female|samantha|karen|moira|tessa|google us english/i.test(x.name)&&/en/i.test(x.lang))||v.find(x=>/en/i.test(x.lang))||v[0]||null; }
+  // prefer warm, friendly, kid-appropriate voices
+  voice=v.find(x=>/samantha|shelley|grandma|ava|allison|nicky|google uk english female|libby|aria|jenny|female/i.test(x.name)&&/en/i.test(x.lang))
+       ||v.find(x=>/karen|moira|tessa|google us english/i.test(x.name)&&/en/i.test(x.lang))
+       ||v.find(x=>/en/i.test(x.lang))||v[0]||null; }
 if('speechSynthesis' in window){ pickVoice(); speechSynthesis.onvoiceschanged=pickVoice; }
-function say(t,{rate=0.92,pitch=1.25,then=null}={}){ if(!('speechSynthesis' in window)){ if(then)setTimeout(then,400); return; }
+function say(t,{rate=0.9,pitch=1.32,then=null}={}){ if(!('speechSynthesis' in window)){ if(then)setTimeout(then,400); return; }
   try{ speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(t); u.rate=rate; u.pitch=pitch; if(voice)u.voice=voice; if(then)u.onend=then; speechSynthesis.speak(u);}catch(e){ if(then)setTimeout(then,400);} }
 function chime(type='good'){ try{ actx=actx||new(window.AudioContext||window.webkitAudioContext)();
   const seq=type==='good'?[660,880]:type==='win'?[660,880,1320]:[520];
@@ -132,17 +135,24 @@ function makeSparkle(x,z){ const m=new THREE.Mesh(new THREE.OctahedronGeometry(.
 // ---------------- Environment polish: sky, clouds, ambient sparkles, glow, flowers ----------------
 // Enhanced 2D backdrop (temporary): a painted neon-dusk K-pop city panorama mapped on the sky dome.
 const skyGeo=new THREE.SphereGeometry(90,32,20);
-function paintBackdrop(){ const W=2048,H=1024,cv=document.createElement('canvas'); cv.width=W; cv.height=H; const x=cv.getContext('2d'); const horizon=H*0.5;
-  let g=x.createLinearGradient(0,0,0,horizon); g.addColorStop(0,'#241a52'); g.addColorStop(0.45,'#5a3aa6'); g.addColorStop(0.8,'#b65a9e'); g.addColorStop(1,'#ffb37a'); x.fillStyle=g; x.fillRect(0,0,W,horizon);
-  x.fillStyle='#1a1330'; x.fillRect(0,horizon,W,H-horizon);
-  x.globalCompositeOperation='lighter'; x.globalAlpha=0.16; ['#4fd8ff','#ff4fa6','#b06aff'].forEach((c,i)=>{ x.fillStyle=c; const y0=H*(0.12+i*0.09); x.beginPath(); x.moveTo(0,y0); for(let xx=0;xx<=W;xx+=64) x.lineTo(xx,y0+Math.sin(xx*0.004+i)*40); for(let xx=W;xx>=0;xx-=64) x.lineTo(xx,y0+130+Math.sin(xx*0.004+i)*40); x.closePath(); x.fill(); });
+function paintBackdrop(){ const W=2048,H=1024,cv=document.createElement('canvas'); cv.width=W; cv.height=H; const x=cv.getContext('2d'); const horizon=H*0.52;
+  let g=x.createLinearGradient(0,0,0,horizon); g.addColorStop(0,'#1b1147'); g.addColorStop(0.35,'#46247f'); g.addColorStop(0.62,'#8a3a8f'); g.addColorStop(0.85,'#e85a8a'); g.addColorStop(1,'#ffcf8a'); x.fillStyle=g; x.fillRect(0,0,W,horizon);
+  x.fillStyle='#140e2a'; x.fillRect(0,horizon,W,H-horizon);
+  const mx=W*0.74,my=H*0.2; let mg=x.createRadialGradient(mx,my,0,mx,my,180); mg.addColorStop(0,'rgba(255,245,225,1)'); mg.addColorStop(0.5,'rgba(255,225,200,0.45)'); mg.addColorStop(1,'rgba(255,210,180,0)'); x.fillStyle=mg; x.beginPath(); x.arc(mx,my,180,0,7); x.fill();
+  x.fillStyle='#fff6e8'; x.beginPath(); x.arc(mx,my,60,0,7); x.fill();
+  x.globalCompositeOperation='lighter';
+  ['#4fd8ff','#ff4fa6','#b06aff','#7ef0c0'].forEach((c,i)=>{ x.globalAlpha=0.14; x.fillStyle=c; const y0=H*(0.08+i*0.08); x.beginPath(); x.moveTo(0,y0); for(let xx=0;xx<=W;xx+=48) x.lineTo(xx,y0+Math.sin(xx*0.005+i*1.7)*55); for(let xx=W;xx>=0;xx-=48) x.lineTo(xx,y0+150+Math.sin(xx*0.005+i*1.7)*55); x.closePath(); x.fill(); });
+  for(let i=0;i<40;i++){ const ox=Math.random()*W, oy=Math.random()*horizon*0.95, or=2+Math.random()*5, oc=['#4fd8ff','#ff8fcf','#ffe08a'][(Math.random()*3)|0]; let og=x.createRadialGradient(ox,oy,0,ox,oy,or*3); og.addColorStop(0,oc); og.addColorStop(1,'rgba(0,0,0,0)'); x.globalAlpha=0.5; x.fillStyle=og; x.beginPath(); x.arc(ox,oy,or*3,0,7); x.fill(); }
   x.globalCompositeOperation='source-over'; x.globalAlpha=1;
-  x.fillStyle='#fff'; for(let i=0;i<260;i++){ x.globalAlpha=0.4+Math.random()*0.6; x.beginPath(); x.arc(Math.random()*W,Math.random()*horizon*0.9,Math.random()*1.6+0.3,0,7); x.fill(); } x.globalAlpha=1;
-  let hg=x.createRadialGradient(W*0.5,horizon,10,W*0.5,horizon,W*0.5); hg.addColorStop(0,'rgba(255,210,150,0.55)'); hg.addColorStop(1,'rgba(255,210,150,0)'); x.fillStyle=hg; x.fillRect(0,horizon-H*0.22,W,H*0.44);
-  const wc=['#4fd8ff','#ff4fa6','#ffd24d']; let bx=0; while(bx<W){ const bw=40+Math.random()*90, bh=H*(0.06+Math.random()*0.16), by=horizon-bh;
-    x.fillStyle='#2a1c4a'; x.fillRect(bx,by,bw,bh+H*0.05);
-    for(let wy=by+8; wy<horizon-6; wy+=12) for(let wx=bx+6; wx<bx+bw-6; wx+=12) if(Math.random()<0.45){ x.fillStyle=wc[(Math.random()*3)|0]; x.globalAlpha=0.85; x.fillRect(wx,wy,4,5); }
-    x.globalAlpha=1; bx+=bw+6; }
+  x.fillStyle='#fff'; for(let i=0;i<320;i++){ x.globalAlpha=0.35+Math.random()*0.6; x.beginPath(); x.arc(Math.random()*W,Math.random()*horizon*0.8,Math.random()*1.6+0.3,0,7); x.fill(); } x.globalAlpha=1;
+  let hg=x.createRadialGradient(W*0.5,horizon,10,W*0.5,horizon,W*0.6); hg.addColorStop(0,'rgba(255,200,150,0.5)'); hg.addColorStop(1,'rgba(255,200,150,0)'); x.fillStyle=hg; x.fillRect(0,horizon-H*0.25,W,H*0.5);
+  let bx=0; while(bx<W){ const bw=50+Math.random()*120, bh=H*(0.04+Math.random()*0.12), by=horizon-bh; x.fillStyle='#3a2a66'; x.globalAlpha=0.7; x.fillRect(bx,by,bw,bh+H*0.06); bx+=bw+10; } x.globalAlpha=1;
+  x.globalCompositeOperation='lighter'; for(let i=0;i<5;i++){ const lx=W*(0.15+i*0.18); x.globalAlpha=0.07; x.fillStyle=['#4fd8ff','#ff4fa6','#ffe08a'][i%3]; x.beginPath(); x.moveTo(lx,horizon); x.lineTo(lx-40,horizon-H*0.42); x.lineTo(lx+40,horizon-H*0.42); x.closePath(); x.fill(); } x.globalCompositeOperation='source-over'; x.globalAlpha=1;
+  const wc=['#4fd8ff','#ff4fa6','#ffd24d','#7ef0c0']; bx=0; while(bx<W){ const bw=40+Math.random()*90, bh=H*(0.07+Math.random()*0.18), by=horizon-bh;
+    x.fillStyle='#1f1338'; x.fillRect(bx,by,bw,bh+H*0.06);
+    if(Math.random()<0.3){ x.fillStyle='#1f1338'; x.fillRect(bx+bw/2-1,by-14,2,14); x.fillStyle='#ff4fa6'; x.fillRect(bx+bw/2-2,by-16,4,4); }
+    for(let wy=by+8; wy<horizon-4; wy+=11) for(let wx=bx+5; wx<bx+bw-5; wx+=11) if(Math.random()<0.5){ x.fillStyle=wc[(Math.random()*4)|0]; x.globalAlpha=0.9; x.fillRect(wx,wy,3,5); }
+    x.globalAlpha=1; bx+=bw+5; }
   const t=new THREE.CanvasTexture(cv); t.colorSpace=THREE.SRGBColorSpace; return t; }
 const skyMat=new THREE.MeshBasicMaterial({map:paintBackdrop(),side:THREE.BackSide,fog:false,depthWrite:false}); skyMat.color.set('#8a86a0'); // dim until harmony returns
 const bgURL=QS.get('bg'); if(bgURL){ try{ new THREE.TextureLoader().load(bgURL,tx=>{ tx.colorSpace=THREE.SRGBColorSpace; skyMat.map=tx; skyMat.needsUpdate=true; }); }catch(e){} } // swap in a custom 2D image
@@ -204,6 +214,7 @@ function addStar(){ if(!state.avatar.cosmetics.includes('star')) state.avatar.co
 let heroMixer=null, heroActions={}, heroLoaded=false, heroPerforming=false, heroMats=[], heroOutfitMats=[], heroHairMats=[], heroSkinMats=[], heroCurrent=null, rumiMixer=null;
 const HERO_URL = QS.get('hero') || 'assets/hero/hero.glb';
 const HERO_ROT = parseFloat(QS.get('heroRotY')||'0')||0;
+const INSPECT = QS.get('inspect')==='1'; // turntable debug view of the character
 function gradientRamp(){ const d=new Uint8Array([88,88,88,255, 178,178,178,255, 255,255,255,255]);
   const tex=new THREE.DataTexture(d,3,1,THREE.RGBAFormat); tex.minFilter=THREE.NearestFilter; tex.magFilter=THREE.NearestFilter; tex.needsUpdate=true; return tex; }
 function toonify(model,buckets){ const B=buckets||{}, outlineTargets=[];
@@ -217,7 +228,7 @@ function toonify(model,buckets){ const B=buckets||{}, outlineTargets=[];
       else if(B.skin && /skin|face|head|body|arm|leg|hand/.test(nm)) B.skin.push(tm);
       return tm; });
     o.material=Array.isArray(o.material)?out:out[0]; o.castShadow=true; o.frustumCulled=false; outlineTargets.push(o); } });
-  outlineTargets.forEach(o=>addOutline(o,'#241B3A',0.012)); }
+  /* outlines disabled for imported GLB — AI-generated meshes have messy normals that make the inverted-hull outline produce dark artifacts */ }
 // Mount any character subtree into a slot group: scale to ~1.8, ground, center, toon, animate.
 function mountCharacter(group,root,animations,{tag='',buckets=null,rot=HERO_ROT}={}){
   const box=new THREE.Box3().setFromObject(root),size=new THREE.Vector3(); box.getSize(size);
@@ -245,6 +256,7 @@ function loadHero(){ const loader=new GLTFLoader();
       setHint('Models: '+names.join(' · ')); setTimeout(()=>{ if($('hint')) $('hint').style.opacity=0; },7000); }
     [avBody,avHead,avStar].forEach(m=>m.visible=false); if(avHair) avHair.visible=false;
     const a=mountCharacter(avatar,avRoot,gltf.animations,{tag:(avRoot.name||'').toLowerCase(),buckets:{all:heroMats,outfit:heroOutfitMats,hair:heroHairMats,skin:heroSkinMats}});
+    avatar.children.forEach(c=>{ if(c!==avRoot) c.visible=false; }); // hide every leftover blob part, keep only the model
     heroMixer=a.mixer; heroActions=a.actions; heroLoaded=true; applyAvatar();
     // ---- RUMI slot (optional): a different character named "rumi" in the same file replaces her placeholder ----
     if(cands.length>1){ try{ const rRoot=cands.find(c=>(c.name||'').toLowerCase().includes('rumi') && c!==avRoot);
@@ -252,10 +264,10 @@ function loadHero(){ const loader=new GLTFLoader();
     log('hero_model_loaded',{characters:names, avatar:avRoot.name||null});
   }catch(e){ heroLoaded=false; } },
   undefined, ()=>{ heroLoaded=false; }); }
-async function maybeLoadHero(){ if(QS.get('hero3d')!=='1' && !QS.get('hero')) return; // 3D model is opt-in (?hero3d=1) until it's rig-ready; default = polished avatar
+async function maybeLoadHero(){ if(QS.get('hero3d')==='0') return; // 3D character ON by default now (use ?hero3d=0 for the customizable blob)
   try{ const r=await fetch(HERO_URL,{method:'HEAD'}); if(r&&r.ok) loadHero(); }catch(e){} }
-// Rumi NPC from her own folder (separate rigged model). Opt-in with the same ?hero3d=1 flag.
-async function maybeLoadRumi(){ if(QS.get('hero3d')!=='1') return;
+// Rumi NPC from her own folder (separate rigged model).
+async function maybeLoadRumi(){ if(QS.get('hero3d')==='0') return;
   try{ const url='assets/rumi/rumi.glb'; const r=await fetch(url,{method:'HEAD'}); if(!r||!r.ok) return;
     new GLTFLoader().load(url, gltf=>{ try{ rumi.children.slice().forEach(c=>{ c.visible=false; }); const m=mountCharacter(rumi,gltf.scene,gltf.animations,{tag:'rumi',buckets:null}); rumiMixer=m.mixer; }catch(e){} }, undefined, ()=>{});
   }catch(e){} }
@@ -676,9 +688,14 @@ function tick(now){ const dt=Math.min((now-lastT)/1000,.05); lastT=now; const t=
   if(avHair){ avHair.rotation.x=-sp*0.18+Math.sin(t*2.0)*0.03; avHair.rotation.z=avBank*0.6+Math.sin(t*1.3)*0.02; } // hair never static
   if(moving && sp>0.4){ trailT-=dt; if(trailT<=0){ trailT=0.045; spawnTrail(); } } // energy ribbon while moving
   if(heroMixer) heroMixer.update(dt);
+  if(heroLoaded){ // keep the primitive blob fully hidden (hair can get rebuilt after the model loads)
+    if(avBody.visible) avBody.visible=false; if(avHead.visible) avHead.visible=false; if(avStar.visible) avStar.visible=false; if(avHair&&avHair.visible) avHair.visible=false; }
+  if(INSPECT) setHint(`load:${heroLoaded?1:0} mix:${heroMixer?1:0} act:[${Object.keys(heroActions).join(',')}] cur:${heroCurrent} t:${heroMixer?heroMixer.time.toFixed(1):'-'}`);
   if(rumiMixer) rumiMixer.update(dt); // Rumi NPC model animation
   if(heroLoaded && !heroPerforming) playHero(moving && heroActions.walk ? 'walk' : 'idle');
-  if(now<cineUntil){ // cinematic push-in during the transformation reveal
+  if(INSPECT){ // turntable: slowly orbit the character so it's clearly visible from all sides
+    const a=t*0.5; camera.position.set(avatar.position.x+Math.sin(a)*4.5, 2.6, avatar.position.z+Math.cos(a)*4.5); camera.lookAt(avatar.position.x,1.3,avatar.position.z);
+  } else if(now<cineUntil){ // cinematic push-in during the transformation reveal
     camera.position.lerp(new THREE.Vector3(avatar.position.x+0.2,2.2,avatar.position.z+4.1),1-Math.exp(-dt*4)); camera.lookAt(avatar.position.x,1.5,avatar.position.z);
   } else if(creationMode){ // live close-up while customizing YOUR hero
     camera.position.lerp(new THREE.Vector3(avatar.position.x,2.05,avatar.position.z+4.6),1-Math.exp(-dt*6)); camera.lookAt(avatar.position.x,1.5,avatar.position.z);
