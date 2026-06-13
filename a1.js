@@ -51,6 +51,15 @@ function collectChime(){ try{ actx=actx||new(window.AudioContext||window.webkitA
   const base=660*Math.pow(2,step/12); // upgraded sound: warm chord + shimmer, rising pitch on a combo
   [[base,'triangle',0,0.22],[base*1.5,'sine',0.05,0.16],[base*2,'sine',0.09,0.12]].forEach(([f,type,off,vol])=>{ const o=actx.createOscillator(),g=actx.createGain(); o.type=type; o.frequency.value=f; o.connect(g); g.connect(actx.destination);
     const tt=now+off; g.gain.setValueAtTime(0.0001,tt); g.gain.exponentialRampToValueAtTime(vol,tt+0.015); g.gain.exponentialRampToValueAtTime(0.0001,tt+0.28); o.start(tt); o.stop(tt+0.3); }); }catch(e){} }
+// ---- Ambient audio bed: a soft pad under the scene + occasional gentle birdsong ----
+let padStarted=false, nextChirp=0;
+function startPad(){ if(padStarted||!actx) return; padStarted=true; try{ const out=actx.createGain(); out.gain.value=0.016;
+  const lp=actx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=620; lp.connect(actx.destination); out.connect(lp);
+  [110,164.81,220].forEach((f,i)=>{ const o=actx.createOscillator(); o.type='sine'; o.frequency.value=f; o.detune.value=(i-1)*5; o.connect(out); o.start(); });
+  const lfo=actx.createOscillator(), lg=actx.createGain(); lfo.frequency.value=0.07; lg.gain.value=0.008; lfo.connect(lg); lg.connect(out.gain); lfo.start(); }catch(e){} }
+function chirp(){ if(!actx) return; try{ const now=actx.currentTime, base=1400+Math.random()*900;
+  [0,0.13].forEach((off,i)=>{ const o=actx.createOscillator(),g=actx.createGain(); o.type='sine'; o.frequency.setValueAtTime(base*(i?1.18:1),now+off); o.frequency.exponentialRampToValueAtTime(base*(i?1.45:1.28),now+off+0.07); o.connect(g); g.connect(actx.destination);
+    g.gain.setValueAtTime(0.0001,now+off); g.gain.exponentialRampToValueAtTime(0.045,now+off+0.02); g.gain.exponentialRampToValueAtTime(0.0001,now+off+0.16); o.start(now+off); o.stop(now+off+0.2); }); }catch(e){} }
 let avatarPop=0; function avatarReact(){ avatarPop=1; }
 function collectStar(pos){ burst(pos,'#FFD24D',14); collectChime(); haptic(12); twCheerUntil=performance.now()+450; heroEmote('cheer',700); // Twinkle + hero celebrate collections
   if(delight.reward===null){ delight.reward=Math.round(performance.now()-launchT); log('first_reward',{ms:delight.reward}); } }
@@ -163,6 +172,26 @@ function radialTex(){ const cv=document.createElement('canvas'); cv.width=cv.hei
 const lhHalo=new THREE.Sprite(new THREE.SpriteMaterial({map:radialTex(),color:'#FFE9A8',transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false})); lhHalo.scale.set(5,5,1); lhHalo.position.set(0,4.85,-6); scene.add(lhHalo);
 const flowers=[], FCOL=['#ff8fcf','#ffd24d','#8fd0ff','#7ef0c0','#b69cff']; for(let i=0;i<12;i++){ const a=(i/12)*Math.PI*2,r=5+Math.random()*3; const f=new THREE.Mesh(new THREE.SphereGeometry(0.22,8,8),new THREE.MeshToonMaterial({color:FCOL[i%5],gradientMap:TOON_RAMP})); f.position.set(Math.cos(a)*r,0.2,Math.sin(a)*r); f.scale.setScalar(0); flowers.push(f); scene.add(f); }
 water.material.emissive=new THREE.Color('#2faab0'); water.material.emissiveIntensity=0;
+// ---------------- Ambient life: butterflies, birds, footstep flowers, water ripples ----------------
+// All procedural (no new art) — gentle motion + a world that reacts to the child as they move.
+const BLIFE=['#ff8fcf','#8fd0ff','#ffd24d','#b69cff','#7ef0c0'];
+// Butterflies: soft glowing motes wandering lazy looping paths, wings "flutter" via opacity.
+const butterflies=[]; for(let i=0;i<7;i++){ const s=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW_TEX,color:new THREE.Color(BLIFE[i%5]),transparent:true,opacity:0.7,blending:THREE.AdditiveBlending,depthWrite:false}));
+  s.scale.set(0.32,0.32,1); scene.add(s); butterflies.push({s,cx:(Math.random()-0.5)*24,cz:(Math.random()-0.5)*24,rx:2+Math.random()*4,rz:2+Math.random()*4,h:0.7+Math.random()*1.7,sp:0.25+Math.random()*0.5,ph:Math.random()*6.28}); }
+// Birds: small dark V-silhouettes gliding across the sky, wings flapping, looping back around.
+const birds=[]; for(let i=0;i<4;i++){ const g=new THREE.Group(); const bm=new THREE.MeshBasicMaterial({color:'#2e2a44',fog:true,side:THREE.DoubleSide});
+  const wl=new THREE.Mesh(new THREE.PlaneGeometry(0.95,0.16),bm), wr=new THREE.Mesh(new THREE.PlaneGeometry(0.95,0.16),bm); wl.position.x=-0.5; wr.position.x=0.5;
+  g.add(wl,wr); g.rotation.x=-0.5; g.position.set(-34+Math.random()*68,12+Math.random()*8,-12-Math.random()*24); scene.add(g); birds.push({g,wl,wr,sp:2+Math.random()*1.6,ph:Math.random()*6.28}); }
+// Footstep flowers + water ripples: bloom/ripple in the hero's wake as they walk.
+function flowerTex(){ const cv=document.createElement('canvas'); cv.width=cv.height=64; const x=cv.getContext('2d'); x.translate(32,32);
+  for(let i=0;i<5;i++){ x.rotate(Math.PI*2/5); x.fillStyle='rgba(255,255,255,0.95)'; x.beginPath(); x.ellipse(0,-15,7,12,0,0,7); x.fill(); }
+  x.fillStyle='#ffe08a'; x.beginPath(); x.arc(0,0,7,0,7); x.fill(); return new THREE.CanvasTexture(cv); }
+const FLOWER_TEX=flowerTex(), STEP_GEO=new THREE.PlaneGeometry(0.5,0.5), RIPPLE_GEO=new THREE.RingGeometry(0.28,0.4,24);
+const stepFx=[]; let stepDist=0, lastStepX=0, lastStepZ=0;
+function spawnStepFlower(x,z){ const m=new THREE.Mesh(STEP_GEO,new THREE.MeshBasicMaterial({map:FLOWER_TEX,color:new THREE.Color(BLIFE[(Math.random()*5)|0]),transparent:true,opacity:0,depthWrite:false}));
+  m.rotation.x=-Math.PI/2; m.rotation.z=Math.random()*6; m.position.set(x,0.05,z); scene.add(m); stepFx.push({m,life:0,max:3.4,flower:true}); }
+function spawnRipple(x,z){ const m=new THREE.Mesh(RIPPLE_GEO,new THREE.MeshBasicMaterial({color:'#dff4ff',transparent:true,opacity:0.5,depthWrite:false,side:THREE.DoubleSide}));
+  m.rotation.x=-Math.PI/2; m.position.set(x,0.06,z); scene.add(m); stepFx.push({m,life:0,max:1.2,flower:false}); }
 // ---- Supernatural urban-magic props: glowing crystals + rotating magic-glyph circles ----
 const CRYSTAL_COLS=['#ff4fa6','#b06aff','#4fd8ff','#ffd24d','#7ef0c0']; // HUNTRIX color families
 const crystals=[];
@@ -211,7 +240,7 @@ function addCape(){ if(!state.avatar.cosmetics.includes('cape')) state.avatar.co
 function addStar(){ if(!state.avatar.cosmetics.includes('star')) state.avatar.cosmetics.push('star'); if(heroLoaded) return; avStar.scale.setScalar(1.7); avStar.material.emissiveIntensity=.95; }
 
 // ---------- Optional rigged anime character (drop-in; silently falls back to the blob) ----------
-let heroMixer=null, heroActions={}, heroLoaded=false, heroPerforming=false, heroMats=[], heroOutfitMats=[], heroHairMats=[], heroSkinMats=[], heroCurrent=null, rumiMixer=null;
+let heroMixer=null, heroActions={}, heroLoaded=false, heroPerforming=false, heroMats=[], heroOutfitMats=[], heroHairMats=[], heroSkinMats=[], heroCurrent=null, rumiMixer=null, rumiActions={}, rumiCurrent='idle', rumiWaveUntil=0, rumiNextWave=4000;
 const HERO_URL = QS.get('hero') || 'assets/hero/hero.glb';
 const HERO_ROT = parseFloat(QS.get('heroRotY')||'0')||0;
 const INSPECT = QS.get('inspect')==='1'; // turntable debug view of the character
@@ -238,7 +267,7 @@ function mountCharacter(group,root,animations,{tag='',buckets=null,rot=HERO_ROT}
   let mixer=null, actions={};
   if(animations && animations.length){ mixer=new THREE.AnimationMixer(root);
     const clips = tag ? animations.filter(c=>(c.name||'').toLowerCase().includes(tag)).concat(animations.filter(c=>!(c.name||'').toLowerCase().includes(tag))) : animations;
-    clips.forEach(c=>{ const n=(c.name||'').toLowerCase(); const k=/idle/.test(n)?'idle':(/walk|run/.test(n)?'walk':(/dance/.test(n)?'dance':(/cheer|celebrat|jump/.test(n)?'cheer':null))); if(k&&!actions[k]) actions[k]=mixer.clipAction(c); });
+    clips.forEach(c=>{ const n=(c.name||'').toLowerCase(); const k=/idle/.test(n)?'idle':(/walk|run/.test(n)?'walk':(/dance/.test(n)?'dance':(/cheer|celebrat|jump/.test(n)?'cheer':(/wave|greet|hello/.test(n)?'wave':null))); if(k&&!actions[k]) actions[k]=mixer.clipAction(c); });
     if(!actions.idle && clips[0]) actions.idle=mixer.clipAction(clips[0]);
     if(actions.idle) actions.idle.reset().play(); }
   return {mixer,actions}; }
@@ -246,6 +275,9 @@ function playHero(key){ if(!heroMixer||!heroActions[key]||heroCurrent===key) ret
   Object.values(heroActions).forEach(a=>{ if(a!==next) a.fadeOut(0.25); }); next.reset().fadeIn(0.25).play(); heroCurrent=key; }
 let emoteUntil=0;
 function heroEmote(key,ms){ if(heroLoaded && heroActions[key]){ emoteUntil=performance.now()+ms; playHero(key); } } // one-shot (cheer) then back to idle/walk
+function playRumi(key){ if(!rumiMixer||!rumiActions[key]||rumiCurrent===key) return; const next=rumiActions[key];
+  Object.values(rumiActions).forEach(a=>{ if(a!==next) a.fadeOut(0.3); }); next.reset().fadeIn(0.3).play(); rumiCurrent=key; }
+function setupRumiWave(){ if(rumiActions.wave){ rumiActions.wave.setLoop(THREE.LoopOnce,1); rumiActions.wave.clampWhenFinished=false; } rumiNextWave=performance.now()+3000; }
 function loadHero(){ const loader=new GLTFLoader();
   loader.load(HERO_URL, gltf=>{ try{
     const cands=gltf.scene.children.filter(c=>{ let has=false; c.traverse(o=>{ if(o.isMesh) has=true; }); return has; });
@@ -262,7 +294,7 @@ function loadHero(){ const loader=new GLTFLoader();
     heroMixer=a.mixer; heroActions=a.actions; heroLoaded=true; applyAvatar();
     // ---- RUMI slot (optional): a different character named "rumi" in the same file replaces her placeholder ----
     if(cands.length>1){ try{ const rRoot=cands.find(c=>(c.name||'').toLowerCase().includes('rumi') && c!==avRoot);
-      if(rRoot){ rumi.children.slice().forEach(c=>{ c.visible=false; }); const r=mountCharacter(rumi,rRoot,gltf.animations,{tag:'rumi',buckets:null}); rumiMixer=r.mixer; } }catch(e){} }
+      if(rRoot){ rumi.children.slice().forEach(c=>{ c.visible=false; }); const r=mountCharacter(rumi,rRoot,gltf.animations,{tag:'rumi',buckets:null}); rumiMixer=r.mixer; rumiActions=r.actions; setupRumiWave(); } }catch(e){} }
     log('hero_model_loaded',{characters:names, avatar:avRoot.name||null});
   }catch(e){ heroLoaded=false; } },
   undefined, ()=>{ heroLoaded=false; }); }
@@ -271,7 +303,7 @@ async function maybeLoadHero(){ if(QS.get('hero3d')==='0') return; // 3D charact
 // Rumi NPC from her own folder (separate rigged model).
 async function maybeLoadRumi(){ if(QS.get('hero3d')==='0') return;
   try{ const url='assets/rumi/rumi.glb'; const r=await fetch(url,{method:'HEAD'}); if(!r||!r.ok) return;
-    new GLTFLoader().load(url, gltf=>{ try{ rumi.children.slice().forEach(c=>{ c.visible=false; }); const m=mountCharacter(rumi,gltf.scene,gltf.animations,{tag:'rumi',buckets:null}); rumiMixer=m.mixer; }catch(e){} }, undefined, ()=>{});
+    new GLTFLoader().load(url, gltf=>{ try{ rumi.children.slice().forEach(c=>{ c.visible=false; }); const m=mountCharacter(rumi,gltf.scene,gltf.animations,{tag:'rumi',buckets:null}); rumiMixer=m.mixer; rumiActions=m.actions; setupRumiWave(); }catch(e){} }, undefined, ()=>{});
   }catch(e){} }
 
 // Rumi
@@ -699,6 +731,9 @@ function tick(now){ const dt=Math.min((now-lastT)/1000,.05); lastT=now; const t=
   else { avatar.scale.set(1,1+breath,1); avatar.rotation.z=avBank+(moving?0:Math.sin(t*1.1)*0.02); } // idle breathing + weight-shift
   if(avHair){ avHair.rotation.x=-sp*0.18+Math.sin(t*2.0)*0.03; avHair.rotation.z=avBank*0.6+Math.sin(t*1.3)*0.02; } // hair never static
   if(moving && sp>0.4){ trailT-=dt; if(trailT<=0){ trailT=0.045; spawnTrail(); } } // energy ribbon while moving
+  if(moving){ stepDist+=Math.hypot(avatar.position.x-lastStepX,avatar.position.z-lastStepZ); // bloom flowers on land / ripple on water in the hero's wake
+    if(stepDist>0.85){ stepDist=0; const fx=avatar.position.x+(Math.random()-0.5)*0.4, fz=avatar.position.z+(Math.random()-0.5)*0.4; if(Math.hypot(fx,fz)<8.6) spawnStepFlower(fx,fz); else spawnRipple(fx,fz); } }
+  lastStepX=avatar.position.x; lastStepZ=avatar.position.z;
   if(heroMixer) heroMixer.update(dt);
   if(heroLoaded){ // keep the primitive blob fully hidden (hair can get rebuilt after the model loads)
     if(avBody.visible) avBody.visible=false; if(avHead.visible) avHead.visible=false; if(avStar.visible) avStar.visible=false; if(avHair&&avHair.visible) avHair.visible=false; }
@@ -736,6 +771,9 @@ function tick(now){ const dt=Math.min((now-lastT)/1000,.05); lastT=now; const t=
     const blink=(t%3.4<0.1)?0.15:1, e1=twinkle.children[6], e2=twinkle.children[7]; if(e1) e1.scale.y=blink; if(e2) e2.scale.y=blink;
     if(twTailStar) twTailStar.material.emissiveIntensity=(cheering?1.6:.8)+Math.sin(t*6)*.3; }
   rumi.position.y=Math.sin(t*1.6)*.04; if(rumiBraid){ rumiBraid.rotation.x=Math.sin(t*1.4)*0.06; rumiBraid.rotation.z=0.35+Math.sin(t*1.1)*0.04; } // braid secondary motion
+  if(rumiMixer && rumiActions.wave){ const np=performance.now(); // Rumi greets the player — more eagerly when the hero is close by
+    if(np>rumiNextWave && np>=rumiWaveUntil && rumiCurrent==='idle'){ playRumi('wave'); rumiWaveUntil=np+1500; const near=Math.hypot(rumi.position.x-avatar.position.x,rumi.position.z-avatar.position.z)<5; rumiNextWave=np+(near?5000:11000)+Math.random()*4000; }
+    if(np>=rumiWaveUntil && rumiCurrent==='wave') playRumi('idle'); }
   if(reached===false && controlEnabled && Math.hypot(gloomling.position.x-avatar.position.x,gloomling.position.z-avatar.position.z)<2.0){ reachSpot(); }
   if(blooming&&bloom<1){ bloom=Math.min(1,bloom+dt*.6); skyMat.color.copy(new THREE.Color('#8a86a0')).lerp(new THREE.Color('#ffffff'),bloom); scene.fog.color.copy(FOG_GRAY).lerp(FOG_BRIGHT,bloom);
     hemi.intensity=.45+.35*bloom; water.material.color.copy(new THREE.Color('#7fb6bf')).lerp(new THREE.Color('#3fc8d2'),bloom); water.material.emissiveIntensity=0.1*bloom; dock.material.color.copy(new THREE.Color('#e7c9a6')).lerp(new THREE.Color('#ffe3b0'),bloom);
@@ -748,6 +786,13 @@ function tick(now){ const dt=Math.min((now-lastT)/1000,.05); lastT=now; const t=
   spot.material.opacity+=((spotOn?0.5:0)-spot.material.opacity)*Math.min(1,dt*6); if(spot.material.opacity>0.01){ spot.position.x=avatar.position.x; spot.position.z=avatar.position.z; spot.rotation.z+=dt*0.6; }
   // environment ambience: drifting clouds, twinkling motes, lighthouse halo
   for(const c of clouds){ c.position.x+=dt*0.6; if(c.position.x>34) c.position.x=-34; }
+  for(const b of butterflies){ b.s.position.set(b.cx+Math.cos(t*b.sp+b.ph)*b.rx, b.h+Math.sin(t*b.sp*2.3+b.ph)*0.25, b.cz+Math.sin(t*b.sp*0.8+b.ph)*b.rz); b.s.material.opacity=0.45+0.35*Math.sin(t*7+b.ph); } // drift + wing flutter
+  for(const b of birds){ b.g.position.x+=dt*b.sp; if(b.g.position.x>36){ b.g.position.x=-36; b.g.position.z=-12-Math.random()*24; b.g.position.y=12+Math.random()*8; } const fl=Math.sin(t*8+b.ph)*0.5; b.wl.rotation.z=0.35+fl; b.wr.rotation.z=-0.35-fl; }
+  for(let i=stepFx.length-1;i>=0;i--){ const f=stepFx[i]; f.life+=dt; const p=f.life/f.max;
+    if(f.flower){ const pop=p<0.18?(p/0.18):1; f.m.scale.setScalar(0.4+pop*0.7); f.m.material.opacity=(p<0.18?p/0.18:1)*Math.max(0,1-Math.max(0,(p-0.6)/0.4))*0.95; }
+    else { f.m.scale.setScalar(1+p*4); f.m.material.opacity=Math.max(0,0.5*(1-p)); }
+    if(p>=1){ scene.remove(f.m); f.m.material.dispose(); stepFx.splice(i,1); } }
+  if(audioOn && actx){ if(!padStarted) startPad(); if(now>nextChirp){ chirp(); nextChirp=now+7000+Math.random()*9000; } } // soft birdsong over the ambient pad
   if(ambient){ ambient.rotation.y+=dt*0.03; ambient.material.opacity=0.35+0.2*Math.sin(t*1.5); }
   { const lit=lhLightMat.emissiveIntensity>0.1; lhHalo.material.opacity+=((lit?0.7+0.18*Math.sin(t*3):0)-lhHalo.material.opacity)*Math.min(1,dt*4); }
   for(const c of crystals){ const e=0.5+Math.sin(t*1.5+c.seed)*0.25; c.g.children[0].material.emissiveIntensity=e; c.g.children[1].material.emissiveIntensity=e+0.12; } // energy-infused pulse
