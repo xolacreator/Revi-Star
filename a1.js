@@ -362,10 +362,13 @@ function loadHero(){ const loader=new GLTFLoader();
 async function maybeLoadHero(){ if(QS.get('hero3d')==='0') return; // 3D character ON by default now (use ?hero3d=0 for the customizable blob)
   try{ const r=await fetch(HERO_URL,{method:'HEAD'}); if(r&&r.ok) loadHero(); }catch(e){} }
 // Rumi NPC from her own folder (separate rigged model).
-async function maybeLoadRumi(){ if(QS.get('hero3d')==='0') return;
-  try{ const url='assets/rumi/rumi.glb'; const r=await fetch(url,{method:'HEAD'}); if(!r||!r.ok) return;
-    new GLTFLoader().load(url, gltf=>{ try{ rumi.children.slice().forEach(c=>{ c.visible=false; }); const m=mountCharacter(rumi,gltf.scene,gltf.animations,{tag:'rumi',buckets:null}); rumiMixer=m.mixer; rumiActions=m.actions; setupRumiWave(); }catch(e){} }, undefined, ()=>{});
-  }catch(e){} }
+async function maybeLoadRumi(){ if(QS.get('hero3d')==='0') return; // loads the week's guide (Rumi/Mira/Zoey) as the in-world NPC
+  const d=decideDay(); const name=coachNameFor(d>0?d:1);
+  async function tryLoad(n){ const url=`assets/${n}/${n}.glb`;
+    try{ const r=await fetch(url,{method:'HEAD'}); if(!r||!r.ok) return false; }catch(e){ return false; }
+    return new Promise(res=>{ new GLTFLoader().load(url, gltf=>{ try{ rumi.children.slice().forEach(c=>{ c.visible=false; }); const m=mountCharacter(rumi,gltf.scene,gltf.animations,{tag:n,buckets:null}); rumiMixer=m.mixer; rumiActions=m.actions; setupRumiWave(); }catch(e){} res(true); }, undefined, ()=>res(false)); }); }
+  if(!(await tryLoad(name)) && name!=='rumi') await tryLoad('rumi');
+}
 
 // Rumi
 let rumiBraid=null;
