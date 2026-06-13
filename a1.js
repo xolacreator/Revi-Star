@@ -314,12 +314,22 @@ function setMarker(p){ if(!p){marker.visible=false;return;} marker.position.set(
 const ray=new THREE.Raycaster(), ndc=new THREE.Vector2(), target=avatar.position.clone();
 let avVel=0, avHeading=0, avBank=0; // velocity + smoothed heading + bank (animation personality)
 let controlEnabled=false;
-function tapGround(cx,cy){ if(!controlEnabled)return; ndc.x=(cx/innerWidth)*2-1; ndc.y=-(cy/innerHeight)*2+1; ray.setFromCamera(ndc,camera);
+function tapGround(cx,cy,juice=true){ if(!controlEnabled)return false; ndc.x=(cx/innerWidth)*2-1; ndc.y=-(cy/innerHeight)*2+1; ray.setFromCamera(ndc,camera);
   const hit=ray.intersectObject(water,false)[0];
   if(hit&&Math.hypot(hit.point.x,hit.point.z)<=WORLD_R-1){ target.copy(hit.point); target.y=0; $('hint').style.opacity=0;
-    burst(new THREE.Vector3(hit.point.x,0.06,hit.point.z),'#FFE9A8',6); avatarReact(); // tap = small ground sparkle + avatar reaction
-    if(delight.interaction===null){ delight.interaction=Math.round(performance.now()-launchT); log('first_interaction',{ms:delight.interaction}); } } }
-renderer.domElement.addEventListener('pointerdown',e=>{ tapRing(e.clientX,e.clientY); haptic(8); if(controlEnabled) tapGround(e.clientX,e.clientY); });
+    if(juice){ burst(new THREE.Vector3(hit.point.x,0.06,hit.point.z),'#FFE9A8',6); avatarReact(); } // tap = small ground sparkle + avatar reaction
+    if(delight.interaction===null){ delight.interaction=Math.round(performance.now()-launchT); log('first_interaction',{ms:delight.interaction}); }
+    return true; } return false; }
+// Tap OR hold-and-drag: a quick tap walks the hero to a spot; holding and dragging
+// makes the hero continuously follow your finger across the ground (kid-friendly steering).
+let dragging=false, dragTrailT=0;
+renderer.domElement.addEventListener('pointerdown',e=>{ tapRing(e.clientX,e.clientY); haptic(8); if(controlEnabled){ dragging=true; tapGround(e.clientX,e.clientY); } });
+renderer.domElement.addEventListener('pointermove',e=>{ if(!dragging||!controlEnabled) return;
+  if(tapGround(e.clientX,e.clientY,false)){ dragTrailT-=1; if(dragTrailT<=0){ dragTrailT=4; tapRing(e.clientX,e.clientY); } } }); // light dotted feedback as the finger drags
+const endDrag=()=>{ dragging=false; };
+renderer.domElement.addEventListener('pointerup',endDrag);
+renderer.domElement.addEventListener('pointercancel',endDrag);
+renderer.domElement.addEventListener('pointerleave',endDrag);
 
 // bursts / confetti / bloom
 const bursts=[];
@@ -507,7 +517,7 @@ function startDay(day){ state.day=day; save(); $('day-num').textContent=day; $('
 }
 let reached=false;
 function beginExplore(day){ controlEnabled=true; reached=false; setMarker(gloomling.position);
-  setHint(state.twinkleForm>0?'Tap the ground to explore! 👣':'Tap the ground to walk to the Gloomling! 👣');
+  setHint(state.twinkleForm>0?'Tap or hold & drag to explore! 👣':'Tap the ground to walk to the Gloomling! 👣');
   if(audioOn) say(state.twinkleForm>0?"Let's find today's adventure!":"Follow the sparkles!"); }
 function reachSpot(){ if(reached)return; reached=true; controlEnabled=false; setMarker(null); $('hint').style.opacity=0;
   const D=DAYS[state.day];
