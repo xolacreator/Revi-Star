@@ -976,3 +976,10 @@ function tick(now){ const dt=Math.min((now-lastT)/1000,.05); lastT=now; const t=
 }
 addEventListener('resize',()=>{ camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth,innerHeight); });
 applyAvatar(); boot(); requestAnimationFrame(tick);
+// Title-screen "Meet the Legends" — rotating tagline under the character portraits.
+(function legendTips(){ const el=$('legend-tip'), intro=$('intro'); if(!el||!intro) return;
+  const tips=["Rumi loves to read! 📖","Mira loves puzzles! 🧩","Zoey makes music! 🎵","Tap to start your adventure! ✨"]; let i=0;
+  const live=()=>intro && !intro.classList.contains('hidden');
+  el.textContent=tips[0]; el.style.transition='opacity .3s';
+  setInterval(()=>{ if(!live()) return; el.style.opacity='0'; setTimeout(()=>{ if(!live())return; i=(i+1)%tips.length; el.textContent=tips[i]; el.style.opacity='1'; },300); }, 2600);
+})();
