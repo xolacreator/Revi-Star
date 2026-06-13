@@ -55,6 +55,16 @@ async function tts(file, text, voiceKey) {
     headers: { 'xi-api-key': KEY, 'content-type': 'application/json', accept: 'audio/mpeg' },
     body: JSON.stringify({ text, model_id: casting.model, voice_settings: settingsFor(voiceKey) }),
   });
+  if (r.status === 402) {
+    const body = await r.text();
+    console.error('\n❌ ElevenLabs rejected this voice on your plan (HTTP 402).');
+    console.error('   ' + body);
+    console.error('\nMost likely: these are Voice Library voices, which a FREE plan can only use on the');
+    console.error('website — not via the API. Options:');
+    console.error('  • Upgrade to ElevenLabs Starter (~$5/mo) — also gives you a commercial license to ship. Then re-run.');
+    console.error('  • Or re-cast using ElevenLabs default "premade" voices (free via API).');
+    process.exit(1);
+  }
   if (!r.ok) throw new Error(`${file}: ${r.status} ${await r.text()}`);
   const buf = Buffer.from(await r.arrayBuffer());
   await writeFile(path.join(OUT, file + '.mp3'), buf);
