@@ -21,7 +21,7 @@ let state = load() || {
   rumiStage:1, twinkleForm:0,
   pre:null, post:null,
   history:[],            // {day,skillId,correct,hints,modeled,firstTry,ms}
-  launchCount:0
+  launchCount:0, voicePref:null
 };
 let events = (()=>{ try{ return JSON.parse(localStorage.getItem(EKEY))||[]; }catch(e){ return []; } })();
 let launchT = 0, delight={interaction:null,reward:null,smile:null,excited:null};
@@ -38,15 +38,26 @@ const VOICE_PROFILE={ narrator:{pitch:1.08,rate:0.96,kid:false}, rumi:{pitch:1.1
   twinkle:{pitch:1.5,rate:1.06,kid:true}, gloomling:{pitch:0.85,rate:0.92,kid:false} };
 function charProfile(name){ const k=(name||'').toLowerCase(); if(VOICE_PROFILE[k]) return k;
   if(/revi|hunter|you/.test(k)) return 'child'; if(/rumi/.test(k)) return 'rumi'; if(/mira/.test(k)) return 'mira'; if(/zoey/.test(k)) return 'zoey'; if(/twinkle/.test(k)) return 'twinkle'; if(/gloom/.test(k)) return 'gloomling'; return 'narrator'; }
+function voiceScore(v){ const n=(v.name||'').toLowerCase(); let s=0; // rank built-in voices by how human they sound
+  if(/siri/.test(n)) s+=100; if(/online|natural|neural/.test(n)) s+=80; if(/enhanced|premium/.test(n)) s+=60;
+  if(/google/.test(n)) s+=42; if(/samantha|ava|allison|jenny|aria|zoe|nicky|sonia|libby|serena/.test(n)) s+=30;
+  if(v.localService===false) s+=20; // cloud voices are usually higher quality
+  if(/female|woman/.test(n)) s+=6;
+  if(/compact|eloquence|fred|albert|zarvox|novelty|whisper|bad|trinoids/.test(n)) s-=80; // robotic/low-quality
+  return s; }
+function englishVoices(){ const en=x=>/en(-|_|\b)/i.test(x.lang); return speechSynthesis.getVoices().filter(en).sort((a,b)=>voiceScore(b)-voiceScore(a)); }
 function pickVoice(){ const v=speechSynthesis.getVoices(); const en=x=>/en(-|_|\b)/i.test(x.lang);
-  voiceWarm=v.find(x=>en(x)&&/(enhanced|premium|natural|neural|online)/i.test(x.name)&&/ava|samantha|allison|jenny|aria|sonia|zoe|nicky|karen|moira|female/i.test(x.name))
-       ||v.find(x=>en(x)&&/(enhanced|premium|natural|neural|online)/i.test(x.name))
-       ||v.find(x=>en(x)&&/samantha|shelley|ava|allison|nicky|google uk english female|libby|aria|jenny|female/i.test(x.name))
-       ||v.find(x=>en(x)&&/karen|moira|tessa|google us english/i.test(x.name))
-       ||v.find(en)||v[0]||null;
-  voiceKid=v.find(x=>en(x)&&/(ana|child|kid|junior|shelley|grandma)/i.test(x.name))||voiceWarm; // a younger voice if the device has one
+  const pref = state.voicePref && v.find(x=>x.name===state.voicePref && en(x)); // honor the grown-up's choice
+  const ranked=englishVoices();
+  voiceWarm = pref || ranked[0] || v.find(en) || v[0] || null;
+  voiceKid = v.find(x=>en(x)&&/(ana|child|kid|junior|shelley|grandma)/i.test(x.name)) || voiceWarm; // younger voice if present
   voice=voiceWarm; }
-if('speechSynthesis' in window){ pickVoice(); speechSynthesis.onvoiceschanged=pickVoice; }
+if('speechSynthesis' in window){ pickVoice(); speechSynthesis.onvoiceschanged=()=>{ pickVoice(); if(!$('parent').classList.contains('hidden')) populateVoicePicker(); }; }
+function populateVoicePicker(){ const sel=$('pc-voice'); if(!sel) return; const vs=englishVoices(); sel.innerHTML='';
+  if(!vs.length){ const o=document.createElement('option'); o.textContent='(device has no extra voices)'; sel.appendChild(o); return; }
+  vs.forEach(v=>{ const o=document.createElement('option'); o.value=v.name; o.textContent=v.name.replace(/\(.*?\)/,'').trim()+(voiceScore(v)>=60?' ⭐':''); if((state.voicePref||(voiceWarm&&voiceWarm.name))===v.name) o.selected=true; sel.appendChild(o); });
+  sel.onchange=()=>{ state.voicePref=sel.value; save(); pickVoice(); say("Hi! I'm your reading buddy. Let's learn together!",{char:'rumi'}); };
+}
 // ---- AI voice clips (assets/vo/<id>.mp3) — film/TV-style; auto-used when present, TTS otherwise ----
 const VO_HAVE={}; // id -> preloaded Audio (only ids listed in assets/vo/manifest.json)
 function loadVOManifest(){ try{ fetch('assets/vo/manifest.json').then(r=>r.ok?r.json():[]).then(ids=>{ (ids||[]).forEach(id=>{ const a=new Audio('assets/vo/'+id+'.mp3'); a.preload='auto'; VO_HAVE[id]=a; }); }).catch(()=>{}); }catch(e){} }
@@ -802,12 +813,13 @@ function buildDashboard(){ const m=metrics();
   $('pc-today').innerHTML = `<li>Practiced <b>${skillName}</b></li><li>Tried ${tried}, got ${got}, used ${usedHints} hint${usedHints===1?'':'s'}</li>`+(state.day===3?'<li>Read a whole word independently 🎉</li>':'');
   $('pc-pre').textContent = state.pre==null?'–':state.pre; $('pc-post').textContent = state.post==null?'–':state.post;
 }
-function openParent(){ buildDashboard(); show('parent');
+function openParent(){ buildDashboard(); populateVoicePicker(); show('parent');
   $('reengage').classList.toggle('hidden', !state.askReengage);
   log('dashboard_view');
   [...document.querySelectorAll('#reengage .re-btns button')].forEach(b=>b.onclick=()=>{ log('parent_reengage',{value:b.dataset.v}); state.askReengage=false; save(); $('reengage').classList.add('hidden'); });
 }
 $('pc-close').onclick=()=>hide('parent');
+$('pc-voice-test').onclick=()=>say("Hi! I'm Rumi. Let's read together and have fun!",{char:'rumi'});
 $('pc-export').onclick=()=>{ const blob=new Blob([JSON.stringify({state,events},null,2)],{type:'application/json'});
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='little-legends-a1-data.json'; a.click(); };
 $('pc-sim').onclick=()=>{ state.lastCompletedDate=null; save(); hide('parent'); location.reload(); };
