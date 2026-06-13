@@ -1,7 +1,7 @@
 {
-  "name": "Starbound: Little Legends — Harmony Harbor",
-  "short_name": "Little Legends",
-  "description": "A magical reading adventure for ages 5-7. Explore Harmony Harbor, read with Rumi to relight the lighthouse, befriend Twinkle, and watch Rumi transform!",
+  "name": "Reventure",
+  "short_name": "Reventure",
+  "description": "A magical reading adventure for ages 5-7. Explore Harmony Harbor, read with Rumi, Mira, and Zoey, befriend Twinkle, and watch your hero transform!",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

@@ -32,6 +32,10 @@ html,body{margin:0;height:100%;overflow:hidden;background:#bfe3ff;font-family:va
 .intro p,.hub p{color:#FFE9F6;font-size:20px;margin:0}
 .intro small{color:#FFE9F6;opacity:.9;margin-top:8px}
 .intro-star{font-size:74px;animation:spin 2s linear infinite}
+/* Title-screen hero art (assets/title.png). When present, it replaces the emoji + text title. */
+.intro-art{width:min(82vw,420px);max-height:62vh;object-fit:contain;border-radius:28px;box-shadow:0 12px 34px rgba(0,0,0,.3);animation:floaty 4s ease-in-out infinite}
+.intro.has-art .intro-star,.intro.has-art h1,.intro.has-art>p{display:none}
+@keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
 .big-btn{border:none;background:var(--gold);color:var(--ink);font-family:var(--font);font-weight:800;font-size:26px;padding:18px 40px;border-radius:999px;box-shadow:0 8px 0 #d49a14;margin-top:10px}
 .big-btn:active{transform:translateY(4px);box-shadow:0 4px 0 #d49a14}
 .text-btn{border:none;background:transparent;color:#fff;font-family:var(--font);font-weight:700;font-size:18px;text-decoration:underline;opacity:.92}
