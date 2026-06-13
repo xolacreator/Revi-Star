@@ -18,23 +18,26 @@ await mkdir(OUT, { recursive: true });
 const res = await fetch(`${API}/voices`, { headers: { 'xi-api-key': KEY } });
 if (!res.ok) { console.error('❌ Could not list voices:', res.status, await res.text()); process.exit(1); }
 const avail = (await res.json()).voices || [];
-// Match a cast name to an account voice: exact first, else "starts with" (so "Kelly" finds
-// "Kelly - Warm, Energetic, Motivational"). Names are lower-cased + trimmed.
+// Only "premade" (built-in default) voices work via the API on a free plan. Library voices
+// require a paid plan, so we match against premade only.
+const premade = avail.filter(v => v.category === 'premade');
+const pool = premade.length ? premade : avail;
+// Match a cast name: exact first, else "starts with" (so "Jessica" finds "Jessica - Playful, Bright, Warm").
 const norm = s => String(s).toLowerCase().trim();
 function idFor(name) {
   const want = norm(name);
-  let v = avail.find(a => norm(a.name) === want);
-  if (!v) v = avail.find(a => { const n = norm(a.name); return n === want || n.startsWith(want + ' ') || n.startsWith(want + '-'); });
-  if (!v) v = avail.find(a => norm(a.name).startsWith(want));
+  let v = pool.find(a => norm(a.name) === want);
+  if (!v) v = pool.find(a => { const n = norm(a.name); return n === want || n.startsWith(want + ' ') || n.startsWith(want + '-'); });
+  if (!v) v = pool.find(a => norm(a.name).startsWith(want));
   return v && v.voice_id;
 }
 
 const missing = [];
 for (const [k, v] of Object.entries(casting.voices)) if (!idFor(v.name)) missing.push(`${k} -> "${v.name}"`);
 if (missing.length) {
-  console.error('❌ These cast voices are not in your ElevenLabs account:\n  ' + missing.join('\n  '));
-  console.error('\nAvailable voices: ' + avail.map(v => v.name).join(', '));
-  console.error('\nFix: in ElevenLabs, open each voice in the Voice Library and click "Add to my voices" (or update casting.json names).');
+  console.error('❌ These cast voices are not available as PREMADE (free-API) voices:\n  ' + missing.join('\n  '));
+  console.error('\nAvailable premade (free) voices: ' + pool.map(v => v.name).join(', '));
+  console.error('\nFix: update tools/voice/casting.json to use names from the list above.');
   process.exit(1);
 }
 

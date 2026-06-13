@@ -1,15 +1,15 @@
 {
-  "_comment": "Voice casting for Reventure. The generator resolves each 'name' to an ElevenLabs voice ID via your account's voice list. Per-character overrides (stability/style/etc.) merge over 'defaults'.",
+  "_comment": "Voice casting for Reventure using ElevenLabs PREMADE (free-API) voices. The generator matches each 'name' against your account's premade voices (prefix match). Per-character overrides merge over 'defaults'.",
   "model": "eleven_multilingual_v2",
   "format": "mp3_44100_128",
   "defaults": { "stability": 0.5, "similarity_boost": 0.8, "style": 0.1, "use_speaker_boost": true },
   "voices": {
     "rumi":      { "name": "Jessica" },
-    "mira":      { "name": "Kelly" },
-    "zoey":      { "name": "Belle",  "style": 0.2 },
-    "child":     { "name": "Bianca" },
-    "twinkle":   { "name": "Candy",  "style": 0.25 },
-    "gloomling": { "name": "Olivia", "stability": 0.65, "style": 0.0 },
-    "narrator":  { "name": "Jessica" }
+    "mira":      { "name": "Alice" },
+    "zoey":      { "name": "Laura", "style": 0.25 },
+    "child":     { "name": "Matilda" },
+    "twinkle":   { "name": "Lily",  "style": 0.3 },
+    "gloomling": { "name": "River", "stability": 0.65, "style": 0.0 },
+    "narrator":  { "name": "Sarah" }
   }
 }
