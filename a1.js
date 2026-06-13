@@ -478,6 +478,24 @@ const DAYS = {
     ],
     tease:["You played 3 days in a row! More adventures are coming soon…"] }
 };
+const MAX_DAY = 21; // the daily loop now runs three weeks
+// ---- Procedural content for days 4..21: rotating skills, offset indexing so items vary day to day ----
+const LETTERBANK=[['S','sss','sun','☀️'],['M','mmm','moon','🌙'],['T','tuh','top','🔝'],['F','fff','fish','🐟'],['B','buh','bee','🐝'],['N','nnn','net','🥅'],['P','puh','pig','🐷'],['D','duh','dog','🐶'],['L','lll','leaf','🍃'],['R','rrr','red','🔴'],['C','kuh','cat','🐱'],['H','huh','hat','🎩'],['G','guh','goat','🐐'],['K','kuh','kite','🪁'],['V','vvv','van','🚐'],['W','wuh','web','🕸️'],['Z','zzz','zip','🤐'],['J','juh','jam','🍓']];
+const SIGHTBANK=[['cat','🐱','dog','sun'],['dog','🐶','cat','bus'],['sun','☀️','net','pig'],['red','🔴','mom','big'],['pig','🐷','bus','hat'],['bus','🚌','red','net'],['hat','🎩','dog','sun'],['mom','👩','big','net'],['big','🔵','pig','bus'],['net','🥅','cat','mom'],['box','📦','fox','dog'],['fox','🦊','box','sun']];
+const PH={a:'aah',e:'eh',i:'ih',o:'awe',u:'uh',b:'buh',c:'cuh',d:'duh',f:'fff',g:'guh',h:'huh',j:'juh',k:'kuh',l:'lll',m:'mmm',n:'nnn',p:'puh',r:'rrr',s:'sss',t:'tuh',v:'vvv',w:'wuh',x:'ks',y:'yuh',z:'zzz'};
+const CVCWORDS=[['cat','🐱'],['sun','☀️'],['dog','🐶'],['pig','🐷'],['hen','🐔'],['bed','🛏️'],['top','🔝'],['bug','🐛'],['map','🗺️'],['fan','🪭'],['net','🥅'],['cup','☕'],['box','📦'],['log','🪵'],['mop','🧹'],['jam','🍓'],['ten','🔟'],['rug','🧶'],['van','🚐'],['web','🕸️'],['zip','🤐']];
+const GENGREET=["You're back — let's keep our reading streak glowing!","Another day, another adventure in Harmony Harbor!","Twinkle missed you! Ready to read together?","The harbor shines brighter every day you read!","Let's find new sounds and words today!"];
+function genDay(day){ const i=day, idx=(b,n)=>b[(i*7+n*5)%b.length], otherL=n=>LETTERBANK[(i*3+n)%LETTERBANK.length];
+  const L=idx(LETTERBANK,1), d1=otherL(4), d2=otherL(9);
+  const acts=[ {template:'soundMatch',skillId:'phon.letter.sound',pic:L[3],prompt:`Which letter says  ${L[1]}…  like  ${L[2]}?`,say:`Which letter says ${L[1]}, like ${L[2]}?`,options:[{t:L[0],say:L[1]},{t:d1[0]===L[0]?d2[0]:d1[0],say:d1[1]},{t:d2[0]===L[0]?otherL(13)[0]:d2[0],say:d2[1]}],answer:L[0]} ];
+  if(i%2===0){ const S=idx(SIGHTBANK,2); acts.push({template:'wordPicture',skillId:'read.sightword',pic:S[1],prompt:`Which word says  “${S[0]}”?`,say:`Which word says ${S[0]}?`,options:[{t:S[0],say:S[0]},{t:S[2],say:S[2]},{t:S[3],say:S[3]}],answer:S[0]}); }
+  else { const F=idx(LETTERBANK,3),g1=otherL(6),g2=otherL(11); acts.push({template:'firstSound',skillId:'phon.onset',pic:F[3],prompt:`What sound does  “${F[2]}”  start with?`,say:`What sound does ${F[2]} start with? ${F[1]}, ${F[1]}, ${F[2]}.`,options:[{t:F[0],say:F[1]},{t:g1[0]===F[0]?g2[0]:g1[0],say:g1[1]},{t:g2[0]===F[0]?otherL(2)[0]:g2[0],say:g2[1]}],answer:F[0]}); }
+  const W=idx(CVCWORDS,4); acts.push({template:'blend',skillId:'phon.cvc.blend',pic:W[1],word:W[0],say:`Tap the sounds in order. ${W[0].split('').join('… ')}… ${W[0]}!`,prompt:'Tap the sounds in order to read it!',sounds:W[0].split('').map(ch=>({t:ch,say:PH[ch]||ch}))});
+  const labels=['Letter sounds','Reading words','Blending words'];
+  return { skillLabel:labels[i%3], greet:["Rumi",GENGREET[i%GENGREET.length],"Let's read! ▶"], activities:acts,
+    tease:[ day>=MAX_DAY ? "Three whole weeks of reading — you're a true Star Hunter! 🌟" : "Come back tomorrow for more sounds, words, and sparkles!" ] }; }
+function getDay(day){ return DAYS[day] || genDay(day); }
+
 
 // Star Check (pre/post) — choose-only, no hints, transfer words (not practiced)
 const STARCHECK=[
@@ -498,7 +516,12 @@ function runActivities(list,done){ curList=list; curIdx=0; onListDone=done; dayM
 function renderLights(){ const el=$('ch-lights'); el.innerHTML=''; for(let i=0;i<curList.length;i++){ const s=document.createElement('span'); s.className='lite'+(i<curIdx?' on':''); s.textContent=i<curIdx?'●':'○'; el.appendChild(s);} }
 let mistakes=0, blendProgress=0, itemStart=0, itemHints=0, itemModeled=false;
 // ---- On-screen learning coach (Rumi): a friendly face + line that reacts while the child works ----
-function drawCoach(mode){ const cv=$('coach-face'); if(!cv) return; const g=cv.getContext('2d'); g.clearRect(0,0,120,120);
+// Drop real art in assets/coach/ to replace the drawn face: rumi.png (required) + optional
+// rumi-cheer.png / rumi-think.png for expressions. Falls back to the canvas drawing below.
+let coachCurMode='smile'; const coachImg={}; let coachHasImg=false;
+function drawCoach(mode){ coachCurMode=mode||'smile';
+  if(coachHasImg){ const el=$('coach-img'); if(el){ const pick=coachImg[coachCurMode]||coachImg.smile||coachImg.cheer||coachImg.think; if(pick) el.src=pick.src; } return; }
+  const cv=$('coach-face'); if(!cv) return; const g=cv.getContext('2d'); g.clearRect(0,0,120,120);
   g.fillStyle='#7B4FC4'; g.beginPath(); g.arc(60,64,46,0,7); g.fill(); // hair back
   g.fillStyle='#ffe0c2'; g.beginPath(); g.ellipse(60,66,33,37,0,0,7); g.fill(); // face
   g.fillStyle='#7B4FC4'; g.beginPath(); g.moveTo(24,60); g.quadraticCurveTo(38,30,60,40); g.quadraticCurveTo(82,30,96,60); g.quadraticCurveTo(78,48,60,50); g.quadraticCurveTo(42,48,24,60); g.closePath(); g.fill(); // bangs
@@ -511,6 +534,9 @@ function drawCoach(mode){ const cv=$('coach-face'); if(!cv) return; const g=cv.g
   g.strokeStyle='#c23a5a'; g.lineWidth=3.5; g.lineCap='round'; g.beginPath();
   if(mode==='think'){ g.moveTo(54,ey+22); g.lineTo(66,ey+21); } else { g.moveTo(51,ey+18); g.quadraticCurveTo(60,ey+28,69,ey+18); } g.stroke(); }
 function coach(mode,line){ const l=$('coach-line'); if(l&&line!=null) l.textContent=line; drawCoach(mode||'smile'); }
+(function loadCoachArt(name='rumi'){ ['smile','cheer','think'].forEach(m=>{ const im=new Image();
+  im.onload=()=>{ coachImg[m]=im; coachHasImg=true; const el=$('coach-img'),cv=$('coach-face'); if(el&&cv){ cv.classList.add('hidden'); el.classList.remove('hidden'); } drawCoach(coachCurMode); };
+  im.src='assets/coach/'+(m==='smile'?name+'.png':name+'-'+m+'.png'); }); })();
 function renderActivity(){ const a=curList[curIdx]; mistakes=0; itemHints=0; itemModeled=false; itemStart=performance.now();
   coach('smile', a.coachLine || a.prompt);
   $('ch-pic').textContent=a.pic; $('ch-prompt').textContent=a.prompt; $('ch-options').innerHTML=''; renderLights();
@@ -578,7 +604,7 @@ function finishSC(){ hide('starcheck'); state[scTag]=scScore; log('starcheck_don
 function startDay(day){ state.day=day; save(); $('day-num').textContent=day; $('star-num').textContent=state.avatar.stars; setEnergy(0);
   log('day_start',{day});
   show('hud');
-  const D=DAYS[day];
+  const D=getDay(day);
   // reset scene positions for re-walk
   if(day>1){ gloomling.visible=true; gloomling.scale.setScalar(1); twinkle.visible=(state.twinkleForm>0); twinkleFollows=(state.twinkleForm>0);
     if(state.twinkleForm>0){ gloomling.visible=false; } }
@@ -592,7 +618,7 @@ function beginExplore(day){ controlEnabled=true; reached=false; setMarker(glooml
   setHint(state.twinkleForm>0?'Tap or hold & drag to explore! 👣':'Tap the ground to walk to the Gloomling! 👣');
   if(audioOn) say(state.twinkleForm>0?"Let's find today's adventure!":"Follow the sparkles!"); }
 function reachSpot(){ if(reached)return; reached=true; controlEnabled=false; setMarker(null); $('hint').style.opacity=0;
-  const D=DAYS[state.day];
+  const D=getDay(state.day);
   if(state.day===1){ speak('Gloomling',"…I lost the words. Will you read them with me?","Yes! Let's read ✨",()=>runActivities(D.activities,dayProgress)); }
   else { speak('Rumi',"Here we go — read these with me!","Let's read ✨",()=>runActivities(D.activities,dayProgress)); }
 }
@@ -610,6 +636,9 @@ function dayProgress(){
     avatarTransform(addHat,'Stylish New Hat',()=>{ speak('Rumi',`Wonderful, ${heroName()}! Look — Twinkle is glowing… almost ready to evolve tomorrow!`,'▶',rewardDay); });
   } else if(state.day===3){
     twinkleEvolve(()=> avatarTransform(addCape,'Hero Cape',()=> runStarCheck('post',()=>rewardDay()) ));
+  } else { // days 4..21: keep the streak rewarding; a weekly milestone gives an extra sparkle
+    twTailStar.material.emissiveIntensity=1.6; relightLighthouse();
+    if(state.day%7===0){ avatarTransform(addStar,'Weekly Star',()=>rewardDay()); } else { setTimeout(()=>rewardDay(),900); }
   }
 }
 function enableTwinkleTap(){ controlEnabled=false; setHint('Tap Twinkle to befriend! 🦊✨');
@@ -639,10 +668,13 @@ function twinkleEvolve(then){ log('twinkle_evolve',{form:2}); state.twinkleForm=
 
 function rewardDay(){ // reward cards per day
   const nm=heroName();
+  const week=Math.ceil(state.day/7);
   const cards = state.day===1 ? [['🌟','My Star Hunter','You leveled up!'],['🦊','Twinkle','A new friend!'],['⭐','Reading Star','You read 2 words!']]
     : state.day===2 ? [['🎩','New Hat',nm+"'s style!"],['🌟','Day 2 Star','Your hero grew!'],['✨','Twinkle','Almost evolving!']]
-    : [['🦸','Hero Cape',nm+' shines!'],['🌟','Star Hunter!','3 days strong!'],['🦊','Glimmerfox','Twinkle evolved!']];
-  $('reward-h').textContent= state.day===3 ? `${nm}, you did it — 3 days! 🎉` : `Great job, ${nm}! 🎉`;
+    : state.day===3 ? [['🦸','Hero Cape',nm+' shines!'],['🌟','Star Hunter!','3 days strong!'],['🦊','Glimmerfox','Twinkle evolved!']]
+    : state.day%7===0 ? [['🏅',`Week ${week} done!`,`${state.day} days strong!`],['⭐','Weekly Star',nm+' is glowing!'],['📚','Super Reader','Keep it up!']]
+    : [['🌟',`Day ${state.day} Star`,nm+' grew!'],['📖','Reading streak',`${state.completedDays.length+1} days!`],['✨','Twinkle','Cheering you on!']];
+  $('reward-h').textContent= state.day>=MAX_DAY ? `${nm}, three whole weeks! 🏆` : state.day%7===0 ? `Week ${week} complete, ${nm}! 🎉` : state.day===3 ? `${nm}, you did it — 3 days! 🎉` : `Great job, ${nm}! 🎉`;
   $('reward-cards').innerHTML=''; cards.forEach(c=>{ const d=document.createElement('div'); d.className='rcard'; d.innerHTML=`<div class="rc-ico">${c[0]}</div><b>${c[1]}</b><small>${c[2]}</small>`; $('reward-cards').appendChild(d); });
   show('reward'); confetti(); chime('win'); if(audioOn) say("Great job today, Star Hunter!");
   $('reward-next').onclick=()=>{ hide('reward'); completeDay(); };
@@ -651,9 +683,9 @@ function rewardDay(){ // reward cards per day
 function completeDay(){ if(!state.completedDays.includes(state.day)) state.completedDays.push(state.day);
   state.lastCompletedDate=todayStr(); save(); log('day_complete',{day:state.day, stars:state.avatar.stars, rumiStage:state.rumiStage, twinkleForm:state.twinkleForm});
   buildDashboard();
-  const D=DAYS[state.day];
-  $('dg-emoji').textContent = state.day===3?'🏆':'🌙';
-  $('dg-title').textContent = state.day===3?'You played 3 days!':'See you tomorrow!';
+  const D=getDay(state.day);
+  $('dg-emoji').textContent = state.day>=MAX_DAY?'🏆':(state.day%7===0?'🏅':'🌙');
+  $('dg-title').textContent = state.day>=MAX_DAY?'You played 21 days!':(state.day%7===0?`Week ${Math.ceil(state.day/7)} done!`:'See you tomorrow!');
   $('dg-text').textContent = D.tease[0];
   show('daygate'); if(audioOn) say(D.tease[0]);
   if(state.day===3){ /* offer parent re-engagement next time they open parent panel */ state.askReengage=true; save(); }
@@ -680,11 +712,13 @@ function buildDashboard(){ const m=metrics();
   $('pc-reading').style.width=m.reading+'%'; $('pc-conf').style.width=m.confidence+'%';
   $('pc-reading-l').textContent = m.reading>=80?'Shining!':m.reading>=40?'Growing!':'Starting';
   $('pc-conf-l').textContent = m.confidence>=70?'Strong!':m.confidence>=40?'Growing!':'Starting';
-  const dots=$('pc-dots'); dots.innerHTML=''; for(let i=1;i<=3;i++){ const s=document.createElement('span'); if(state.completedDays.includes(i)) s.className='on'; dots.appendChild(s);}
+  const dots=$('pc-dots'); dots.innerHTML=''; const wk=Math.ceil(state.day/7), base=(wk-1)*7; // dots show THIS week (of 3)
+  if(wk>1){ const lbl=document.createElement('small'); lbl.textContent='Wk'+wk+' '; lbl.style.opacity=.7; dots.appendChild(lbl); }
+  for(let i=1;i<=7;i++){ const dnum=base+i; const s=document.createElement('span'); if(state.completedDays.includes(dnum)) s.className='on'; dots.appendChild(s);}
   // today takeaway
   const todayItems=state.history.filter(x=>x.day===state.day);
   const got=todayItems.filter(x=>x.correct).length, tried=todayItems.length, usedHints=todayItems.reduce((s,x)=>s+x.hints,0);
-  const skillName = state.day===1?'letter sounds':state.day===2?'sight words':'blending sounds into words';
+  const skillName = (getDay(state.day).skillLabel||'reading').toLowerCase();
   $('pc-today').innerHTML = `<li>Practiced <b>${skillName}</b></li><li>Tried ${tried}, got ${got}, used ${usedHints} hint${usedHints===1?'':'s'}</li>`+(state.day===3?'<li>Read a whole word independently 🎉</li>':'');
   $('pc-pre').textContent = state.pre==null?'–':state.pre; $('pc-post').textContent = state.post==null?'–':state.post;
 }
@@ -702,11 +736,11 @@ $('pc-reset').onclick=()=>{ if(confirm('Reset all test data?')){ localStorage.re
 // =====================================================================
 //  BOOT
 // =====================================================================
-function decideDay(){ const forced=QS.get('day'); if(forced){ return Math.max(1,Math.min(3,parseInt(forced))); }
+function decideDay(){ const forced=QS.get('day'); if(forced){ return Math.max(1,Math.min(MAX_DAY,parseInt(forced))); }
   const maxC = state.completedDays.length? Math.max(...state.completedDays):0;
-  const next = Math.min(3, maxC+1);
-  if(state.lastCompletedDate===todayStr() && maxC>=1 && maxC<3){ return -1; } // already played today -> gate
-  if(maxC>=3 && state.lastCompletedDate===todayStr()) return -2; // finished all, today
+  const next = Math.min(MAX_DAY, maxC+1);
+  if(state.lastCompletedDate===todayStr() && maxC>=1 && maxC<MAX_DAY){ return -1; } // already played today -> gate
+  if(maxC>=MAX_DAY && state.lastCompletedDate===todayStr()) return -2; // finished all, today
   return next;
 }
 function boot(){
@@ -747,7 +781,7 @@ function routeDay(){ // restore prior cosmetics/rumi/twinkle visual state
   if(state.rumiStage>=2){ rumiJacket.emissive.set('#FFC83D'); rumiJacket.emissiveIntensity=.6; }
   const d=decideDay();
   if(d===-1){ $('dg-emoji').textContent='🌙'; $('dg-title').textContent='See you tomorrow!'; $('dg-text').textContent='You already played today — come back tomorrow for the next adventure! (Grown-ups can tap 👪 to continue testing.)'; show('hud'); show('daygate'); $('dg-close').onclick=()=>hide('daygate'); if(audioOn) say("See you tomorrow!"); return; }
-  if(d===-2){ $('dg-emoji').textContent='🏆'; $('dg-title').textContent='You finished the 3-day adventure!'; $('dg-text').textContent='More is coming soon. 💛'; show('hud'); show('daygate'); $('dg-close').onclick=()=>hide('daygate'); return; }
+  if(d===-2){ $('dg-emoji').textContent='🏆'; $('dg-title').textContent='You finished all 21 days!'; $('dg-text').textContent='Three weeks of reading — amazing! More is coming soon. 💛'; show('hud'); show('daygate'); $('dg-close').onclick=()=>hide('daygate'); return; }
   startDay(d);
 }
 

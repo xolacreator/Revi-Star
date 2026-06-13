@@ -21,4 +21,4 @@
 - That's it. Larger tests, D7, dashboards, monetization come later.
 
 ## Multi-day tip
-The build gates to one day per calendar day (real "do they come back?"). To preview Day 2/3 yourself in one sitting: tap **👪 → 3-7-1 → Simulate next day**, or add `?day=2` / `?day=3` to the URL. Use `?reset=1` to start fresh for the next child.
+The build gates to one day per calendar day (real "do they come back?"). The loop now runs **21 days** (three weeks): days 1–3 are the authored story beats; days 4–21 are auto-generated practice (rotating letter sounds / words / blending, no repeats) with a sparkle reward at the end of each week. To preview a later day in one sitting: tap **👪 → 3-7-1 → Simulate next day**, or add `?day=2` … up to `?day=21` to the URL. Use `?reset=1` to start fresh for the next child.

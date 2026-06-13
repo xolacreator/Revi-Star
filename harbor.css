@@ -40,7 +40,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#bfe3ff;font-family:va
 .challenge{background:linear-gradient(160deg,#FFE3A8,#FFB1DE)}
 /* Rumi coach — the engaged guide stays on screen during learning */
 .coach{position:absolute;top:14px;left:14px;display:flex;align-items:center;gap:10px;max-width:62%;z-index:12}
-.coach canvas{width:74px;height:74px;flex:0 0 auto;background:rgba(255,255,255,.65);border-radius:50%;box-shadow:0 4px 0 rgba(150,110,170,.35);animation:bob 2.6s ease-in-out infinite}
+.coach canvas,.coach #coach-img{width:74px;height:74px;flex:0 0 auto;background:rgba(255,255,255,.65);border-radius:50%;object-fit:cover;box-shadow:0 4px 0 rgba(150,110,170,.35);animation:bob 2.6s ease-in-out infinite}
 .coach #coach-line{margin:0;background:#fff;color:var(--purple);font-weight:800;font-size:15px;line-height:1.25;padding:9px 13px;border-radius:16px;box-shadow:0 4px 0 rgba(150,110,170,.25);position:relative}
 .coach #coach-line::before{content:"";position:absolute;left:-7px;top:22px;border:7px solid transparent;border-right-color:#fff}
 @media (max-width:520px){.coach{max-width:70%}.coach canvas{width:60px;height:60px}.coach #coach-line{font-size:13px;padding:7px 10px}}

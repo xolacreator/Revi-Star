@@ -20,7 +20,7 @@
 ## How to run the test
 - **Normal play:** open the link, sound on. The child plays one day, then sees "See you tomorrow!" Returning on a new calendar day unlocks the next day.
 - **Moderator shortcuts** (don't use during the real return test):
-  - `?day=1|2|3` — jump to a specific day.
+  - `?day=1…21` — jump to a specific day. (Days 1–3 are authored; 4–21 are auto-generated practice. The 3-Day Proof metrics below still anchor on days 1–3.)
   - `?observe=1` — show the **Observer bar** to timestamp **Time-to-Delight** (first smile / first "wow!").
   - `?reset=1` — wipe local test data.
   - In the **Parent panel** (👪 → tap 3-7-1): **Simulate next day**, **Reset**, and **⬇️ Export data** (downloads `state` + full event log as JSON).
