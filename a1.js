@@ -491,8 +491,8 @@ function genDay(day){ const i=day, idx=(b,n)=>b[(i*7+n*5)%b.length], otherL=n=>L
   if(i%2===0){ const S=idx(SIGHTBANK,2); acts.push({template:'wordPicture',skillId:'read.sightword',pic:S[1],prompt:`Which word says  “${S[0]}”?`,say:`Which word says ${S[0]}?`,options:[{t:S[0],say:S[0]},{t:S[2],say:S[2]},{t:S[3],say:S[3]}],answer:S[0]}); }
   else { const F=idx(LETTERBANK,3),g1=otherL(6),g2=otherL(11); acts.push({template:'firstSound',skillId:'phon.onset',pic:F[3],prompt:`What sound does  “${F[2]}”  start with?`,say:`What sound does ${F[2]} start with? ${F[1]}, ${F[1]}, ${F[2]}.`,options:[{t:F[0],say:F[1]},{t:g1[0]===F[0]?g2[0]:g1[0],say:g1[1]},{t:g2[0]===F[0]?otherL(2)[0]:g2[0],say:g2[1]}],answer:F[0]}); }
   const W=idx(CVCWORDS,4); acts.push({template:'blend',skillId:'phon.cvc.blend',pic:W[1],word:W[0],say:`Tap the sounds in order. ${W[0].split('').join('… ')}… ${W[0]}!`,prompt:'Tap the sounds in order to read it!',sounds:W[0].split('').map(ch=>({t:ch,say:PH[ch]||ch}))});
-  const labels=['Letter sounds','Reading words','Blending words'];
-  return { skillLabel:labels[i%3], greet:["Rumi",GENGREET[i%GENGREET.length],"Let's read! ▶"], activities:acts,
+  const labels=['Letter sounds','Reading words','Blending words']; const gn=coachNameFor(day), GN=gn.charAt(0).toUpperCase()+gn.slice(1);
+  return { skillLabel:labels[i%3], greet:[GN,GENGREET[i%GENGREET.length],"Let's read! ▶"], activities:acts,
     tease:[ day>=MAX_DAY ? "Three whole weeks of reading — you're a true Star Hunter! 🌟" : "Come back tomorrow for more sounds, words, and sparkles!" ] }; }
 function getDay(day){ return DAYS[day] || genDay(day); }
 
@@ -515,12 +515,19 @@ let curList=[], curIdx=0, onListDone=null, dayMistakes=0;
 function runActivities(list,done){ curList=list; curIdx=0; onListDone=done; dayMistakes=0; show('challenge'); renderActivity(); }
 function renderLights(){ const el=$('ch-lights'); el.innerHTML=''; for(let i=0;i<curList.length;i++){ const s=document.createElement('span'); s.className='lite'+(i<curIdx?' on':''); s.textContent=i<curIdx?'●':'○'; el.appendChild(s);} }
 let mistakes=0, blendProgress=0, itemStart=0, itemHints=0, itemModeled=false;
-// ---- On-screen learning coach (Rumi): a friendly face + line that reacts while the child works ----
-// Drop real art in assets/coach/ to replace the drawn face: rumi.png (required) + optional
-// rumi-cheer.png / rumi-think.png for expressions. Falls back to the canvas drawing below.
-let coachCurMode='smile'; const coachImg={}; let coachHasImg=false;
+// ---- On-screen learning coach: a friendly face + line that reacts while the child works ----
+// Real art lives in assets/coach/ (<name>.png + optional <name>-cheer.png / <name>-think.png).
+// Guides rotate weekly — Wk1 Rumi · Wk2 Mira · Wk3 Zoey — overridable with ?coach=rumi|mira|zoey.
+let coachCurMode='smile', coachChar='rumi'; const coachArt={}; const COACH_NAMES=['rumi','mira','zoey'];
+function coachNameFor(day){ const o=QS.get('coach'); if(o&&COACH_NAMES.includes(o)) return o; return COACH_NAMES[(Math.ceil(day/7)-1+3)%3]; }
+function coachDisplayName(){ return coachChar.charAt(0).toUpperCase()+coachChar.slice(1); }
+function coachLoaded(){ const a=coachArt[coachChar]; return !!(a && (a.smile||a.cheer||a.think)); }
+function loadCoachArt(name){ if(coachArt[name]) return; const set=coachArt[name]={}; ['smile','cheer','think'].forEach(m=>{ const im=new Image();
+  im.onload=()=>{ set[m]=im; if(name===coachChar) showCoachImg(); }; im.onerror=()=>{}; im.src='assets/coach/'+(m==='smile'?name+'.png':name+'-'+m+'.png'); }); }
+function showCoachImg(){ const el=$('coach-img'),cv=$('coach-face'); if(!el||!cv) return; const has=coachLoaded(); cv.classList.toggle('hidden',has); el.classList.toggle('hidden',!has); drawCoach(coachCurMode); }
+function setCoachChar(name){ if(!COACH_NAMES.includes(name)) name='rumi'; coachChar=name; loadCoachArt(name); showCoachImg(); }
 function drawCoach(mode){ coachCurMode=mode||'smile';
-  if(coachHasImg){ const el=$('coach-img'); if(el){ const pick=coachImg[coachCurMode]||coachImg.smile||coachImg.cheer||coachImg.think; if(pick) el.src=pick.src; } return; }
+  if(coachLoaded()){ const a=coachArt[coachChar], pick=a[coachCurMode]||a.smile||a.cheer||a.think, el=$('coach-img'); if(el&&pick) el.src=pick.src; return; }
   const cv=$('coach-face'); if(!cv) return; const g=cv.getContext('2d'); g.clearRect(0,0,120,120);
   g.fillStyle='#7B4FC4'; g.beginPath(); g.arc(60,64,46,0,7); g.fill(); // hair back
   g.fillStyle='#ffe0c2'; g.beginPath(); g.ellipse(60,66,33,37,0,0,7); g.fill(); // face
@@ -534,9 +541,7 @@ function drawCoach(mode){ coachCurMode=mode||'smile';
   g.strokeStyle='#c23a5a'; g.lineWidth=3.5; g.lineCap='round'; g.beginPath();
   if(mode==='think'){ g.moveTo(54,ey+22); g.lineTo(66,ey+21); } else { g.moveTo(51,ey+18); g.quadraticCurveTo(60,ey+28,69,ey+18); } g.stroke(); }
 function coach(mode,line){ const l=$('coach-line'); if(l&&line!=null) l.textContent=line; drawCoach(mode||'smile'); }
-(function loadCoachArt(name='rumi'){ ['smile','cheer','think'].forEach(m=>{ const im=new Image();
-  im.onload=()=>{ coachImg[m]=im; coachHasImg=true; const el=$('coach-img'),cv=$('coach-face'); if(el&&cv){ cv.classList.add('hidden'); el.classList.remove('hidden'); } drawCoach(coachCurMode); };
-  im.src='assets/coach/'+(m==='smile'?name+'.png':name+'-'+m+'.png'); }); })();
+setCoachChar('rumi'); // week-1 default; startDay() switches the guide per week
 function renderActivity(){ const a=curList[curIdx]; mistakes=0; itemHints=0; itemModeled=false; itemStart=performance.now();
   coach('smile', a.coachLine || a.prompt);
   $('ch-pic').textContent=a.pic; $('ch-prompt').textContent=a.prompt; $('ch-options').innerHTML=''; renderLights();
@@ -603,6 +608,7 @@ function finishSC(){ hide('starcheck'); state[scTag]=scScore; log('starcheck_don
 // =====================================================================
 function startDay(day){ state.day=day; save(); $('day-num').textContent=day; $('star-num').textContent=state.avatar.stars; setEnergy(0);
   log('day_start',{day});
+  setCoachChar(coachNameFor(day)); // weekly guide rotation (Rumi → Mira → Zoey)
   show('hud');
   const D=getDay(day);
   // reset scene positions for re-walk
@@ -620,7 +626,7 @@ function beginExplore(day){ controlEnabled=true; reached=false; setMarker(glooml
 function reachSpot(){ if(reached)return; reached=true; controlEnabled=false; setMarker(null); $('hint').style.opacity=0;
   const D=getDay(state.day);
   if(state.day===1){ speak('Gloomling',"…I lost the words. Will you read them with me?","Yes! Let's read ✨",()=>runActivities(D.activities,dayProgress)); }
-  else { speak('Rumi',"Here we go — read these with me!","Let's read ✨",()=>runActivities(D.activities,dayProgress)); }
+  else { speak(coachDisplayName(),"Here we go — read these with me!","Let's read ✨",()=>runActivities(D.activities,dayProgress)); }
 }
 
 // progression beat per day (avatar always grows; plus day-specific marquee)
