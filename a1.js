@@ -81,7 +81,7 @@ const VO_LINES={
 function clipIdFor(text,explicit){ return explicit || VO_LINES[text] || null; }
 function playClip(a,then){ try{ speechSynthesis.cancel(); a.currentTime=0; a.onended=then||null; const p=a.play(); if(p&&p.catch) p.catch(()=>{ if(then) setTimeout(then,300); }); return true; }catch(e){ return false; } }
 function say(t,{rate=null,pitch=null,then=null,char='narrator',id=null}={}){
-  const cid=clipIdFor(t,id); if(cid && VO_HAVE[cid] && audioOn){ if(playClip(VO_HAVE[cid],then)) return; } // film/TV AI clip when available
+  const cid=clipIdFor(t,id); if(cid && audioOn){ const ck=charProfile(char); const pick=VO_HAVE[cid+'__'+ck]||VO_HAVE[cid]; if(pick && playClip(pick,then)) return; } // per-character AI clip, then generic, then TTS
   if(!('speechSynthesis' in window)){ if(then)setTimeout(then,400); return; }
   const pr=VOICE_PROFILE[charProfile(char)]||VOICE_PROFILE.narrator;
   try{ speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(t); u.rate=(rate!=null?rate:pr.rate); u.pitch=(pitch!=null?pitch:pr.pitch);
