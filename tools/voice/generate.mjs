@@ -18,8 +18,16 @@ await mkdir(OUT, { recursive: true });
 const res = await fetch(`${API}/voices`, { headers: { 'xi-api-key': KEY } });
 if (!res.ok) { console.error('❌ Could not list voices:', res.status, await res.text()); process.exit(1); }
 const avail = (await res.json()).voices || [];
-const byName = new Map(avail.map(v => [v.name.toLowerCase().trim(), v.voice_id]));
-const idFor = name => byName.get(String(name).toLowerCase().trim());
+// Match a cast name to an account voice: exact first, else "starts with" (so "Kelly" finds
+// "Kelly - Warm, Energetic, Motivational"). Names are lower-cased + trimmed.
+const norm = s => String(s).toLowerCase().trim();
+function idFor(name) {
+  const want = norm(name);
+  let v = avail.find(a => norm(a.name) === want);
+  if (!v) v = avail.find(a => { const n = norm(a.name); return n === want || n.startsWith(want + ' ') || n.startsWith(want + '-'); });
+  if (!v) v = avail.find(a => norm(a.name).startsWith(want));
+  return v && v.voice_id;
+}
 
 const missing = [];
 for (const [k, v] of Object.entries(casting.voices)) if (!idFor(v.name)) missing.push(`${k} -> "${v.name}"`);
