@@ -423,7 +423,7 @@ function speak(name,text,btn,next){ $('bubble-name').textContent=name; $('bubble
   if(audioOn) say(text); $('bubble-next').onclick=()=>{ hide('bubble'); if(next) next(); }; }
 function setEnergy(p){ $('energy-fill').style.width=p+'%'; }
 function setHint(t){ $('hint').textContent=t; $('hint').style.opacity=1; }
-function heroName(){ return (state.avatar.name&&state.avatar.name.trim())?state.avatar.name.trim():'Star Hunter'; }
+function heroName(){ return (state.avatar.name&&state.avatar.name.trim())?state.avatar.name.trim():'Revi Star'; }
 let creationMode=false, focusAvatarUntil=0;
 // The headline daily moment: the CHILD's avatar grows (Rumi/Twinkle are supporting cast).
 function avatarTransform(accessoryFn,label,then){
@@ -458,6 +458,7 @@ const DAYS = {
   1:{ skillLabel:'Letter sounds',
     greet:["Rumi","Hi! I'm Rumi! Welcome to Harmony Harbor! Oh no — the Lighthouse went dark and a shy Gloomling is hiding its words. Will you help me read to light it up?","Let's go! ▶"],
     activities:[
+      {template:'trace',skillId:'phon.letter.form',letter:'S',pic:'☀️',prompt:'Trace the letter  S  — sss, like sun!',say:'Sss. Trace the S with your finger!',coachLine:'Trace it with your finger! ✏️'},
       {template:'soundMatch',skillId:'phon.letter.sound',pic:'☀️',prompt:'Which letter says  sss…  like  sun?',say:'Which letter says sss, like sun?',options:[{t:'S',say:'sss'},{t:'M',say:'mmm'},{t:'T',say:'tuh'}],answer:'S'},
       {template:'firstSound',skillId:'phon.onset',pic:'🐝',prompt:'What sound does  “bee”  start with?',say:'What sound does bee start with? Buh, buh, bee.',options:[{t:'B',say:'buh'},{t:'F',say:'fff'},{t:'N',say:'nnn'}],answer:'B'},
     ],
@@ -485,9 +486,12 @@ const SIGHTBANK=[['cat','🐱','dog','sun'],['dog','🐶','cat','bus'],['sun','�
 const PH={a:'aah',e:'eh',i:'ih',o:'awe',u:'uh',b:'buh',c:'cuh',d:'duh',f:'fff',g:'guh',h:'huh',j:'juh',k:'kuh',l:'lll',m:'mmm',n:'nnn',p:'puh',r:'rrr',s:'sss',t:'tuh',v:'vvv',w:'wuh',x:'ks',y:'yuh',z:'zzz'};
 const CVCWORDS=[['cat','🐱'],['sun','☀️'],['dog','🐶'],['pig','🐷'],['hen','🐔'],['bed','🛏️'],['top','🔝'],['bug','🐛'],['map','🗺️'],['fan','🪭'],['net','🥅'],['cup','☕'],['box','📦'],['log','🪵'],['mop','🧹'],['jam','🍓'],['ten','🔟'],['rug','🧶'],['van','🚐'],['web','🕸️'],['zip','🤐']];
 const GENGREET=["You're back — let's keep our reading streak glowing!","Another day, another adventure in Harmony Harbor!","Twinkle missed you! Ready to read together?","The harbor shines brighter every day you read!","Let's find new sounds and words today!"];
+const TRSET=['S','C','O','U','A','M','N','I','L','T'], TRBANK=LETTERBANK.filter(e=>TRSET.includes(e[0]));
 function genDay(day){ const i=day, idx=(b,n)=>b[(i*7+n*5)%b.length], otherL=n=>LETTERBANK[(i*3+n)%LETTERBANK.length];
   const L=idx(LETTERBANK,1), d1=otherL(4), d2=otherL(9);
-  const acts=[ {template:'soundMatch',skillId:'phon.letter.sound',pic:L[3],prompt:`Which letter says  ${L[1]}…  like  ${L[2]}?`,say:`Which letter says ${L[1]}, like ${L[2]}?`,options:[{t:L[0],say:L[1]},{t:d1[0]===L[0]?d2[0]:d1[0],say:d1[1]},{t:d2[0]===L[0]?otherL(13)[0]:d2[0],say:d2[1]}],answer:L[0]} ];
+  const acts=[]; // odd days lead with finger-tracing, even days with sound-matching (variety + multimodal)
+  if(i%2===1){ const TL=TRBANK[i%TRBANK.length]; acts.push({template:'trace',skillId:'phon.letter.form',letter:TL[0],pic:TL[3],prompt:`Trace the letter  ${TL[0]}  — ${TL[1]}, like ${TL[2]}!`,say:`${TL[1]}. Trace the ${TL[0]} with your finger!`,coachLine:'Trace it with your finger! ✏️'}); }
+  else { acts.push({template:'soundMatch',skillId:'phon.letter.sound',pic:L[3],prompt:`Which letter says  ${L[1]}…  like  ${L[2]}?`,say:`Which letter says ${L[1]}, like ${L[2]}?`,options:[{t:L[0],say:L[1]},{t:d1[0]===L[0]?d2[0]:d1[0],say:d1[1]},{t:d2[0]===L[0]?otherL(13)[0]:d2[0],say:d2[1]}],answer:L[0]}); }
   if(i%2===0){ const S=idx(SIGHTBANK,2); acts.push({template:'wordPicture',skillId:'read.sightword',pic:S[1],prompt:`Which word says  “${S[0]}”?`,say:`Which word says ${S[0]}?`,options:[{t:S[0],say:S[0]},{t:S[2],say:S[2]},{t:S[3],say:S[3]}],answer:S[0]}); }
   else { const F=idx(LETTERBANK,3),g1=otherL(6),g2=otherL(11); acts.push({template:'firstSound',skillId:'phon.onset',pic:F[3],prompt:`What sound does  “${F[2]}”  start with?`,say:`What sound does ${F[2]} start with? ${F[1]}, ${F[1]}, ${F[2]}.`,options:[{t:F[0],say:F[1]},{t:g1[0]===F[0]?g2[0]:g1[0],say:g1[1]},{t:g2[0]===F[0]?otherL(2)[0]:g2[0],say:g2[1]}],answer:F[0]}); }
   const W=idx(CVCWORDS,4); acts.push({template:'blend',skillId:'phon.cvc.blend',pic:W[1],word:W[0],say:`Tap the sounds in order. ${W[0].split('').join('… ')}… ${W[0]}!`,prompt:'Tap the sounds in order to read it!',sounds:W[0].split('').map(ch=>({t:ch,say:PH[ch]||ch}))});
@@ -549,7 +553,7 @@ function renderActivity(){ const a=curList[curIdx]; mistakes=0; itemHints=0; ite
   $('ch-hear').onclick=()=>{ if(audioOn) say(a.say); };
   $('ch-hint').onclick=()=>hintActivity(a);
   log('activity_start',{skillId:a.skillId,template:a.template});
-  if(a.template==='blend') renderBlend(a); else renderChoose(a);
+  if(a.template==='blend') renderBlend(a); else if(a.template==='trace') renderTrace(a); else renderChoose(a);
 }
 function shuffle(arr){ for(let i=arr.length-1;i>0;i--){const j=(Math.random()*(i+1))|0;[arr[i],arr[j]]=[arr[j],arr[i]];} return arr; }
 function renderChoose(a){ let opts=a.options.slice();
@@ -564,7 +568,42 @@ function renderBlend(a){ blendProgress=0;
       else { mistakes++; dayMistakes++; itemHints++; if(audioOn) say("Start with the first sound!"); flashBlend(); } };
     $('ch-options').appendChild(b); }); }
 function flashBlend(){ const n=$('ch-options').querySelector(`[data-idx="${blendProgress}"]`); if(n){ n.classList.add('glowhint'); setTimeout(()=>n.classList.remove('glowhint'),1500);} }
+// ---- Finger-tracing activity (multimodal: see + hear + trace + say) ----
+function letterStrokes(ch){ const arc=(cx,cy,r,a0,a1,n=26)=>{ const p=[]; for(let i=0;i<=n;i++){ const a=a0+(a1-a0)*i/n; p.push([cx+Math.cos(a)*r,cy+Math.sin(a)*r]); } return p; };
+  switch(ch){
+    case 'O': return [arc(0.5,0.5,0.36,-Math.PI/2,1.5*Math.PI)];
+    case 'C': return [arc(0.52,0.5,0.37,0.32*Math.PI,1.68*Math.PI)];
+    case 'U': return [[[0.24,0.12],[0.24,0.46]].concat(arc(0.5,0.46,0.26,Math.PI,2*Math.PI)).concat([[0.76,0.46],[0.76,0.12]])];
+    case 'S': return [arc(0.52,0.31,0.19,1.9*Math.PI,0.55*Math.PI).concat(arc(0.48,0.66,0.19,1.5*Math.PI,3.05*Math.PI))];
+    case 'I': return [[[0.5,0.12],[0.5,0.88]]];
+    case 'L': return [[[0.33,0.12],[0.33,0.88],[0.72,0.88]]];
+    case 'T': return [[[0.18,0.14],[0.82,0.14]],[[0.5,0.14],[0.5,0.88]]];
+    case 'A': return [[[0.2,0.9],[0.5,0.12],[0.8,0.9]],[[0.33,0.56],[0.67,0.56]]];
+    case 'M': return [[[0.15,0.9],[0.15,0.12],[0.5,0.6],[0.85,0.12],[0.85,0.9]]];
+    case 'N': return [[[0.2,0.9],[0.2,0.12],[0.8,0.9],[0.8,0.12]]];
+    default:  return [[[0.5,0.12],[0.5,0.88]]];
+  } }
+function densifyStrokes(strokes){ const out=[]; strokes.forEach(s=>{ for(let i=0;i<s.length-1;i++){ const [x0,y0]=s[i],[x1,y1]=s[i+1]; const d=Math.hypot(x1-x0,y1-y0),n=Math.max(1,Math.round(d/0.02));
+    for(let k=0;k<n;k++){ const t=k/n; out.push({x:x0+(x1-x0)*t,y:y0+(y1-y0)*t,hit:false}); } } const l=s[s.length-1]; out.push({x:l[0],y:l[1],hit:false}); }); return out; }
+let traceState=null;
+function renderTrace(a){ const host=$('ch-options'); host.innerHTML='';
+  const cv=document.createElement('canvas'); cv.width=300; cv.height=340; cv.className='trace-cv'; host.appendChild(cv);
+  const W=300,H=340, strokes=letterStrokes(a.letter), pts=densifyStrokes(strokes), g=cv.getContext('2d'); let done=false;
+  const draw=()=>{ g.clearRect(0,0,W,H);
+    g.lineWidth=28; g.lineCap='round'; g.lineJoin='round'; g.strokeStyle='rgba(123,79,196,0.16)'; // faint guide letter
+    strokes.forEach(s=>{ g.beginPath(); s.forEach((p,i)=>{ const x=p[0]*W,y=p[1]*H; i?g.lineTo(x,y):g.moveTo(x,y); }); g.stroke(); });
+    g.fillStyle='#FFC83D'; pts.forEach(p=>{ if(p.hit){ g.beginPath(); g.arc(p.x*W,p.y*H,11,0,7); g.fill(); } }); // golden trail where traced
+    if(!done){ const s=pts[0]; g.fillStyle='#22c55e'; g.beginPath(); g.arc(s.x*W,s.y*H,10,0,7); g.fill(); g.fillStyle='#fff'; g.font='bold 14px sans-serif'; g.textAlign='center'; g.fillText('▶',s.x*W,s.y*H+5); } };
+  const at=e=>{ const r=cv.getBoundingClientRect(); return {x:(e.clientX-r.left)/r.width,y:(e.clientY-r.top)/r.height}; };
+  const move=e=>{ if(done) return; const q=at(e); let any=false; pts.forEach(p=>{ if(!p.hit && Math.hypot(p.x-q.x,p.y-q.y)<0.075){ p.hit=true; any=true; } });
+    if(any){ draw(); if(pts.filter(p=>p.hit).length/pts.length>=0.82){ done=true; complete(); } } };
+  const complete=()=>{ chime('good'); coach('cheer',(a.letter+'! You traced it!')); if(audioOn) say(a.letter+'! '+(a.say||''),{rate:.8}); setTimeout(()=>correct(a,document.createElement('button')),350); };
+  cv.addEventListener('pointerdown',e=>{ cv.setPointerCapture&&cv.setPointerCapture(e.pointerId); move(e); });
+  cv.addEventListener('pointermove',e=>{ if(e.buttons||e.pressure>0) move(e); });
+  traceState={pts,draw,move,complete,get done(){return done;}}; draw();
+}
 function hintActivity(a){ itemHints++; log('hint_used',{skillId:a.skillId}); coach('think',"Here's a little help — watch!");
+  if(a.template==='trace'){ if(traceState){ let n=0; const cap=Math.ceil(traceState.pts.length*0.5); const reveal=()=>{ if(n<cap){ traceState.pts[n].hit=true; n++; traceState.draw(); setTimeout(reveal,40);} }; reveal(); } if(audioOn) say("Trace along the glowing line, like this!"); return; }
   if(a.template==='blend'){ flashBlend(); if(audioOn) say("Tap this one next!"); return; }
   const btns=[...$('ch-options').querySelectorAll('.opt')];
   const w=btns.find(b=>b.textContent!==a.answer&&!b.classList.contains('dim')); if(w) w.classList.add('dim');
