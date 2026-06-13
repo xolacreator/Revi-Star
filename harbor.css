@@ -54,6 +54,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#bfe3ff;font-family:va
 .opt.correct{background:var(--mint);box-shadow:0 6px 0 #43c79a;animation:pop .4s}
 .opt.dim{opacity:.45}
 .opt.glowhint{outline:5px solid var(--gold);animation:pulse 1s infinite}
+.trace-cv{background:rgba(255,255,255,.92);border-radius:24px;box-shadow:0 6px 0 rgba(150,110,170,.35);touch-action:none;width:300px;height:340px;max-width:84vw;max-height:48vh}
 .ch-actions{display:flex;gap:14px;margin-top:8px}
 .pill{border:none;background:rgba(255,255,255,.85);color:var(--purple);font-family:var(--font);font-weight:800;font-size:18px;padding:12px 22px;border-radius:999px}
 

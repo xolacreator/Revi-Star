@@ -16,7 +16,8 @@ If only `rumi.png` exists, it's used for all three states.
   (~74 px) so keep the face large and roughly centered; corners get cropped.
 - Keep file size small (a few hundred KB each) so the panel loads instantly.
 
-## Other characters (later)
-The loader currently uses `rumi`. When we let other characters guide a session
-(Mira / Zoey), we'll add `mira.png` / `zoey.png` here and select by the engaged
-character. Just say the word and I'll wire the switch.
+## Multi-character guides (live)
+All three guides are wired and **rotate by week**: **Wk1 Rumi · Wk2 Mira · Wk3 Zoey**
+(days 1–7 / 8–14 / 15–21). Each uses `<name>.png` + optional `<name>-cheer.png` /
+`<name>-think.png`. Override for testing with `?coach=rumi|mira|zoey` in the URL.
+Currently present: rumi, mira, zoey (smile/cheer/think each).

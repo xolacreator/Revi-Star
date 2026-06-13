@@ -21,7 +21,7 @@ let state = load() || {
   rumiStage:1, twinkleForm:0,
   pre:null, post:null,
   history:[],            // {day,skillId,correct,hints,modeled,firstTry,ms}
-  launchCount:0
+  launchCount:0, voicePref:null
 };
 let events = (()=>{ try{ return JSON.parse(localStorage.getItem(EKEY))||[]; }catch(e){ return []; } })();
 let launchT = 0, delight={interaction:null,reward:null,smile:null,excited:null};
@@ -29,17 +29,63 @@ function log(ev,data={}){ events.push({t:Date.now(), rel: launchT?Math.round((pe
   try{ localStorage.setItem(EKEY, JSON.stringify(events)); }catch(e){} }
 
 // ---------------- Audio ----------------
-let audioOn=false, voice=null, actx=null;
+let audioOn=false, voice=null, voiceWarm=null, voiceKid=null, actx=null;
+// Per-character voice profiles (pitch/rate) for the device-TTS fallback. Real film/TV-style
+// voices come from pre-rendered AI clips in assets/vo/ (see vo() below); these are the safety net.
+const VOICE_PROFILE={ narrator:{pitch:1.08,rate:0.96,kid:false}, rumi:{pitch:1.10,rate:0.97,kid:false},
+  mira:{pitch:1.00,rate:0.95,kid:false}, zoey:{pitch:1.22,rate:1.02,kid:false},
+  child:{pitch:1.35,rate:1.00,kid:true}, revi:{pitch:1.35,rate:1.00,kid:true},
+  twinkle:{pitch:1.5,rate:1.06,kid:true}, gloomling:{pitch:0.85,rate:0.92,kid:false} };
+function charProfile(name){ const k=(name||'').toLowerCase(); if(VOICE_PROFILE[k]) return k;
+  if(/revi|hunter|you/.test(k)) return 'child'; if(/rumi/.test(k)) return 'rumi'; if(/mira/.test(k)) return 'mira'; if(/zoey/.test(k)) return 'zoey'; if(/twinkle/.test(k)) return 'twinkle'; if(/gloom/.test(k)) return 'gloomling'; return 'narrator'; }
+function voiceScore(v){ const n=(v.name||'').toLowerCase(); let s=0; // rank built-in voices by how human they sound
+  if(/siri/.test(n)) s+=100; if(/online|natural|neural/.test(n)) s+=80; if(/enhanced|premium/.test(n)) s+=60;
+  if(/google/.test(n)) s+=42; if(/samantha|ava|allison|jenny|aria|zoe|nicky|sonia|libby|serena/.test(n)) s+=30;
+  if(v.localService===false) s+=20; // cloud voices are usually higher quality
+  if(/female|woman/.test(n)) s+=6;
+  if(/compact|eloquence|fred|albert|zarvox|novelty|whisper|bad|trinoids/.test(n)) s-=80; // robotic/low-quality
+  return s; }
+function englishVoices(){ const en=x=>/en(-|_|\b)/i.test(x.lang); return speechSynthesis.getVoices().filter(en).sort((a,b)=>voiceScore(b)-voiceScore(a)); }
 function pickVoice(){ const v=speechSynthesis.getVoices(); const en=x=>/en(-|_|\b)/i.test(x.lang);
-  // prefer high-quality (enhanced/natural/neural) warm female voices; gracefully fall back
-  voice=v.find(x=>en(x)&&/(enhanced|premium|natural|neural|online)/i.test(x.name)&&/ava|samantha|allison|jenny|aria|sonia|zoe|nicky|karen|moira|female/i.test(x.name))
-       ||v.find(x=>en(x)&&/(enhanced|premium|natural|neural|online)/i.test(x.name))
-       ||v.find(x=>en(x)&&/samantha|shelley|ava|allison|nicky|google uk english female|libby|aria|jenny|female/i.test(x.name))
-       ||v.find(x=>en(x)&&/karen|moira|tessa|google us english/i.test(x.name))
-       ||v.find(en)||v[0]||null; }
-if('speechSynthesis' in window){ pickVoice(); speechSynthesis.onvoiceschanged=pickVoice; }
-function say(t,{rate=0.95,pitch=1.15,then=null}={}){ if(!('speechSynthesis' in window)){ if(then)setTimeout(then,400); return; }
-  try{ speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(t); u.rate=rate; u.pitch=pitch; if(voice)u.voice=voice; if(then)u.onend=then; speechSynthesis.speak(u);}catch(e){ if(then)setTimeout(then,400);} }
+  const pref = state.voicePref && v.find(x=>x.name===state.voicePref && en(x)); // honor the grown-up's choice
+  const ranked=englishVoices();
+  voiceWarm = pref || ranked[0] || v.find(en) || v[0] || null;
+  voiceKid = v.find(x=>en(x)&&/(ana|child|kid|junior|shelley|grandma)/i.test(x.name)) || voiceWarm; // younger voice if present
+  voice=voiceWarm; }
+if('speechSynthesis' in window){ pickVoice(); speechSynthesis.onvoiceschanged=()=>{ pickVoice(); if(!$('parent').classList.contains('hidden')) populateVoicePicker(); }; }
+function populateVoicePicker(){ const sel=$('pc-voice'); if(!sel) return; const vs=englishVoices(); sel.innerHTML='';
+  if(!vs.length){ const o=document.createElement('option'); o.textContent='(device has no extra voices)'; sel.appendChild(o); return; }
+  vs.forEach(v=>{ const o=document.createElement('option'); o.value=v.name; o.textContent=v.name.replace(/\(.*?\)/,'').trim()+(voiceScore(v)>=60?' ⭐':''); if((state.voicePref||(voiceWarm&&voiceWarm.name))===v.name) o.selected=true; sel.appendChild(o); });
+  sel.onchange=()=>{ state.voicePref=sel.value; save(); pickVoice(); say("Hi! I'm your reading buddy. Let's learn together!",{char:'rumi'}); };
+}
+// ---- AI voice clips (assets/vo/<id>.mp3) — film/TV-style; auto-used when present, TTS otherwise ----
+const VO_HAVE={}; // id -> preloaded Audio (only ids listed in assets/vo/manifest.json)
+function loadVOManifest(){ try{ fetch('assets/vo/manifest.json').then(r=>r.ok?r.json():[]).then(ids=>{ (ids||[]).forEach(id=>{ const a=new Audio('assets/vo/'+id+'.mp3'); a.preload='auto'; VO_HAVE[id]=a; }); }).catch(()=>{}); }catch(e){} }
+// Stable text -> clip-id map for authored lines (so rendering assets/vo/<id>.mp3 auto-replaces
+// that line with a film/TV-style AI voice). Dynamic lines with the child's name stay on TTS.
+const VO_LINES={
+  "Hi! I'm Rumi! Welcome to Harmony Harbor! Oh no — the Lighthouse went dark and a shy Gloomling is hiding its words. Will you help me read to light it up?":'rumi_greet_d1',
+  "You came back — yay! The dock signs got all mixed up in the wind. Can you read them with me?":'rumi_greet_d2',
+  "Three days in a row — you're a real Star Hunter! The lighthouse keeper left you a note. Let's read it together…":'rumi_greet_d3',
+  "“Dear friend… the harbor shines because of YOU. Read on!”":'keeper_note',
+  "…I lost the words. Will you read them with me?":'gloomling_lost',
+  "Here we go — read these with me!":'coach_here_we_go',
+  "You filled the harbor with harmony! Watch — Rumi is becoming a Rising Star!":'rumi_rising',
+  "Twinkle is evolving into Glimmerfox!":'twinkle_evolve',
+  "You did it!":'praise_did_it', "Wonderful reading!":'praise_wonderful', "You're a reading star!":'praise_reading_star',
+  "Amazing!":'praise_amazing', "Yay! You read it!":'praise_yay',
+  "Almost! Listen again.":'fb_almost', "Trace along the glowing line, like this!":'fb_trace_hint',
+  "Tap this one next!":'fb_blend_hint', "Start with the first sound!":'fb_first_sound',
+  "See you tomorrow!":'nav_see_tomorrow', "Great job today, Star Hunter!":'reward_great_job'
+};
+function clipIdFor(text,explicit){ return explicit || VO_LINES[text] || null; }
+function playClip(a,then){ try{ speechSynthesis.cancel(); a.currentTime=0; a.onended=then||null; const p=a.play(); if(p&&p.catch) p.catch(()=>{ if(then) setTimeout(then,300); }); return true; }catch(e){ return false; } }
+function say(t,{rate=null,pitch=null,then=null,char='narrator',id=null}={}){
+  const cid=clipIdFor(t,id); if(cid && VO_HAVE[cid] && audioOn){ if(playClip(VO_HAVE[cid],then)) return; } // film/TV AI clip when available
+  if(!('speechSynthesis' in window)){ if(then)setTimeout(then,400); return; }
+  const pr=VOICE_PROFILE[charProfile(char)]||VOICE_PROFILE.narrator;
+  try{ speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(t); u.rate=(rate!=null?rate:pr.rate); u.pitch=(pitch!=null?pitch:pr.pitch);
+    const vv=(pr.kid?voiceKid:voiceWarm)||voice; if(vv)u.voice=vv; if(then)u.onend=then; speechSynthesis.speak(u);}catch(e){ if(then)setTimeout(then,400);} }
 function chime(type='good'){ try{ actx=actx||new(window.AudioContext||window.webkitAudioContext)();
   const seq=type==='good'?[660,880]:type==='win'?[660,880,1320]:[520];
   seq.forEach((f,i)=>{ const o=actx.createOscillator(),g=actx.createGain(); o.type='sine'; o.frequency.value=f; o.connect(g); g.connect(actx.destination);
@@ -420,10 +466,10 @@ function twinkleSpin(ms=1600){ twSpinUntil=performance.now()+ms; }
 function show(id){ $(id).classList.remove('hidden'); }
 function hide(id){ $(id).classList.add('hidden'); }
 function speak(name,text,btn,next){ $('bubble-name').textContent=name; $('bubble-text').textContent=text; $('bubble-next').textContent=btn||'Tap ▶'; show('bubble');
-  if(audioOn) say(text); $('bubble-next').onclick=()=>{ hide('bubble'); if(next) next(); }; }
+  if(audioOn) say(text,{char:name}); $('bubble-next').onclick=()=>{ hide('bubble'); if(next) next(); }; }
 function setEnergy(p){ $('energy-fill').style.width=p+'%'; }
 function setHint(t){ $('hint').textContent=t; $('hint').style.opacity=1; }
-function heroName(){ return (state.avatar.name&&state.avatar.name.trim())?state.avatar.name.trim():'Star Hunter'; }
+function heroName(){ return (state.avatar.name&&state.avatar.name.trim())?state.avatar.name.trim():'Revi Star'; }
 let creationMode=false, focusAvatarUntil=0;
 // The headline daily moment: the CHILD's avatar grows (Rumi/Twinkle are supporting cast).
 function avatarTransform(accessoryFn,label,then){
@@ -458,6 +504,7 @@ const DAYS = {
   1:{ skillLabel:'Letter sounds',
     greet:["Rumi","Hi! I'm Rumi! Welcome to Harmony Harbor! Oh no — the Lighthouse went dark and a shy Gloomling is hiding its words. Will you help me read to light it up?","Let's go! ▶"],
     activities:[
+      {template:'trace',skillId:'phon.letter.form',letter:'S',pic:'☀️',prompt:'Trace the letter  S  — sss, like sun!',say:'Sss. Trace the S with your finger!',coachLine:'Trace it with your finger! ✏️'},
       {template:'soundMatch',skillId:'phon.letter.sound',pic:'☀️',prompt:'Which letter says  sss…  like  sun?',say:'Which letter says sss, like sun?',options:[{t:'S',say:'sss'},{t:'M',say:'mmm'},{t:'T',say:'tuh'}],answer:'S'},
       {template:'firstSound',skillId:'phon.onset',pic:'🐝',prompt:'What sound does  “bee”  start with?',say:'What sound does bee start with? Buh, buh, bee.',options:[{t:'B',say:'buh'},{t:'F',say:'fff'},{t:'N',say:'nnn'}],answer:'B'},
     ],
@@ -485,14 +532,17 @@ const SIGHTBANK=[['cat','🐱','dog','sun'],['dog','🐶','cat','bus'],['sun','�
 const PH={a:'aah',e:'eh',i:'ih',o:'awe',u:'uh',b:'buh',c:'cuh',d:'duh',f:'fff',g:'guh',h:'huh',j:'juh',k:'kuh',l:'lll',m:'mmm',n:'nnn',p:'puh',r:'rrr',s:'sss',t:'tuh',v:'vvv',w:'wuh',x:'ks',y:'yuh',z:'zzz'};
 const CVCWORDS=[['cat','🐱'],['sun','☀️'],['dog','🐶'],['pig','🐷'],['hen','🐔'],['bed','🛏️'],['top','🔝'],['bug','🐛'],['map','🗺️'],['fan','🪭'],['net','🥅'],['cup','☕'],['box','📦'],['log','🪵'],['mop','🧹'],['jam','🍓'],['ten','🔟'],['rug','🧶'],['van','🚐'],['web','🕸️'],['zip','🤐']];
 const GENGREET=["You're back — let's keep our reading streak glowing!","Another day, another adventure in Harmony Harbor!","Twinkle missed you! Ready to read together?","The harbor shines brighter every day you read!","Let's find new sounds and words today!"];
+const TRSET=['S','C','O','U','A','M','N','I','L','T'], TRBANK=LETTERBANK.filter(e=>TRSET.includes(e[0]));
 function genDay(day){ const i=day, idx=(b,n)=>b[(i*7+n*5)%b.length], otherL=n=>LETTERBANK[(i*3+n)%LETTERBANK.length];
   const L=idx(LETTERBANK,1), d1=otherL(4), d2=otherL(9);
-  const acts=[ {template:'soundMatch',skillId:'phon.letter.sound',pic:L[3],prompt:`Which letter says  ${L[1]}…  like  ${L[2]}?`,say:`Which letter says ${L[1]}, like ${L[2]}?`,options:[{t:L[0],say:L[1]},{t:d1[0]===L[0]?d2[0]:d1[0],say:d1[1]},{t:d2[0]===L[0]?otherL(13)[0]:d2[0],say:d2[1]}],answer:L[0]} ];
+  const acts=[]; // odd days lead with finger-tracing, even days with sound-matching (variety + multimodal)
+  if(i%2===1){ const TL=TRBANK[i%TRBANK.length]; acts.push({template:'trace',skillId:'phon.letter.form',letter:TL[0],pic:TL[3],prompt:`Trace the letter  ${TL[0]}  — ${TL[1]}, like ${TL[2]}!`,say:`${TL[1]}. Trace the ${TL[0]} with your finger!`,coachLine:'Trace it with your finger! ✏️'}); }
+  else { acts.push({template:'soundMatch',skillId:'phon.letter.sound',pic:L[3],prompt:`Which letter says  ${L[1]}…  like  ${L[2]}?`,say:`Which letter says ${L[1]}, like ${L[2]}?`,options:[{t:L[0],say:L[1]},{t:d1[0]===L[0]?d2[0]:d1[0],say:d1[1]},{t:d2[0]===L[0]?otherL(13)[0]:d2[0],say:d2[1]}],answer:L[0]}); }
   if(i%2===0){ const S=idx(SIGHTBANK,2); acts.push({template:'wordPicture',skillId:'read.sightword',pic:S[1],prompt:`Which word says  “${S[0]}”?`,say:`Which word says ${S[0]}?`,options:[{t:S[0],say:S[0]},{t:S[2],say:S[2]},{t:S[3],say:S[3]}],answer:S[0]}); }
   else { const F=idx(LETTERBANK,3),g1=otherL(6),g2=otherL(11); acts.push({template:'firstSound',skillId:'phon.onset',pic:F[3],prompt:`What sound does  “${F[2]}”  start with?`,say:`What sound does ${F[2]} start with? ${F[1]}, ${F[1]}, ${F[2]}.`,options:[{t:F[0],say:F[1]},{t:g1[0]===F[0]?g2[0]:g1[0],say:g1[1]},{t:g2[0]===F[0]?otherL(2)[0]:g2[0],say:g2[1]}],answer:F[0]}); }
   const W=idx(CVCWORDS,4); acts.push({template:'blend',skillId:'phon.cvc.blend',pic:W[1],word:W[0],say:`Tap the sounds in order. ${W[0].split('').join('… ')}… ${W[0]}!`,prompt:'Tap the sounds in order to read it!',sounds:W[0].split('').map(ch=>({t:ch,say:PH[ch]||ch}))});
-  const labels=['Letter sounds','Reading words','Blending words'];
-  return { skillLabel:labels[i%3], greet:["Rumi",GENGREET[i%GENGREET.length],"Let's read! ▶"], activities:acts,
+  const labels=['Letter sounds','Reading words','Blending words']; const gn=coachNameFor(day), GN=gn.charAt(0).toUpperCase()+gn.slice(1);
+  return { skillLabel:labels[i%3], greet:[GN,GENGREET[i%GENGREET.length],"Let's read! ▶"], activities:acts,
     tease:[ day>=MAX_DAY ? "Three whole weeks of reading — you're a true Star Hunter! 🌟" : "Come back tomorrow for more sounds, words, and sparkles!" ] }; }
 function getDay(day){ return DAYS[day] || genDay(day); }
 
@@ -515,12 +565,19 @@ let curList=[], curIdx=0, onListDone=null, dayMistakes=0;
 function runActivities(list,done){ curList=list; curIdx=0; onListDone=done; dayMistakes=0; show('challenge'); renderActivity(); }
 function renderLights(){ const el=$('ch-lights'); el.innerHTML=''; for(let i=0;i<curList.length;i++){ const s=document.createElement('span'); s.className='lite'+(i<curIdx?' on':''); s.textContent=i<curIdx?'●':'○'; el.appendChild(s);} }
 let mistakes=0, blendProgress=0, itemStart=0, itemHints=0, itemModeled=false;
-// ---- On-screen learning coach (Rumi): a friendly face + line that reacts while the child works ----
-// Drop real art in assets/coach/ to replace the drawn face: rumi.png (required) + optional
-// rumi-cheer.png / rumi-think.png for expressions. Falls back to the canvas drawing below.
-let coachCurMode='smile'; const coachImg={}; let coachHasImg=false;
+// ---- On-screen learning coach: a friendly face + line that reacts while the child works ----
+// Real art lives in assets/coach/ (<name>.png + optional <name>-cheer.png / <name>-think.png).
+// Guides rotate weekly — Wk1 Rumi · Wk2 Mira · Wk3 Zoey — overridable with ?coach=rumi|mira|zoey.
+let coachCurMode='smile', coachChar='rumi'; const coachArt={}; const COACH_NAMES=['rumi','mira','zoey'];
+function coachNameFor(day){ const o=QS.get('coach'); if(o&&COACH_NAMES.includes(o)) return o; return COACH_NAMES[(Math.ceil(day/7)-1+3)%3]; }
+function coachDisplayName(){ return coachChar.charAt(0).toUpperCase()+coachChar.slice(1); }
+function coachLoaded(){ const a=coachArt[coachChar]; return !!(a && (a.smile||a.cheer||a.think)); }
+function loadCoachArt(name){ if(coachArt[name]) return; const set=coachArt[name]={}; ['smile','cheer','think'].forEach(m=>{ const im=new Image();
+  im.onload=()=>{ set[m]=im; if(name===coachChar) showCoachImg(); }; im.onerror=()=>{}; im.src='assets/coach/'+(m==='smile'?name+'.png':name+'-'+m+'.png'); }); }
+function showCoachImg(){ const el=$('coach-img'),cv=$('coach-face'); if(!el||!cv) return; const has=coachLoaded(); cv.classList.toggle('hidden',has); el.classList.toggle('hidden',!has); drawCoach(coachCurMode); }
+function setCoachChar(name){ if(!COACH_NAMES.includes(name)) name='rumi'; coachChar=name; loadCoachArt(name); showCoachImg(); }
 function drawCoach(mode){ coachCurMode=mode||'smile';
-  if(coachHasImg){ const el=$('coach-img'); if(el){ const pick=coachImg[coachCurMode]||coachImg.smile||coachImg.cheer||coachImg.think; if(pick) el.src=pick.src; } return; }
+  if(coachLoaded()){ const a=coachArt[coachChar], pick=a[coachCurMode]||a.smile||a.cheer||a.think, el=$('coach-img'); if(el&&pick) el.src=pick.src; return; }
   const cv=$('coach-face'); if(!cv) return; const g=cv.getContext('2d'); g.clearRect(0,0,120,120);
   g.fillStyle='#7B4FC4'; g.beginPath(); g.arc(60,64,46,0,7); g.fill(); // hair back
   g.fillStyle='#ffe0c2'; g.beginPath(); g.ellipse(60,66,33,37,0,0,7); g.fill(); // face
@@ -534,17 +591,15 @@ function drawCoach(mode){ coachCurMode=mode||'smile';
   g.strokeStyle='#c23a5a'; g.lineWidth=3.5; g.lineCap='round'; g.beginPath();
   if(mode==='think'){ g.moveTo(54,ey+22); g.lineTo(66,ey+21); } else { g.moveTo(51,ey+18); g.quadraticCurveTo(60,ey+28,69,ey+18); } g.stroke(); }
 function coach(mode,line){ const l=$('coach-line'); if(l&&line!=null) l.textContent=line; drawCoach(mode||'smile'); }
-(function loadCoachArt(name='rumi'){ ['smile','cheer','think'].forEach(m=>{ const im=new Image();
-  im.onload=()=>{ coachImg[m]=im; coachHasImg=true; const el=$('coach-img'),cv=$('coach-face'); if(el&&cv){ cv.classList.add('hidden'); el.classList.remove('hidden'); } drawCoach(coachCurMode); };
-  im.src='assets/coach/'+(m==='smile'?name+'.png':name+'-'+m+'.png'); }); })();
+setCoachChar('rumi'); // week-1 default; startDay() switches the guide per week
 function renderActivity(){ const a=curList[curIdx]; mistakes=0; itemHints=0; itemModeled=false; itemStart=performance.now();
   coach('smile', a.coachLine || a.prompt);
   $('ch-pic').textContent=a.pic; $('ch-prompt').textContent=a.prompt; $('ch-options').innerHTML=''; renderLights();
-  if(audioOn) say(a.say);
-  $('ch-hear').onclick=()=>{ if(audioOn) say(a.say); };
+  if(audioOn) say(a.say,{char:coachChar});
+  $('ch-hear').onclick=()=>{ if(audioOn) say(a.say,{char:coachChar}); };
   $('ch-hint').onclick=()=>hintActivity(a);
   log('activity_start',{skillId:a.skillId,template:a.template});
-  if(a.template==='blend') renderBlend(a); else renderChoose(a);
+  if(a.template==='blend') renderBlend(a); else if(a.template==='trace') renderTrace(a); else renderChoose(a);
 }
 function shuffle(arr){ for(let i=arr.length-1;i>0;i--){const j=(Math.random()*(i+1))|0;[arr[i],arr[j]]=[arr[j],arr[i]];} return arr; }
 function renderChoose(a){ let opts=a.options.slice();
@@ -559,12 +614,47 @@ function renderBlend(a){ blendProgress=0;
       else { mistakes++; dayMistakes++; itemHints++; if(audioOn) say("Start with the first sound!"); flashBlend(); } };
     $('ch-options').appendChild(b); }); }
 function flashBlend(){ const n=$('ch-options').querySelector(`[data-idx="${blendProgress}"]`); if(n){ n.classList.add('glowhint'); setTimeout(()=>n.classList.remove('glowhint'),1500);} }
+// ---- Finger-tracing activity (multimodal: see + hear + trace + say) ----
+function letterStrokes(ch){ const arc=(cx,cy,r,a0,a1,n=26)=>{ const p=[]; for(let i=0;i<=n;i++){ const a=a0+(a1-a0)*i/n; p.push([cx+Math.cos(a)*r,cy+Math.sin(a)*r]); } return p; };
+  switch(ch){
+    case 'O': return [arc(0.5,0.5,0.36,-Math.PI/2,1.5*Math.PI)];
+    case 'C': return [arc(0.52,0.5,0.37,0.32*Math.PI,1.68*Math.PI)];
+    case 'U': return [[[0.24,0.12],[0.24,0.46]].concat(arc(0.5,0.46,0.26,Math.PI,2*Math.PI)).concat([[0.76,0.46],[0.76,0.12]])];
+    case 'S': return [arc(0.52,0.31,0.19,1.9*Math.PI,0.55*Math.PI).concat(arc(0.48,0.66,0.19,1.5*Math.PI,3.05*Math.PI))];
+    case 'I': return [[[0.5,0.12],[0.5,0.88]]];
+    case 'L': return [[[0.33,0.12],[0.33,0.88],[0.72,0.88]]];
+    case 'T': return [[[0.18,0.14],[0.82,0.14]],[[0.5,0.14],[0.5,0.88]]];
+    case 'A': return [[[0.2,0.9],[0.5,0.12],[0.8,0.9]],[[0.33,0.56],[0.67,0.56]]];
+    case 'M': return [[[0.15,0.9],[0.15,0.12],[0.5,0.6],[0.85,0.12],[0.85,0.9]]];
+    case 'N': return [[[0.2,0.9],[0.2,0.12],[0.8,0.9],[0.8,0.12]]];
+    default:  return [[[0.5,0.12],[0.5,0.88]]];
+  } }
+function densifyStrokes(strokes){ const out=[]; strokes.forEach(s=>{ for(let i=0;i<s.length-1;i++){ const [x0,y0]=s[i],[x1,y1]=s[i+1]; const d=Math.hypot(x1-x0,y1-y0),n=Math.max(1,Math.round(d/0.02));
+    for(let k=0;k<n;k++){ const t=k/n; out.push({x:x0+(x1-x0)*t,y:y0+(y1-y0)*t,hit:false}); } } const l=s[s.length-1]; out.push({x:l[0],y:l[1],hit:false}); }); return out; }
+let traceState=null;
+function renderTrace(a){ const host=$('ch-options'); host.innerHTML='';
+  const cv=document.createElement('canvas'); cv.width=300; cv.height=340; cv.className='trace-cv'; host.appendChild(cv);
+  const W=300,H=340, strokes=letterStrokes(a.letter), pts=densifyStrokes(strokes), g=cv.getContext('2d'); let done=false;
+  const draw=()=>{ g.clearRect(0,0,W,H);
+    g.lineWidth=28; g.lineCap='round'; g.lineJoin='round'; g.strokeStyle='rgba(123,79,196,0.16)'; // faint guide letter
+    strokes.forEach(s=>{ g.beginPath(); s.forEach((p,i)=>{ const x=p[0]*W,y=p[1]*H; i?g.lineTo(x,y):g.moveTo(x,y); }); g.stroke(); });
+    g.fillStyle='#FFC83D'; pts.forEach(p=>{ if(p.hit){ g.beginPath(); g.arc(p.x*W,p.y*H,11,0,7); g.fill(); } }); // golden trail where traced
+    if(!done){ const s=pts[0]; g.fillStyle='#22c55e'; g.beginPath(); g.arc(s.x*W,s.y*H,10,0,7); g.fill(); g.fillStyle='#fff'; g.font='bold 14px sans-serif'; g.textAlign='center'; g.fillText('▶',s.x*W,s.y*H+5); } };
+  const at=e=>{ const r=cv.getBoundingClientRect(); return {x:(e.clientX-r.left)/r.width,y:(e.clientY-r.top)/r.height}; };
+  const move=e=>{ if(done) return; const q=at(e); let any=false; pts.forEach(p=>{ if(!p.hit && Math.hypot(p.x-q.x,p.y-q.y)<0.075){ p.hit=true; any=true; } });
+    if(any){ draw(); if(pts.filter(p=>p.hit).length/pts.length>=0.82){ done=true; complete(); } } };
+  const complete=()=>{ chime('good'); coach('cheer',(a.letter+'! You traced it!')); if(audioOn) say(a.letter+'! '+(a.say||''),{rate:.8,char:coachChar}); setTimeout(()=>correct(a,document.createElement('button')),350); };
+  cv.addEventListener('pointerdown',e=>{ cv.setPointerCapture&&cv.setPointerCapture(e.pointerId); move(e); });
+  cv.addEventListener('pointermove',e=>{ if(e.buttons||e.pressure>0) move(e); });
+  traceState={pts,draw,move,complete,get done(){return done;}}; draw();
+}
 function hintActivity(a){ itemHints++; log('hint_used',{skillId:a.skillId}); coach('think',"Here's a little help — watch!");
-  if(a.template==='blend'){ flashBlend(); if(audioOn) say("Tap this one next!"); return; }
+  if(a.template==='trace'){ if(traceState){ let n=0; const cap=Math.ceil(traceState.pts.length*0.5); const reveal=()=>{ if(n<cap){ traceState.pts[n].hit=true; n++; traceState.draw(); setTimeout(reveal,40);} }; reveal(); } if(audioOn) say("Trace along the glowing line, like this!",{char:coachChar}); return; }
+  if(a.template==='blend'){ flashBlend(); if(audioOn) say("Tap this one next!",{char:coachChar}); return; }
   const btns=[...$('ch-options').querySelectorAll('.opt')];
   const w=btns.find(b=>b.textContent!==a.answer&&!b.classList.contains('dim')); if(w) w.classList.add('dim');
-  const r=btns.find(b=>b.textContent===a.answer); if(r){ r.classList.add('glowhint'); setTimeout(()=>r.classList.remove('glowhint'),1600);} if(audioOn) say(a.say); }
-function wrong(a,btn){ mistakes++; dayMistakes++; itemHints++; btn.classList.add('dim'); coach('think',"Almost! Let's try again."); if(audioOn) say("Almost! Listen again.");
+  const r=btns.find(b=>b.textContent===a.answer); if(r){ r.classList.add('glowhint'); setTimeout(()=>r.classList.remove('glowhint'),1600);} if(audioOn) say(a.say,{char:coachChar}); }
+function wrong(a,btn){ mistakes++; dayMistakes++; itemHints++; btn.classList.add('dim'); coach('think',"Almost! Let's try again."); if(audioOn) say("Almost! Listen again.",{char:coachChar});
   if(mistakes>=2){ itemModeled=true; const r=[...$('ch-options').querySelectorAll('.opt')].find(b=>b.textContent===a.answer);
     if(r){ r.classList.add('glowhint'); if(audioOn) say(`This one says ${a.answer}. Tap it with me!`); r.onclick=()=>{ if(audioOn) say(a.answer,{rate:.8}); correct(a,r);}; } } }
 function correct(a,btn){ btn.classList.remove('glowhint'); btn.classList.add('correct'); chime('good'); burst(lighthouse.position,'#FFE9A8',10); twCheerUntil=performance.now()+900; heroEmote('cheer',900); // Twinkle + hero cheer learning success
@@ -576,8 +666,8 @@ function correct(a,btn){ btn.classList.remove('glowhint'); btn.classList.add('co
   [...$('ch-options').querySelectorAll('.opt')].forEach(b=>b.onclick=null);
   const p=praises[(Math.random()*praises.length)|0]; coach('cheer',p);
   setTimeout(()=>{ curIdx++; renderLights();
-    if(curIdx<curList.length){ if(audioOn) say(p,{then:renderActivity}); else renderActivity(); }
-    else { hide('challenge'); if(audioOn) say(p,{then:onListDone}); else onListDone(); } }, 700);
+    if(curIdx<curList.length){ if(audioOn) say(p,{then:renderActivity,char:coachChar}); else renderActivity(); }
+    else { hide('challenge'); if(audioOn) say(p,{then:onListDone,char:coachChar}); else onListDone(); } }, 700);
 }
 
 // =====================================================================
@@ -603,6 +693,7 @@ function finishSC(){ hide('starcheck'); state[scTag]=scScore; log('starcheck_don
 // =====================================================================
 function startDay(day){ state.day=day; save(); $('day-num').textContent=day; $('star-num').textContent=state.avatar.stars; setEnergy(0);
   log('day_start',{day});
+  setCoachChar(coachNameFor(day)); // weekly guide rotation (Rumi → Mira → Zoey)
   show('hud');
   const D=getDay(day);
   // reset scene positions for re-walk
@@ -620,7 +711,7 @@ function beginExplore(day){ controlEnabled=true; reached=false; setMarker(glooml
 function reachSpot(){ if(reached)return; reached=true; controlEnabled=false; setMarker(null); $('hint').style.opacity=0;
   const D=getDay(state.day);
   if(state.day===1){ speak('Gloomling',"…I lost the words. Will you read them with me?","Yes! Let's read ✨",()=>runActivities(D.activities,dayProgress)); }
-  else { speak('Rumi',"Here we go — read these with me!","Let's read ✨",()=>runActivities(D.activities,dayProgress)); }
+  else { speak(coachDisplayName(),"Here we go — read these with me!","Let's read ✨",()=>runActivities(D.activities,dayProgress)); }
 }
 
 // progression beat per day (avatar always grows; plus day-specific marquee)
@@ -722,12 +813,13 @@ function buildDashboard(){ const m=metrics();
   $('pc-today').innerHTML = `<li>Practiced <b>${skillName}</b></li><li>Tried ${tried}, got ${got}, used ${usedHints} hint${usedHints===1?'':'s'}</li>`+(state.day===3?'<li>Read a whole word independently 🎉</li>':'');
   $('pc-pre').textContent = state.pre==null?'–':state.pre; $('pc-post').textContent = state.post==null?'–':state.post;
 }
-function openParent(){ buildDashboard(); show('parent');
+function openParent(){ buildDashboard(); populateVoicePicker(); show('parent');
   $('reengage').classList.toggle('hidden', !state.askReengage);
   log('dashboard_view');
   [...document.querySelectorAll('#reengage .re-btns button')].forEach(b=>b.onclick=()=>{ log('parent_reengage',{value:b.dataset.v}); state.askReengage=false; save(); $('reengage').classList.add('hidden'); });
 }
 $('pc-close').onclick=()=>hide('parent');
+$('pc-voice-test').onclick=()=>say("Hi! I'm Rumi. Let's read together and have fun!",{char:'rumi'});
 $('pc-export').onclick=()=>{ const blob=new Blob([JSON.stringify({state,events},null,2)],{type:'application/json'});
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='little-legends-a1-data.json'; a.click(); };
 $('pc-sim').onclick=()=>{ state.lastCompletedDate=null; save(); hide('parent'); location.reload(); };
@@ -744,7 +836,7 @@ function decideDay(){ const forced=QS.get('day'); if(forced){ return Math.max(1,
   return next;
 }
 function boot(){
-  maybeLoadHero(); maybeLoadRumi();
+  loadVOManifest(); maybeLoadHero(); maybeLoadRumi();
   if(QS.get('observe')==='1'){ show('observer'); $('mark-smile').onclick=()=>recordExcitement('smile'); $('mark-excited').onclick=()=>recordExcitement('excited'); }
   if(QS.get('reset')==='1'){ localStorage.removeItem(KEY); localStorage.removeItem(EKEY); location.search=''; }
   $('start-btn').onclick=()=>{ audioOn=true; try{ actx=new(window.AudioContext||window.webkitAudioContext)(); }catch(e){}

@@ -64,5 +64,9 @@
 .reengage{background:#fff;border-radius:18px;padding:16px;width:min(94vw,520px);text-align:center;color:#241B3A}
 .re-btns{display:flex;gap:10px;justify-content:center;margin-top:10px}
 .re-btns button{border:none;border-radius:999px;padding:12px 20px;font-family:var(--font);font-weight:800;font-size:16px;background:#7EF0C0;color:#1B6B53}
+.pc-voice-row{display:flex;align-items:center;gap:10px;margin:10px 0;font-weight:800;color:#241B3A;font-size:15px}
+.pc-voice-row>span{width:120px}
+.pc-voice-row select{flex:1;min-width:0;font-family:var(--font);font-weight:700;font-size:14px;padding:9px 12px;border-radius:12px;border:2px solid #E7DEF2;background:#fff;color:#241B3A}
+.pc-voice-row .pill{background:rgba(255,255,255,.85);padding:9px 14px;font-size:15px}
 .pc-tools{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
 .pc-tools .pill{background:rgba(255,255,255,.85)}

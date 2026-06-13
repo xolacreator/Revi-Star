@@ -6,7 +6,7 @@
 
 ## What's in the build
 - **Avatar creation** (skin / hair / color) — the child's own Star Hunter, which grows alongside Rumi.
-- **Data-driven activity system** (the content-pipeline seed): templates `soundMatch · firstSound · wordPicture · blend`, fresh items per day, **no repeats**.
+- **Data-driven activity system** (the content-pipeline seed): templates `soundMatch · firstSound · wordPicture · blend · trace` (finger-tracing: see + hear + trace + say), fresh items per day, **no repeats**.
 - **3 distinct days**, each 5–10 min:
   - **Day 1** — Letter sounds · meet Rumi · find Twinkle · **Rumi → Rising Star** transformation.
   - **Day 2** — Sight words (new template) · **avatar earns a hat** · **Twinkle evolution hint** · new reading objective.
