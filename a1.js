@@ -29,17 +29,52 @@ function log(ev,data={}){ events.push({t:Date.now(), rel: launchT?Math.round((pe
   try{ localStorage.setItem(EKEY, JSON.stringify(events)); }catch(e){} }
 
 // ---------------- Audio ----------------
-let audioOn=false, voice=null, actx=null;
+let audioOn=false, voice=null, voiceWarm=null, voiceKid=null, actx=null;
+// Per-character voice profiles (pitch/rate) for the device-TTS fallback. Real film/TV-style
+// voices come from pre-rendered AI clips in assets/vo/ (see vo() below); these are the safety net.
+const VOICE_PROFILE={ narrator:{pitch:1.08,rate:0.96,kid:false}, rumi:{pitch:1.10,rate:0.97,kid:false},
+  mira:{pitch:1.00,rate:0.95,kid:false}, zoey:{pitch:1.22,rate:1.02,kid:false},
+  child:{pitch:1.35,rate:1.00,kid:true}, revi:{pitch:1.35,rate:1.00,kid:true},
+  twinkle:{pitch:1.5,rate:1.06,kid:true}, gloomling:{pitch:0.85,rate:0.92,kid:false} };
+function charProfile(name){ const k=(name||'').toLowerCase(); if(VOICE_PROFILE[k]) return k;
+  if(/revi|hunter|you/.test(k)) return 'child'; if(/rumi/.test(k)) return 'rumi'; if(/mira/.test(k)) return 'mira'; if(/zoey/.test(k)) return 'zoey'; if(/twinkle/.test(k)) return 'twinkle'; if(/gloom/.test(k)) return 'gloomling'; return 'narrator'; }
 function pickVoice(){ const v=speechSynthesis.getVoices(); const en=x=>/en(-|_|\b)/i.test(x.lang);
-  // prefer high-quality (enhanced/natural/neural) warm female voices; gracefully fall back
-  voice=v.find(x=>en(x)&&/(enhanced|premium|natural|neural|online)/i.test(x.name)&&/ava|samantha|allison|jenny|aria|sonia|zoe|nicky|karen|moira|female/i.test(x.name))
+  voiceWarm=v.find(x=>en(x)&&/(enhanced|premium|natural|neural|online)/i.test(x.name)&&/ava|samantha|allison|jenny|aria|sonia|zoe|nicky|karen|moira|female/i.test(x.name))
        ||v.find(x=>en(x)&&/(enhanced|premium|natural|neural|online)/i.test(x.name))
        ||v.find(x=>en(x)&&/samantha|shelley|ava|allison|nicky|google uk english female|libby|aria|jenny|female/i.test(x.name))
        ||v.find(x=>en(x)&&/karen|moira|tessa|google us english/i.test(x.name))
-       ||v.find(en)||v[0]||null; }
+       ||v.find(en)||v[0]||null;
+  voiceKid=v.find(x=>en(x)&&/(ana|child|kid|junior|shelley|grandma)/i.test(x.name))||voiceWarm; // a younger voice if the device has one
+  voice=voiceWarm; }
 if('speechSynthesis' in window){ pickVoice(); speechSynthesis.onvoiceschanged=pickVoice; }
-function say(t,{rate=0.95,pitch=1.15,then=null}={}){ if(!('speechSynthesis' in window)){ if(then)setTimeout(then,400); return; }
-  try{ speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(t); u.rate=rate; u.pitch=pitch; if(voice)u.voice=voice; if(then)u.onend=then; speechSynthesis.speak(u);}catch(e){ if(then)setTimeout(then,400);} }
+// ---- AI voice clips (assets/vo/<id>.mp3) — film/TV-style; auto-used when present, TTS otherwise ----
+const VO_HAVE={}; // id -> preloaded Audio (only ids listed in assets/vo/manifest.json)
+function loadVOManifest(){ try{ fetch('assets/vo/manifest.json').then(r=>r.ok?r.json():[]).then(ids=>{ (ids||[]).forEach(id=>{ const a=new Audio('assets/vo/'+id+'.mp3'); a.preload='auto'; VO_HAVE[id]=a; }); }).catch(()=>{}); }catch(e){} }
+// Stable text -> clip-id map for authored lines (so rendering assets/vo/<id>.mp3 auto-replaces
+// that line with a film/TV-style AI voice). Dynamic lines with the child's name stay on TTS.
+const VO_LINES={
+  "Hi! I'm Rumi! Welcome to Harmony Harbor! Oh no — the Lighthouse went dark and a shy Gloomling is hiding its words. Will you help me read to light it up?":'rumi_greet_d1',
+  "You came back — yay! The dock signs got all mixed up in the wind. Can you read them with me?":'rumi_greet_d2',
+  "Three days in a row — you're a real Star Hunter! The lighthouse keeper left you a note. Let's read it together…":'rumi_greet_d3',
+  "“Dear friend… the harbor shines because of YOU. Read on!”":'keeper_note',
+  "…I lost the words. Will you read them with me?":'gloomling_lost',
+  "Here we go — read these with me!":'coach_here_we_go',
+  "You filled the harbor with harmony! Watch — Rumi is becoming a Rising Star!":'rumi_rising',
+  "Twinkle is evolving into Glimmerfox!":'twinkle_evolve',
+  "You did it!":'praise_did_it', "Wonderful reading!":'praise_wonderful', "You're a reading star!":'praise_reading_star',
+  "Amazing!":'praise_amazing', "Yay! You read it!":'praise_yay',
+  "Almost! Listen again.":'fb_almost', "Trace along the glowing line, like this!":'fb_trace_hint',
+  "Tap this one next!":'fb_blend_hint', "Start with the first sound!":'fb_first_sound',
+  "See you tomorrow!":'nav_see_tomorrow', "Great job today, Star Hunter!":'reward_great_job'
+};
+function clipIdFor(text,explicit){ return explicit || VO_LINES[text] || null; }
+function playClip(a,then){ try{ speechSynthesis.cancel(); a.currentTime=0; a.onended=then||null; const p=a.play(); if(p&&p.catch) p.catch(()=>{ if(then) setTimeout(then,300); }); return true; }catch(e){ return false; } }
+function say(t,{rate=null,pitch=null,then=null,char='narrator',id=null}={}){
+  const cid=clipIdFor(t,id); if(cid && VO_HAVE[cid] && audioOn){ if(playClip(VO_HAVE[cid],then)) return; } // film/TV AI clip when available
+  if(!('speechSynthesis' in window)){ if(then)setTimeout(then,400); return; }
+  const pr=VOICE_PROFILE[charProfile(char)]||VOICE_PROFILE.narrator;
+  try{ speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(t); u.rate=(rate!=null?rate:pr.rate); u.pitch=(pitch!=null?pitch:pr.pitch);
+    const vv=(pr.kid?voiceKid:voiceWarm)||voice; if(vv)u.voice=vv; if(then)u.onend=then; speechSynthesis.speak(u);}catch(e){ if(then)setTimeout(then,400);} }
 function chime(type='good'){ try{ actx=actx||new(window.AudioContext||window.webkitAudioContext)();
   const seq=type==='good'?[660,880]:type==='win'?[660,880,1320]:[520];
   seq.forEach((f,i)=>{ const o=actx.createOscillator(),g=actx.createGain(); o.type='sine'; o.frequency.value=f; o.connect(g); g.connect(actx.destination);
@@ -420,7 +455,7 @@ function twinkleSpin(ms=1600){ twSpinUntil=performance.now()+ms; }
 function show(id){ $(id).classList.remove('hidden'); }
 function hide(id){ $(id).classList.add('hidden'); }
 function speak(name,text,btn,next){ $('bubble-name').textContent=name; $('bubble-text').textContent=text; $('bubble-next').textContent=btn||'Tap ▶'; show('bubble');
-  if(audioOn) say(text); $('bubble-next').onclick=()=>{ hide('bubble'); if(next) next(); }; }
+  if(audioOn) say(text,{char:name}); $('bubble-next').onclick=()=>{ hide('bubble'); if(next) next(); }; }
 function setEnergy(p){ $('energy-fill').style.width=p+'%'; }
 function setHint(t){ $('hint').textContent=t; $('hint').style.opacity=1; }
 function heroName(){ return (state.avatar.name&&state.avatar.name.trim())?state.avatar.name.trim():'Revi Star'; }
@@ -549,8 +584,8 @@ setCoachChar('rumi'); // week-1 default; startDay() switches the guide per week
 function renderActivity(){ const a=curList[curIdx]; mistakes=0; itemHints=0; itemModeled=false; itemStart=performance.now();
   coach('smile', a.coachLine || a.prompt);
   $('ch-pic').textContent=a.pic; $('ch-prompt').textContent=a.prompt; $('ch-options').innerHTML=''; renderLights();
-  if(audioOn) say(a.say);
-  $('ch-hear').onclick=()=>{ if(audioOn) say(a.say); };
+  if(audioOn) say(a.say,{char:coachChar});
+  $('ch-hear').onclick=()=>{ if(audioOn) say(a.say,{char:coachChar}); };
   $('ch-hint').onclick=()=>hintActivity(a);
   log('activity_start',{skillId:a.skillId,template:a.template});
   if(a.template==='blend') renderBlend(a); else if(a.template==='trace') renderTrace(a); else renderChoose(a);
@@ -597,18 +632,18 @@ function renderTrace(a){ const host=$('ch-options'); host.innerHTML='';
   const at=e=>{ const r=cv.getBoundingClientRect(); return {x:(e.clientX-r.left)/r.width,y:(e.clientY-r.top)/r.height}; };
   const move=e=>{ if(done) return; const q=at(e); let any=false; pts.forEach(p=>{ if(!p.hit && Math.hypot(p.x-q.x,p.y-q.y)<0.075){ p.hit=true; any=true; } });
     if(any){ draw(); if(pts.filter(p=>p.hit).length/pts.length>=0.82){ done=true; complete(); } } };
-  const complete=()=>{ chime('good'); coach('cheer',(a.letter+'! You traced it!')); if(audioOn) say(a.letter+'! '+(a.say||''),{rate:.8}); setTimeout(()=>correct(a,document.createElement('button')),350); };
+  const complete=()=>{ chime('good'); coach('cheer',(a.letter+'! You traced it!')); if(audioOn) say(a.letter+'! '+(a.say||''),{rate:.8,char:coachChar}); setTimeout(()=>correct(a,document.createElement('button')),350); };
   cv.addEventListener('pointerdown',e=>{ cv.setPointerCapture&&cv.setPointerCapture(e.pointerId); move(e); });
   cv.addEventListener('pointermove',e=>{ if(e.buttons||e.pressure>0) move(e); });
   traceState={pts,draw,move,complete,get done(){return done;}}; draw();
 }
 function hintActivity(a){ itemHints++; log('hint_used',{skillId:a.skillId}); coach('think',"Here's a little help — watch!");
-  if(a.template==='trace'){ if(traceState){ let n=0; const cap=Math.ceil(traceState.pts.length*0.5); const reveal=()=>{ if(n<cap){ traceState.pts[n].hit=true; n++; traceState.draw(); setTimeout(reveal,40);} }; reveal(); } if(audioOn) say("Trace along the glowing line, like this!"); return; }
-  if(a.template==='blend'){ flashBlend(); if(audioOn) say("Tap this one next!"); return; }
+  if(a.template==='trace'){ if(traceState){ let n=0; const cap=Math.ceil(traceState.pts.length*0.5); const reveal=()=>{ if(n<cap){ traceState.pts[n].hit=true; n++; traceState.draw(); setTimeout(reveal,40);} }; reveal(); } if(audioOn) say("Trace along the glowing line, like this!",{char:coachChar}); return; }
+  if(a.template==='blend'){ flashBlend(); if(audioOn) say("Tap this one next!",{char:coachChar}); return; }
   const btns=[...$('ch-options').querySelectorAll('.opt')];
   const w=btns.find(b=>b.textContent!==a.answer&&!b.classList.contains('dim')); if(w) w.classList.add('dim');
-  const r=btns.find(b=>b.textContent===a.answer); if(r){ r.classList.add('glowhint'); setTimeout(()=>r.classList.remove('glowhint'),1600);} if(audioOn) say(a.say); }
-function wrong(a,btn){ mistakes++; dayMistakes++; itemHints++; btn.classList.add('dim'); coach('think',"Almost! Let's try again."); if(audioOn) say("Almost! Listen again.");
+  const r=btns.find(b=>b.textContent===a.answer); if(r){ r.classList.add('glowhint'); setTimeout(()=>r.classList.remove('glowhint'),1600);} if(audioOn) say(a.say,{char:coachChar}); }
+function wrong(a,btn){ mistakes++; dayMistakes++; itemHints++; btn.classList.add('dim'); coach('think',"Almost! Let's try again."); if(audioOn) say("Almost! Listen again.",{char:coachChar});
   if(mistakes>=2){ itemModeled=true; const r=[...$('ch-options').querySelectorAll('.opt')].find(b=>b.textContent===a.answer);
     if(r){ r.classList.add('glowhint'); if(audioOn) say(`This one says ${a.answer}. Tap it with me!`); r.onclick=()=>{ if(audioOn) say(a.answer,{rate:.8}); correct(a,r);}; } } }
 function correct(a,btn){ btn.classList.remove('glowhint'); btn.classList.add('correct'); chime('good'); burst(lighthouse.position,'#FFE9A8',10); twCheerUntil=performance.now()+900; heroEmote('cheer',900); // Twinkle + hero cheer learning success
@@ -620,8 +655,8 @@ function correct(a,btn){ btn.classList.remove('glowhint'); btn.classList.add('co
   [...$('ch-options').querySelectorAll('.opt')].forEach(b=>b.onclick=null);
   const p=praises[(Math.random()*praises.length)|0]; coach('cheer',p);
   setTimeout(()=>{ curIdx++; renderLights();
-    if(curIdx<curList.length){ if(audioOn) say(p,{then:renderActivity}); else renderActivity(); }
-    else { hide('challenge'); if(audioOn) say(p,{then:onListDone}); else onListDone(); } }, 700);
+    if(curIdx<curList.length){ if(audioOn) say(p,{then:renderActivity,char:coachChar}); else renderActivity(); }
+    else { hide('challenge'); if(audioOn) say(p,{then:onListDone,char:coachChar}); else onListDone(); } }, 700);
 }
 
 // =====================================================================
@@ -789,7 +824,7 @@ function decideDay(){ const forced=QS.get('day'); if(forced){ return Math.max(1,
   return next;
 }
 function boot(){
-  maybeLoadHero(); maybeLoadRumi();
+  loadVOManifest(); maybeLoadHero(); maybeLoadRumi();
   if(QS.get('observe')==='1'){ show('observer'); $('mark-smile').onclick=()=>recordExcitement('smile'); $('mark-excited').onclick=()=>recordExcitement('excited'); }
   if(QS.get('reset')==='1'){ localStorage.removeItem(KEY); localStorage.removeItem(EKEY); location.search=''; }
   $('start-btn').onclick=()=>{ audioOn=true; try{ actx=new(window.AudioContext||window.webkitAudioContext)(); }catch(e){}
