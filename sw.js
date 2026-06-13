@@ -1,6 +1,6 @@
 // Doodle Stars service worker — offline app shell caching.
 // Bump CACHE when any shell file changes so clients pull fresh copies.
-const CACHE = 'little-legends-a1-v47';
+const CACHE = 'little-legends-a1-v48';
 const SHELL = [
   './',
   './index.html',
@@ -46,6 +46,7 @@ self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET') return;
   const url = new URL(e.request.url);
   const isAppCode = e.request.mode === 'navigate' ||
+    url.pathname.endsWith('/assets/vo/manifest.json') || // always fresh so new VO clips appear
     /\.(html|js|webmanifest)$/.test(url.pathname) && !url.pathname.includes('/vendor/');
 
   if (isAppCode) {

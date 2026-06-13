@@ -1,0 +1,26 @@
+{
+  "_comment": "Each entry -> one or more MP3s in assets/vo/. 'character' fixes the voice. 'rotating': true generates per-guide variants <id>__rumi/__mira/__zoey so each daily guide speaks shared lines in their own voice. 'text' is what gets spoken (can be cleaner than the in-code string; the game matches by id).",
+  "lines": [
+    { "id": "rumi_greet_d1", "character": "rumi", "text": "Hi! I'm Rumi! Welcome to Harmony Harbor! Oh no, the lighthouse went dark and a shy Gloomling is hiding its words. Will you help me read to light it up?" },
+    { "id": "rumi_greet_d2", "character": "rumi", "text": "You came back, yay! The dock signs got all mixed up in the wind. Can you read them with me?" },
+    { "id": "rumi_greet_d3", "character": "rumi", "text": "Three days in a row, you're a real Star Hunter! The lighthouse keeper left you a note. Let's read it together." },
+    { "id": "rumi_rising", "character": "rumi", "text": "You filled the harbor with harmony! Watch, Rumi is becoming a Rising Star!" },
+    { "id": "keeper_note", "character": "narrator", "text": "Dear friend, the harbor shines because of you. Read on!" },
+    { "id": "twinkle_evolve", "character": "narrator", "text": "Twinkle is evolving into Glimmerfox!" },
+    { "id": "twinkle_happy", "character": "twinkle", "text": "Yay! We're friends now! Twinkle, twinkle!" },
+    { "id": "gloomling_lost", "character": "gloomling", "text": "I lost the words. Will you read them with me?" },
+    { "id": "nav_see_tomorrow", "character": "narrator", "text": "See you tomorrow!" },
+    { "id": "reward_great_job", "character": "narrator", "text": "Great job today, Star Hunter!" },
+
+    { "id": "coach_here_we_go", "rotating": true, "text": "Here we go, read these with me!" },
+    { "id": "praise_did_it", "rotating": true, "text": "You did it!" },
+    { "id": "praise_wonderful", "rotating": true, "text": "Wonderful reading!" },
+    { "id": "praise_reading_star", "rotating": true, "text": "You're a reading star!" },
+    { "id": "praise_amazing", "rotating": true, "text": "Amazing!" },
+    { "id": "praise_yay", "rotating": true, "text": "Yay! You read it!" },
+    { "id": "fb_almost", "rotating": true, "text": "Almost! Listen again." },
+    { "id": "fb_trace_hint", "rotating": true, "text": "Trace along the glowing line, like this!" },
+    { "id": "fb_blend_hint", "rotating": true, "text": "Tap this one next!" },
+    { "id": "fb_first_sound", "rotating": true, "text": "Start with the first sound!" }
+  ]
+}

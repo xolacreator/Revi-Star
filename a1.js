@@ -76,7 +76,8 @@ const VO_LINES={
   "Amazing!":'praise_amazing', "Yay! You read it!":'praise_yay',
   "Almost! Listen again.":'fb_almost', "Trace along the glowing line, like this!":'fb_trace_hint',
   "Tap this one next!":'fb_blend_hint', "Start with the first sound!":'fb_first_sound',
-  "See you tomorrow!":'nav_see_tomorrow', "Great job today, Star Hunter!":'reward_great_job'
+  "See you tomorrow!":'nav_see_tomorrow', "Great job today, Star Hunter!":'reward_great_job',
+  "*happy twinkle!* 🦊💛":'twinkle_happy'
 };
 function clipIdFor(text,explicit){ return explicit || VO_LINES[text] || null; }
 function playClip(a,then){ try{ speechSynthesis.cancel(); a.currentTime=0; a.onended=then||null; const p=a.play(); if(p&&p.catch) p.catch(()=>{ if(then) setTimeout(then,300); }); return true; }catch(e){ return false; } }
