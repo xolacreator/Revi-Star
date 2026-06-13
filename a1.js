@@ -30,13 +30,15 @@ function log(ev,data={}){ events.push({t:Date.now(), rel: launchT?Math.round((pe
 
 // ---------------- Audio ----------------
 let audioOn=false, voice=null, actx=null;
-function pickVoice(){ const v=speechSynthesis.getVoices();
-  // prefer warm, friendly, kid-appropriate voices
-  voice=v.find(x=>/samantha|shelley|grandma|ava|allison|nicky|google uk english female|libby|aria|jenny|female/i.test(x.name)&&/en/i.test(x.lang))
-       ||v.find(x=>/karen|moira|tessa|google us english/i.test(x.name)&&/en/i.test(x.lang))
-       ||v.find(x=>/en/i.test(x.lang))||v[0]||null; }
+function pickVoice(){ const v=speechSynthesis.getVoices(); const en=x=>/en(-|_|\b)/i.test(x.lang);
+  // prefer high-quality (enhanced/natural/neural) warm female voices; gracefully fall back
+  voice=v.find(x=>en(x)&&/(enhanced|premium|natural|neural|online)/i.test(x.name)&&/ava|samantha|allison|jenny|aria|sonia|zoe|nicky|karen|moira|female/i.test(x.name))
+       ||v.find(x=>en(x)&&/(enhanced|premium|natural|neural|online)/i.test(x.name))
+       ||v.find(x=>en(x)&&/samantha|shelley|ava|allison|nicky|google uk english female|libby|aria|jenny|female/i.test(x.name))
+       ||v.find(x=>en(x)&&/karen|moira|tessa|google us english/i.test(x.name))
+       ||v.find(en)||v[0]||null; }
 if('speechSynthesis' in window){ pickVoice(); speechSynthesis.onvoiceschanged=pickVoice; }
-function say(t,{rate=0.9,pitch=1.32,then=null}={}){ if(!('speechSynthesis' in window)){ if(then)setTimeout(then,400); return; }
+function say(t,{rate=0.95,pitch=1.15,then=null}={}){ if(!('speechSynthesis' in window)){ if(then)setTimeout(then,400); return; }
   try{ speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(t); u.rate=rate; u.pitch=pitch; if(voice)u.voice=voice; if(then)u.onend=then; speechSynthesis.speak(u);}catch(e){ if(then)setTimeout(then,400);} }
 function chime(type='good'){ try{ actx=actx||new(window.AudioContext||window.webkitAudioContext)();
   const seq=type==='good'?[660,880]:type==='win'?[660,880,1320]:[520];
@@ -120,9 +122,22 @@ function addOutline(mesh,color='#2a2138',thk=0.022){ try{
 }catch(e){} }
 
 const WORLD_R=20;
-const water=new THREE.Mesh(new THREE.CircleGeometry(WORLD_R,64), new THREE.MeshStandardMaterial({color:'#7fb6bf',roughness:.5}));
+// ---- Procedural ground textures (canvas, no art files): a magic plaza + rippling water ----
+function dockTex(){ const s=512,cv=document.createElement('canvas'); cv.width=cv.height=s; const x=cv.getContext('2d'),c=s/2;
+  let g=x.createRadialGradient(c,c,0,c,c,c); g.addColorStop(0,'#fbeacc'); g.addColorStop(0.7,'#f0dcbb'); g.addColorStop(1,'#e6cda4'); x.fillStyle=g; x.fillRect(0,0,s,s);
+  x.strokeStyle='rgba(150,110,70,0.30)'; x.lineWidth=2.5; for(let r=46;r<c;r+=46){ x.beginPath(); x.arc(c,c,r,0,7); x.stroke(); } // ring seams
+  for(let i=0;i<16;i++){ const a=i/16*Math.PI*2; x.beginPath(); x.moveTo(c,c); x.lineTo(c+Math.cos(a)*c*1.4,c+Math.sin(a)*c*1.4); x.stroke(); } // radial seams
+  for(let i=0;i<1600;i++){ x.globalAlpha=Math.random()*0.10; x.fillStyle=Math.random()<0.5?'#ffffff':'#9a6a44'; x.fillRect(Math.random()*s,Math.random()*s,2,2); } x.globalAlpha=1; // stone speckle
+  x.save(); x.translate(c,c); x.fillStyle='rgba(255,206,120,0.55)'; x.beginPath(); for(let i=0;i<10;i++){ const a=i/10*Math.PI*2-Math.PI/2, rr=(i%2?32:74); i?x.lineTo(Math.cos(a)*rr,Math.sin(a)*rr):x.moveTo(Math.cos(a)*rr,Math.sin(a)*rr);} x.closePath(); x.fill(); x.restore(); // central star inlay
+  const t=new THREE.CanvasTexture(cv); t.colorSpace=THREE.SRGBColorSpace; return t; }
+function waterTex(){ const s=512,cv=document.createElement('canvas'); cv.width=cv.height=s; const x=cv.getContext('2d'),c=s/2;
+  x.fillStyle='#dff0f2'; x.fillRect(0,0,s,s); x.globalCompositeOperation='lighter';
+  for(let r=8;r<c*1.5;r+=16){ x.strokeStyle='rgba(255,255,255,'+(0.05+Math.random()*0.06)+')'; x.lineWidth=2+Math.random()*5; x.beginPath(); x.arc(c,c,r,0,7); x.stroke(); } // concentric ripples
+  for(let i=0;i<450;i++){ x.fillStyle='rgba(255,255,255,0.05)'; x.beginPath(); x.arc(Math.random()*s,Math.random()*s,Math.random()*26,0,7); x.fill(); } // soft sparkle blobs
+  x.globalCompositeOperation='source-over'; const t=new THREE.CanvasTexture(cv); t.colorSpace=THREE.SRGBColorSpace; t.center.set(0.5,0.5); return t; }
+const water=new THREE.Mesh(new THREE.CircleGeometry(WORLD_R,64), new THREE.MeshStandardMaterial({color:'#7fb6bf',roughness:.5,map:waterTex()}));
 water.rotation.x=-Math.PI/2; water.receiveShadow=true; scene.add(water);
-const dock=new THREE.Mesh(new THREE.CircleGeometry(9,48), new THREE.MeshStandardMaterial({color:'#e7c9a6',roughness:1}));
+const dock=new THREE.Mesh(new THREE.CircleGeometry(9,48), new THREE.MeshStandardMaterial({color:'#e7c9a6',roughness:1,map:dockTex()}));
 dock.rotation.x=-Math.PI/2; dock.position.y=0.02; dock.receiveShadow=true; scene.add(dock);
 // lighthouse
 const lhMat=new THREE.MeshStandardMaterial({color:'#c9c4d2',roughness:.9});
@@ -355,7 +370,17 @@ function tapGround(cx,cy,juice=true){ if(!controlEnabled)return false; ndc.x=(cx
 // Tap OR hold-and-drag: a quick tap walks the hero to a spot; holding and dragging
 // makes the hero continuously follow your finger across the ground (kid-friendly steering).
 let dragging=false, dragTrailT=0;
-renderer.domElement.addEventListener('pointerdown',e=>{ tapRing(e.clientX,e.clientY); haptic(8); if(controlEnabled){ dragging=true; tapGround(e.clientX,e.clientY); } });
+// Tapping Rumi in the world → she waves and offers a friendly tip (interactive guide).
+const RUMI_TIPS=["Tap the ground to explore — or hold and drag to walk with me!","Look for the glowing star and listen for its sound!","You're doing amazing. Sound it out nice and slow.","Tap Twinkle to say hello!","Every sound you learn makes you shine brighter!"];
+let rumiTipT=0;
+function rumiTip(){ const np=performance.now(); if(np<rumiTipT) return; rumiTipT=np+1400;
+  if(rumiActions.wave){ playRumi('wave'); rumiWaveUntil=np+1500; rumiNextWave=np+8000; }
+  burst(new THREE.Vector3(rumi.position.x,1.9,rumi.position.z),'#FFE08A',8);
+  if(audioOn) say(RUMI_TIPS[(Math.random()*RUMI_TIPS.length)|0]); }
+renderer.domElement.addEventListener('pointerdown',e=>{ tapRing(e.clientX,e.clientY); haptic(8); if(!controlEnabled) return;
+  ndc.x=(e.clientX/innerWidth)*2-1; ndc.y=-(e.clientY/innerHeight)*2+1; ray.setFromCamera(ndc,camera);
+  if(rumi.visible && ray.intersectObject(rumi,true).length){ rumiTip(); return; } // tap Rumi → tip
+  dragging=true; tapGround(e.clientX,e.clientY); });
 renderer.domElement.addEventListener('pointermove',e=>{ if(!dragging||!controlEnabled) return;
   if(tapGround(e.clientX,e.clientY,false)){ dragTrailT-=1; if(dragTrailT<=0){ dragTrailT=4; tapRing(e.clientX,e.clientY); } } }); // light dotted feedback as the finger drags
 const endDrag=()=>{ dragging=false; };
@@ -472,7 +497,22 @@ let curList=[], curIdx=0, onListDone=null, dayMistakes=0;
 function runActivities(list,done){ curList=list; curIdx=0; onListDone=done; dayMistakes=0; show('challenge'); renderActivity(); }
 function renderLights(){ const el=$('ch-lights'); el.innerHTML=''; for(let i=0;i<curList.length;i++){ const s=document.createElement('span'); s.className='lite'+(i<curIdx?' on':''); s.textContent=i<curIdx?'●':'○'; el.appendChild(s);} }
 let mistakes=0, blendProgress=0, itemStart=0, itemHints=0, itemModeled=false;
+// ---- On-screen learning coach (Rumi): a friendly face + line that reacts while the child works ----
+function drawCoach(mode){ const cv=$('coach-face'); if(!cv) return; const g=cv.getContext('2d'); g.clearRect(0,0,120,120);
+  g.fillStyle='#7B4FC4'; g.beginPath(); g.arc(60,64,46,0,7); g.fill(); // hair back
+  g.fillStyle='#ffe0c2'; g.beginPath(); g.ellipse(60,66,33,37,0,0,7); g.fill(); // face
+  g.fillStyle='#7B4FC4'; g.beginPath(); g.moveTo(24,60); g.quadraticCurveTo(38,30,60,40); g.quadraticCurveTo(82,30,96,60); g.quadraticCurveTo(78,48,60,50); g.quadraticCurveTo(42,48,24,60); g.closePath(); g.fill(); // bangs
+  g.fillStyle='#5ec8c0'; g.fillRect(40,46,6,14); // signature streak
+  const ey=72;
+  if(mode==='cheer'){ g.strokeStyle='#2a1f28'; g.lineWidth=4; g.lineCap='round'; g.beginPath(); g.moveTo(41,ey); g.quadraticCurveTo(49,ey-8,57,ey); g.moveTo(63,ey); g.quadraticCurveTo(71,ey-8,79,ey); g.stroke(); }
+  else { g.fillStyle='#2a1f28'; g.beginPath(); g.ellipse(49,ey,5,7,0,0,7); g.ellipse(71,ey,5,7,0,0,7); g.fill(); g.fillStyle='#fff'; g.beginPath(); g.arc(47,ey-2,1.7,0,7); g.arc(69,ey-2,1.7,0,7); g.fill(); }
+  if(mode==='think'){ g.strokeStyle='#5a3a8a'; g.lineWidth=3; g.lineCap='round'; g.beginPath(); g.moveTo(42,ey-12); g.lineTo(55,ey-9); g.moveTo(65,ey-9); g.lineTo(78,ey-12); g.stroke(); }
+  g.fillStyle='rgba(255,140,170,0.5)'; g.beginPath(); g.arc(43,ey+12,6,0,7); g.arc(77,ey+12,6,0,7); g.fill(); // cheeks
+  g.strokeStyle='#c23a5a'; g.lineWidth=3.5; g.lineCap='round'; g.beginPath();
+  if(mode==='think'){ g.moveTo(54,ey+22); g.lineTo(66,ey+21); } else { g.moveTo(51,ey+18); g.quadraticCurveTo(60,ey+28,69,ey+18); } g.stroke(); }
+function coach(mode,line){ const l=$('coach-line'); if(l&&line!=null) l.textContent=line; drawCoach(mode||'smile'); }
 function renderActivity(){ const a=curList[curIdx]; mistakes=0; itemHints=0; itemModeled=false; itemStart=performance.now();
+  coach('smile', a.coachLine || a.prompt);
   $('ch-pic').textContent=a.pic; $('ch-prompt').textContent=a.prompt; $('ch-options').innerHTML=''; renderLights();
   if(audioOn) say(a.say);
   $('ch-hear').onclick=()=>{ if(audioOn) say(a.say); };
@@ -493,12 +533,12 @@ function renderBlend(a){ blendProgress=0;
       else { mistakes++; dayMistakes++; itemHints++; if(audioOn) say("Start with the first sound!"); flashBlend(); } };
     $('ch-options').appendChild(b); }); }
 function flashBlend(){ const n=$('ch-options').querySelector(`[data-idx="${blendProgress}"]`); if(n){ n.classList.add('glowhint'); setTimeout(()=>n.classList.remove('glowhint'),1500);} }
-function hintActivity(a){ itemHints++; log('hint_used',{skillId:a.skillId});
+function hintActivity(a){ itemHints++; log('hint_used',{skillId:a.skillId}); coach('think',"Here's a little help — watch!");
   if(a.template==='blend'){ flashBlend(); if(audioOn) say("Tap this one next!"); return; }
   const btns=[...$('ch-options').querySelectorAll('.opt')];
   const w=btns.find(b=>b.textContent!==a.answer&&!b.classList.contains('dim')); if(w) w.classList.add('dim');
   const r=btns.find(b=>b.textContent===a.answer); if(r){ r.classList.add('glowhint'); setTimeout(()=>r.classList.remove('glowhint'),1600);} if(audioOn) say(a.say); }
-function wrong(a,btn){ mistakes++; dayMistakes++; itemHints++; btn.classList.add('dim'); if(audioOn) say("Almost! Listen again.");
+function wrong(a,btn){ mistakes++; dayMistakes++; itemHints++; btn.classList.add('dim'); coach('think',"Almost! Let's try again."); if(audioOn) say("Almost! Listen again.");
   if(mistakes>=2){ itemModeled=true; const r=[...$('ch-options').querySelectorAll('.opt')].find(b=>b.textContent===a.answer);
     if(r){ r.classList.add('glowhint'); if(audioOn) say(`This one says ${a.answer}. Tap it with me!`); r.onclick=()=>{ if(audioOn) say(a.answer,{rate:.8}); correct(a,r);}; } } }
 function correct(a,btn){ btn.classList.remove('glowhint'); btn.classList.add('correct'); chime('good'); burst(lighthouse.position,'#FFE9A8',10); twCheerUntil=performance.now()+900; heroEmote('cheer',900); // Twinkle + hero cheer learning success
@@ -508,7 +548,7 @@ function correct(a,btn){ btn.classList.remove('glowhint'); btn.classList.add('co
   log('activity_item',{skillId:a.skillId,correct:true,hints:itemHints,modeled:itemModeled,firstTry});
   save();
   [...$('ch-options').querySelectorAll('.opt')].forEach(b=>b.onclick=null);
-  const p=praises[(Math.random()*praises.length)|0];
+  const p=praises[(Math.random()*praises.length)|0]; coach('cheer',p);
   setTimeout(()=>{ curIdx++; renderLights();
     if(curIdx<curList.length){ if(audioOn) say(p,{then:renderActivity}); else renderActivity(); }
     else { hide('challenge'); if(audioOn) say(p,{then:onListDone}); else onListDone(); } }, 700);
@@ -786,6 +826,7 @@ function tick(now){ const dt=Math.min((now-lastT)/1000,.05); lastT=now; const t=
   spot.material.opacity+=((spotOn?0.5:0)-spot.material.opacity)*Math.min(1,dt*6); if(spot.material.opacity>0.01){ spot.position.x=avatar.position.x; spot.position.z=avatar.position.z; spot.rotation.z+=dt*0.6; }
   // environment ambience: drifting clouds, twinkling motes, lighthouse halo
   for(const c of clouds){ c.position.x+=dt*0.6; if(c.position.x>34) c.position.x=-34; }
+  if(water.material.map){ water.material.map.rotation+=dt*0.02; water.material.map.offset.y=Math.sin(t*0.3)*0.01; } // gently shimmering water
   for(const b of butterflies){ b.s.position.set(b.cx+Math.cos(t*b.sp+b.ph)*b.rx, b.h+Math.sin(t*b.sp*2.3+b.ph)*0.25, b.cz+Math.sin(t*b.sp*0.8+b.ph)*b.rz); b.s.material.opacity=0.45+0.35*Math.sin(t*7+b.ph); } // drift + wing flutter
   for(const b of birds){ b.g.position.x+=dt*b.sp; if(b.g.position.x>36){ b.g.position.x=-36; b.g.position.z=-12-Math.random()*24; b.g.position.y=12+Math.random()*8; } const fl=Math.sin(t*8+b.ph)*0.5; b.wl.rotation.z=0.35+fl; b.wr.rotation.z=-0.35-fl; }
   for(let i=stepFx.length-1;i>=0;i--){ const f=stepFx[i]; f.life+=dt; const p=f.life/f.max;
