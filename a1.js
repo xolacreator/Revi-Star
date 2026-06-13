@@ -570,9 +570,11 @@ function renderLights(){ const el=$('ch-lights'); el.innerHTML=''; for(let i=0;i
 let mistakes=0, blendProgress=0, itemStart=0, itemHints=0, itemModeled=false;
 // ---- On-screen learning coach: a friendly face + line that reacts while the child works ----
 // Real art lives in assets/coach/ (<name>.png + optional <name>-cheer.png / <name>-think.png).
-// Guides rotate weekly — Wk1 Rumi · Wk2 Mira · Wk3 Zoey — overridable with ?coach=rumi|mira|zoey.
+// Guides rotate each day. Days 1-3 stay Rumi (her onboarding story), then it cycles
+// Mira → Zoey → Rumi → … daily. Override any day with ?coach=rumi|mira|zoey.
 let coachCurMode='smile', coachChar='rumi'; const coachArt={}; const COACH_NAMES=['rumi','mira','zoey'];
-function coachNameFor(day){ const o=QS.get('coach'); if(o&&COACH_NAMES.includes(o)) return o; return COACH_NAMES[(Math.ceil(day/7)-1+3)%3]; }
+function coachNameFor(day){ const o=QS.get('coach'); if(o&&COACH_NAMES.includes(o)) return o;
+  if(day<=3) return 'rumi'; return COACH_NAMES[((day-3)%3+3)%3]; }
 function coachDisplayName(){ return coachChar.charAt(0).toUpperCase()+coachChar.slice(1); }
 function coachLoaded(){ const a=coachArt[coachChar]; return !!(a && (a.smile||a.cheer||a.think)); }
 function loadCoachArt(name){ if(coachArt[name]) return; const set=coachArt[name]={}; ['smile','cheer','think'].forEach(m=>{ const im=new Image();
