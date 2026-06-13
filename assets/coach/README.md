@@ -17,7 +17,8 @@ If only `rumi.png` exists, it's used for all three states.
 - Keep file size small (a few hundred KB each) so the panel loads instantly.
 
 ## Multi-character guides (live)
-All three guides are wired and **rotate by week**: **Wk1 Rumi · Wk2 Mira · Wk3 Zoey**
-(days 1–7 / 8–14 / 15–21). Each uses `<name>.png` + optional `<name>-cheer.png` /
-`<name>-think.png`. Override for testing with `?coach=rumi|mira|zoey` in the URL.
+All three guides are wired and **rotate each day**: days 1–3 are Rumi (her onboarding
+story), then it cycles **Mira → Zoey → Rumi → …** day by day. Each uses `<name>.png` +
+optional `<name>-cheer.png` / `<name>-think.png`. Override for testing with
+`?coach=rumi|mira|zoey` in the URL. The in-world NPC matches the day's guide.
 Currently present: rumi, mira, zoey (smile/cheer/think each).

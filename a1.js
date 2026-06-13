@@ -362,10 +362,13 @@ function loadHero(){ const loader=new GLTFLoader();
 async function maybeLoadHero(){ if(QS.get('hero3d')==='0') return; // 3D character ON by default now (use ?hero3d=0 for the customizable blob)
   try{ const r=await fetch(HERO_URL,{method:'HEAD'}); if(r&&r.ok) loadHero(); }catch(e){} }
 // Rumi NPC from her own folder (separate rigged model).
-async function maybeLoadRumi(){ if(QS.get('hero3d')==='0') return;
-  try{ const url='assets/rumi/rumi.glb'; const r=await fetch(url,{method:'HEAD'}); if(!r||!r.ok) return;
-    new GLTFLoader().load(url, gltf=>{ try{ rumi.children.slice().forEach(c=>{ c.visible=false; }); const m=mountCharacter(rumi,gltf.scene,gltf.animations,{tag:'rumi',buckets:null}); rumiMixer=m.mixer; rumiActions=m.actions; setupRumiWave(); }catch(e){} }, undefined, ()=>{});
-  }catch(e){} }
+async function maybeLoadRumi(){ if(QS.get('hero3d')==='0') return; // loads the week's guide (Rumi/Mira/Zoey) as the in-world NPC
+  const d=decideDay(); const name=coachNameFor(d>0?d:1);
+  async function tryLoad(n){ const url=`assets/${n}/${n}.glb`;
+    try{ const r=await fetch(url,{method:'HEAD'}); if(!r||!r.ok) return false; }catch(e){ return false; }
+    return new Promise(res=>{ new GLTFLoader().load(url, gltf=>{ try{ rumi.children.slice().forEach(c=>{ c.visible=false; }); const m=mountCharacter(rumi,gltf.scene,gltf.animations,{tag:n,buckets:null}); rumiMixer=m.mixer; rumiActions=m.actions; setupRumiWave(); }catch(e){} res(true); }, undefined, ()=>res(false)); }); }
+  if(!(await tryLoad(name)) && name!=='rumi') await tryLoad('rumi');
+}
 
 // Rumi
 let rumiBraid=null;
@@ -567,9 +570,11 @@ function renderLights(){ const el=$('ch-lights'); el.innerHTML=''; for(let i=0;i
 let mistakes=0, blendProgress=0, itemStart=0, itemHints=0, itemModeled=false;
 // ---- On-screen learning coach: a friendly face + line that reacts while the child works ----
 // Real art lives in assets/coach/ (<name>.png + optional <name>-cheer.png / <name>-think.png).
-// Guides rotate weekly — Wk1 Rumi · Wk2 Mira · Wk3 Zoey — overridable with ?coach=rumi|mira|zoey.
+// Guides rotate each day. Days 1-3 stay Rumi (her onboarding story), then it cycles
+// Mira → Zoey → Rumi → … daily. Override any day with ?coach=rumi|mira|zoey.
 let coachCurMode='smile', coachChar='rumi'; const coachArt={}; const COACH_NAMES=['rumi','mira','zoey'];
-function coachNameFor(day){ const o=QS.get('coach'); if(o&&COACH_NAMES.includes(o)) return o; return COACH_NAMES[(Math.ceil(day/7)-1+3)%3]; }
+function coachNameFor(day){ const o=QS.get('coach'); if(o&&COACH_NAMES.includes(o)) return o;
+  if(day<=3) return 'rumi'; return COACH_NAMES[((day-3)%3+3)%3]; }
 function coachDisplayName(){ return coachChar.charAt(0).toUpperCase()+coachChar.slice(1); }
 function coachLoaded(){ const a=coachArt[coachChar]; return !!(a && (a.smile||a.cheer||a.think)); }
 function loadCoachArt(name){ if(coachArt[name]) return; const set=coachArt[name]={}; ['smile','cheer','think'].forEach(m=>{ const im=new Image();
