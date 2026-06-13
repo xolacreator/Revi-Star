@@ -57,7 +57,7 @@ function startPad(){ if(padStarted||!actx) return; padStarted=true; try{ const o
   const lp=actx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=620; lp.connect(actx.destination); out.connect(lp);
   [110,164.81,220].forEach((f,i)=>{ const o=actx.createOscillator(); o.type='sine'; o.frequency.value=f; o.detune.value=(i-1)*5; o.connect(out); o.start(); });
   const lfo=actx.createOscillator(), lg=actx.createGain(); lfo.frequency.value=0.07; lg.gain.value=0.008; lfo.connect(lg); lg.connect(out.gain); lfo.start(); }catch(e){} }
-function chirp(){ if(!actx) return; try{ const now=actx.currentTime, base=1400+Math.random()*900;
+function birdChirp(){ if(!actx) return; try{ const now=actx.currentTime, base=1400+Math.random()*900;
   [0,0.13].forEach((off,i)=>{ const o=actx.createOscillator(),g=actx.createGain(); o.type='sine'; o.frequency.setValueAtTime(base*(i?1.18:1),now+off); o.frequency.exponentialRampToValueAtTime(base*(i?1.45:1.28),now+off+0.07); o.connect(g); g.connect(actx.destination);
     g.gain.setValueAtTime(0.0001,now+off); g.gain.exponentialRampToValueAtTime(0.045,now+off+0.02); g.gain.exponentialRampToValueAtTime(0.0001,now+off+0.16); o.start(now+off); o.stop(now+off+0.2); }); }catch(e){} }
 let avatarPop=0; function avatarReact(){ avatarPop=1; }
@@ -267,7 +267,7 @@ function mountCharacter(group,root,animations,{tag='',buckets=null,rot=HERO_ROT}
   let mixer=null, actions={};
   if(animations && animations.length){ mixer=new THREE.AnimationMixer(root);
     const clips = tag ? animations.filter(c=>(c.name||'').toLowerCase().includes(tag)).concat(animations.filter(c=>!(c.name||'').toLowerCase().includes(tag))) : animations;
-    clips.forEach(c=>{ const n=(c.name||'').toLowerCase(); const k=/idle/.test(n)?'idle':(/walk|run/.test(n)?'walk':(/dance/.test(n)?'dance':(/cheer|celebrat|jump/.test(n)?'cheer':(/wave|greet|hello/.test(n)?'wave':null))); if(k&&!actions[k]) actions[k]=mixer.clipAction(c); });
+    clips.forEach(c=>{ const n=(c.name||'').toLowerCase(); const k=/idle/.test(n)?'idle':(/walk|run/.test(n)?'walk':(/dance/.test(n)?'dance':(/cheer|celebrat|jump/.test(n)?'cheer':(/wave|greet|hello/.test(n)?'wave':null)))); if(k&&!actions[k]) actions[k]=mixer.clipAction(c); });
     if(!actions.idle && clips[0]) actions.idle=mixer.clipAction(clips[0]);
     if(actions.idle) actions.idle.reset().play(); }
   return {mixer,actions}; }
@@ -792,7 +792,7 @@ function tick(now){ const dt=Math.min((now-lastT)/1000,.05); lastT=now; const t=
     if(f.flower){ const pop=p<0.18?(p/0.18):1; f.m.scale.setScalar(0.4+pop*0.7); f.m.material.opacity=(p<0.18?p/0.18:1)*Math.max(0,1-Math.max(0,(p-0.6)/0.4))*0.95; }
     else { f.m.scale.setScalar(1+p*4); f.m.material.opacity=Math.max(0,0.5*(1-p)); }
     if(p>=1){ scene.remove(f.m); f.m.material.dispose(); stepFx.splice(i,1); } }
-  if(audioOn && actx){ if(!padStarted) startPad(); if(now>nextChirp){ chirp(); nextChirp=now+7000+Math.random()*9000; } } // soft birdsong over the ambient pad
+  if(audioOn && actx){ if(!padStarted) startPad(); if(now>nextChirp){ birdChirp(); nextChirp=now+7000+Math.random()*9000; } } // soft birdsong over the ambient pad
   if(ambient){ ambient.rotation.y+=dt*0.03; ambient.material.opacity=0.35+0.2*Math.sin(t*1.5); }
   { const lit=lhLightMat.emissiveIntensity>0.1; lhHalo.material.opacity+=((lit?0.7+0.18*Math.sin(t*3):0)-lhHalo.material.opacity)*Math.min(1,dt*4); }
   for(const c of crystals){ const e=0.5+Math.sin(t*1.5+c.seed)*0.25; c.g.children[0].material.emissiveIntensity=e; c.g.children[1].material.emissiveIntensity=e+0.12; } // energy-infused pulse
