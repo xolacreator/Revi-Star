@@ -80,12 +80,18 @@ const VO_LINES={
   "*happy twinkle!* 🦊💛":'twinkle_happy'
 };
 function clipIdFor(text,explicit){ return explicit || VO_LINES[text] || null; }
-function playClip(a,then){ try{ speechSynthesis.cancel(); a.currentTime=0; a.onended=then||null; const p=a.play(); if(p&&p.catch) p.catch(()=>{ if(then) setTimeout(then,300); }); return true; }catch(e){ return false; } }
+// One voice at a time across BOTH systems: stop any playing AI clip AND cancel device TTS
+// before starting either. (Otherwise a clip on headphones + TTS on the phone speaker overlap.)
+let curClip=null;
+function stopAudio(){ try{ speechSynthesis.cancel(); }catch(e){} if(curClip){ try{ curClip.onended=null; curClip.pause(); curClip.currentTime=0; }catch(e){} curClip=null; } }
+function playClip(a,then){ try{ stopAudio(); a.currentTime=0; curClip=a;
+  a.onended=()=>{ if(curClip===a) curClip=null; if(then) then(); };
+  const p=a.play(); if(p&&p.catch) p.catch(()=>{ if(curClip===a) curClip=null; if(then) setTimeout(then,300); }); return true; }catch(e){ return false; } }
 function say(t,{rate=null,pitch=null,then=null,char='narrator',id=null}={}){
   const cid=clipIdFor(t,id); if(cid && audioOn){ const ck=charProfile(char); const pick=VO_HAVE[cid+'__'+ck]||VO_HAVE[cid]; if(pick && playClip(pick,then)) return; } // per-character AI clip, then generic, then TTS
   if(!('speechSynthesis' in window)){ if(then)setTimeout(then,400); return; }
   const pr=VOICE_PROFILE[charProfile(char)]||VOICE_PROFILE.narrator;
-  try{ speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(t); u.rate=(rate!=null?rate:pr.rate); u.pitch=(pitch!=null?pitch:pr.pitch);
+  try{ stopAudio(); const u=new SpeechSynthesisUtterance(t); u.rate=(rate!=null?rate:pr.rate); u.pitch=(pitch!=null?pitch:pr.pitch);
     const vv=(pr.kid?voiceKid:voiceWarm)||voice; if(vv)u.voice=vv; if(then)u.onend=then; speechSynthesis.speak(u);}catch(e){ if(then)setTimeout(then,400);} }
 function chime(type='good'){ try{ actx=actx||new(window.AudioContext||window.webkitAudioContext)();
   const seq=type==='good'?[660,880]:type==='win'?[660,880,1320]:[520];
