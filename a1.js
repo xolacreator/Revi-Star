@@ -98,17 +98,30 @@ function say(t,{rate=null,pitch=null,then=null,char='narrator',id=null}={}){
   const pr=VOICE_PROFILE[charProfile(char)]||VOICE_PROFILE.narrator;
   try{ stopAudio(); const u=new SpeechSynthesisUtterance(t); u.rate=(rate!=null?rate:pr.rate); u.pitch=(pitch!=null?pitch:pr.pitch);
     const vv=(pr.kid?voiceKid:voiceWarm)||voice; if(vv)u.voice=vv; if(then)u.onend=then; speechSynthesis.speak(u);}catch(e){ if(then)setTimeout(then,400);} }
-// ---- Looping background music (assets/music/theme.mp3) — quiet, ducks under voices ----
-let bgm=null, bgmBase=0.20, unduckT=null;
-function fadeMusic(target){ if(!bgm) return; const step=()=>{ if(!bgm) return; const d=target-bgm.volume; if(Math.abs(d)<0.012){ bgm.volume=Math.max(0,Math.min(1,target)); return; } bgm.volume=Math.max(0,Math.min(1,bgm.volume+Math.sign(d)*0.025)); requestAnimationFrame(step); }; step(); }
-function initMusic(){ if(bgm || state.musicOff) return; const url='assets/music/theme.mp3';
-  try{ fetch(url,{method:'HEAD'}).then(r=>{ if(!r||!r.ok) return; bgm=new Audio(url); bgm.loop=true; bgm.volume=0; bgm.play().then(()=>fadeMusic(bgmBase)).catch(()=>{}); }).catch(()=>{}); }catch(e){} }
-function duckMusic(on){ if(!bgm||state.musicOff) return;
-  if(on){ if(unduckT){clearTimeout(unduckT);unduckT=null;} fadeMusic(bgmBase*0.28); }
-  else { if(unduckT)clearTimeout(unduckT); unduckT=setTimeout(()=>{ fadeMusic(bgmBase); unduckT=null; },500); } }
+// ---- Looping background music (assets/music/theme.mp3) — gapless Web Audio loop, quiet, ducks under voices ----
+let bgmGain=null, bgmSrc=null, bgmBuf=null, bgmBase=0.12, bgmReady=false, unduckT=null;
+function findLoopRegion(buf){ // trim near-silent edges so the loop is tight (no perceived gap)
+  const ch=buf.getChannelData(0), n=ch.length, sr=buf.sampleRate, thr=0.004; let s=0,e=n-1;
+  while(s<n && Math.abs(ch[s])<thr) s++; while(e>s && Math.abs(ch[e])<thr) e--;
+  const pad=Math.floor(sr*0.015); s=Math.max(0,s-pad); e=Math.min(n-1,e+pad);
+  if(e-s < sr*0.5){ s=0; e=n-1; } // safety: if detection went wrong, use the whole file
+  return {start:s/sr, end:e/sr}; }
+function setBgm(v,t=0.4){ if(bgmGain&&actx){ try{ bgmGain.gain.setTargetAtTime(v,actx.currentTime,t); }catch(e){} } }
+async function initMusic(){ if(bgmSrc || bgmReady || state.musicOff || !actx) return; bgmReady=true;
+  try{ if(actx.state==='suspended') await actx.resume();
+    const res=await fetch('assets/music/theme.mp3'); if(!res.ok){ bgmReady=false; return; }
+    bgmBuf=await actx.decodeAudioData(await res.arrayBuffer());
+    const {start,end}=findLoopRegion(bgmBuf);
+    bgmGain=actx.createGain(); bgmGain.gain.value=0; bgmGain.connect(actx.destination);
+    bgmSrc=actx.createBufferSource(); bgmSrc.buffer=bgmBuf; bgmSrc.loop=true; bgmSrc.loopStart=start; bgmSrc.loopEnd=end; bgmSrc.connect(bgmGain);
+    bgmSrc.start(0,start); setBgm(bgmBase,1.0); // gentle fade-in
+  }catch(e){ bgmReady=false; } }
+function duckMusic(on){ if(!bgmGain||state.musicOff) return;
+  if(on){ if(unduckT){clearTimeout(unduckT);unduckT=null;} setBgm(bgmBase*0.22,0.12); } // dip well under the voice
+  else { if(unduckT)clearTimeout(unduckT); unduckT=setTimeout(()=>{ setBgm(bgmBase,0.6); unduckT=null; },450); } }
 function updateMusicBtn(){ const b=$('music-btn'); if(b) b.textContent=state.musicOff?'🔇':'🎵'; }
 function toggleMusic(){ state.musicOff=!state.musicOff; save(); updateMusicBtn();
-  if(state.musicOff){ if(bgm) fadeMusic(0); } else { if(bgm){ bgm.play().catch(()=>{}); fadeMusic(bgmBase); } else initMusic(); } }
+  if(state.musicOff){ setBgm(0,0.3); } else if(bgmSrc){ setBgm(bgmBase,0.5); } else { bgmReady=false; initMusic(); } }
 function chime(type='good'){ try{ actx=actx||new(window.AudioContext||window.webkitAudioContext)();
   const seq=type==='good'?[660,880]:type==='win'?[660,880,1320]:[520];
   seq.forEach((f,i)=>{ const o=actx.createOscillator(),g=actx.createGain(); o.type='sine'; o.frequency.value=f; o.connect(g); g.connect(actx.destination);
