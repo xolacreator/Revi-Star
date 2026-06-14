@@ -99,7 +99,7 @@ function say(t,{rate=null,pitch=null,then=null,char='narrator',id=null}={}){
   try{ stopAudio(); const u=new SpeechSynthesisUtterance(t); u.rate=(rate!=null?rate:pr.rate); u.pitch=(pitch!=null?pitch:pr.pitch);
     const vv=(pr.kid?voiceKid:voiceWarm)||voice; if(vv)u.voice=vv; if(then)u.onend=then; speechSynthesis.speak(u);}catch(e){ if(then)setTimeout(then,400);} }
 // ---- Looping background music (assets/music/theme.mp3) — gapless Web Audio loop, quiet, ducks under voices ----
-let bgmGain=null, bgmSrc=null, bgmBuf=null, bgmBase=0.12, bgmReady=false, unduckT=null;
+let bgmGain=null, bgmSrc=null, bgmBuf=null, bgmBase=0.09, bgmReady=false, unduckT=null;
 function findLoopRegion(buf){ // trim near-silent edges so the loop is tight (no perceived gap)
   const ch=buf.getChannelData(0), n=ch.length, sr=buf.sampleRate, thr=0.004; let s=0,e=n-1;
   while(s<n && Math.abs(ch[s])<thr) s++; while(e>s && Math.abs(ch[e])<thr) e--;
@@ -871,13 +871,15 @@ function buildDashboard(){ const m=metrics();
   $('pc-today').innerHTML = `<li>Practiced <b>${skillName}</b></li><li>Tried ${tried}, got ${got}, used ${usedHints} hint${usedHints===1?'':'s'}</li>`+(state.day===3?'<li>Read a whole word independently 🎉</li>':'');
   $('pc-pre').textContent = state.pre==null?'–':state.pre; $('pc-post').textContent = state.post==null?'–':state.post;
 }
-function openParent(){ buildDashboard(); populateVoicePicker(); show('parent');
+function openParent(){ buildDashboard(); show('parent');
   $('reengage').classList.toggle('hidden', !state.askReengage);
   log('dashboard_view');
   [...document.querySelectorAll('#reengage .re-btns button')].forEach(b=>b.onclick=()=>{ log('parent_reengage',{value:b.dataset.v}); state.askReengage=false; save(); $('reengage').classList.add('hidden'); });
 }
 $('pc-close').onclick=()=>hide('parent');
-$('pc-voice-test').onclick=()=>say("Hi! I'm Rumi. Let's read together and have fun!",{char:'rumi'});
+$('pc-voice-test').onclick=()=>{ // demo the real character voices (device TTS is off — clips only)
+  const seq=[['rumi','praise_did_it'],['mira','praise_amazing'],['zoey','praise_yay']]; let i=0;
+  const next=()=>{ if(i>=seq.length) return; const [g,id]=seq[i++]; say('',{id,char:g,then:()=>setTimeout(next,220)}); }; next(); };
 $('pc-export').onclick=()=>{ const blob=new Blob([JSON.stringify({state,events},null,2)],{type:'application/json'});
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='little-legends-a1-data.json'; a.click(); };
 $('pc-sim').onclick=()=>{ state.lastCompletedDate=null; save(); hide('parent'); location.reload(); };
