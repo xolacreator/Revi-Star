@@ -58,19 +58,13 @@ html,body{margin:0;height:100%;overflow:hidden;background:#bfe3ff;font-family:va
 .text-btn{border:none;background:transparent;color:#fff;font-family:var(--font);font-weight:700;font-size:18px;text-decoration:underline;opacity:.92}
 
 /* ---------- Challenge ---------- */
-.challenge{background:linear-gradient(160deg,#FFE3A8,#FFB1DE);overflow-y:auto;gap:10px}
+.challenge{background:linear-gradient(160deg,#FFE3A8,#FFB1DE);overflow-y:auto;justify-content:space-between;gap:8px;padding:18px 16px 26px}
 /* Rumi coach — the engaged guide stays on screen during learning */
-/* Stacked layout: question + image on top, character in the middle, answers below */
-.challenge .ch-lights{order:1}
-.challenge .ch-pic{order:2}
-.challenge h2{order:3}
-.challenge #coach{order:4}
-.challenge .ch-options{order:5}
-.challenge .ch-actions{order:6}
-.coach{position:static;transform:none;left:auto;bottom:auto;top:auto;display:flex;flex-direction:column;align-items:center;gap:0;max-width:96%;z-index:12}
-.coach canvas,.coach #coach-img{width:195px;height:224px;flex:0 0 auto;background:rgba(255,255,255,.72);border-radius:26px;object-fit:cover;object-position:center top;box-shadow:0 8px 0 rgba(150,110,170,.4);animation:bob 3s ease-in-out infinite}
-.coach #coach-line{display:none} /* question is shown above the character, so no duplicate speech bubble */
-@media (max-width:520px){.coach canvas,.coach #coach-img{width:164px;height:190px}}
+/* Three bands fill the screen: question+image on top, character in the middle, answers below */
+.ch-top,.ch-bottom{display:flex;flex-direction:column;align-items:center;gap:10px;width:100%;flex:0 0 auto}
+.coach{position:static;transform:none;left:auto;bottom:auto;top:auto;display:flex;flex-direction:column;align-items:center;gap:0;z-index:12;flex:0 1 auto;min-height:0}
+.coach canvas,.coach #coach-img{height:min(42vh,340px);width:auto;aspect-ratio:185/214;flex:0 1 auto;background:rgba(255,255,255,.72);border-radius:26px;object-fit:cover;object-position:center top;box-shadow:0 8px 0 rgba(150,110,170,.4);animation:bob 3s ease-in-out infinite}
+.coach #coach-line{display:none} /* question shown above the character, so no duplicate bubble */
 .ch-lights{font-size:34px;letter-spacing:8px;color:#fff;text-shadow:0 2px 4px rgba(80,40,120,.4)}
 .ch-lights .on{color:var(--gold)}
 .ch-pic{font-size:96px;filter:drop-shadow(0 6px 10px rgba(80,40,120,.25));animation:bob 2s ease-in-out infinite}

@@ -74,14 +74,18 @@
 
   <!-- Learning challenge -->
   <div id="challenge" class="overlay challenge hidden">
+    <div class="ch-top">
+      <div class="ch-lights" id="ch-lights"></div>
+      <div id="ch-pic" class="ch-pic">☀️</div>
+      <h2 id="ch-prompt">Let's read!</h2>
+    </div>
     <div id="coach" class="coach"><canvas id="coach-face" width="120" height="120"></canvas><img id="coach-img" class="hidden" alt=""><p id="coach-line">Let's read together!</p></div>
-    <div class="ch-lights" id="ch-lights"></div>
-    <div id="ch-pic" class="ch-pic">☀️</div>
-    <h2 id="ch-prompt">Let's read!</h2>
-    <div id="ch-options" class="ch-options"></div>
-    <div class="ch-actions">
-      <button id="ch-hear" class="pill">🔊 Hear it</button>
-      <button id="ch-hint" class="pill">💡 Hint</button>
+    <div class="ch-bottom">
+      <div id="ch-options" class="ch-options"></div>
+      <div class="ch-actions">
+        <button id="ch-hear" class="pill">🔊 Hear it</button>
+        <button id="ch-hint" class="pill">💡 Hint</button>
+      </div>
     </div>
   </div>
 

@@ -1,6 +1,6 @@
 // Doodle Stars service worker — offline app shell caching.
 // Bump CACHE when any shell file changes so clients pull fresh copies.
-const CACHE = 'little-legends-a1-v64';
+const CACHE = 'little-legends-a1-v65';
 const SHELL = [
   './',
   './index.html',
