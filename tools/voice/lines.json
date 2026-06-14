@@ -876,6 +876,36 @@
       "character": "narrator",
       "text": "zip",
       "batch": "blend"
+    },
+    {
+      "id": "chk_intro",
+      "character": "narrator",
+      "text": "Let's play Twinkle's Star Check! Just try your best — it's only for fun.",
+      "batch": "check"
+    },
+    {
+      "id": "chk_q1",
+      "character": "narrator",
+      "text": "Which letter says mmm?",
+      "batch": "check"
+    },
+    {
+      "id": "chk_q2",
+      "character": "narrator",
+      "text": "What sound does leaf start with?",
+      "batch": "check"
+    },
+    {
+      "id": "chk_q5",
+      "character": "narrator",
+      "text": "What rhymes with cat?",
+      "batch": "check"
+    },
+    {
+      "id": "chk_q6",
+      "character": "narrator",
+      "text": "Which letter says tuh?",
+      "batch": "check"
     }
   ]
 }

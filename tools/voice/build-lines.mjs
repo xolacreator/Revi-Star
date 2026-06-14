@@ -32,9 +32,16 @@ for(const L of LETTERBANK) push(words,'q_first_'+L[2],vFirst(L),'words');
 const blend=[];
 for(const w of CVCWORDS){ push(blend,'q_blend_'+w,vBlend(w),'blend'); push(blend,'word_'+w,w,'blend'); for(const ch of w.split('')){ const p=PH[ch]||ch; push(blend,phId(p),p,'blend'); } }
 
-// ---- merge: keep core + other batches, replace rebuilt ones ----
+const check=[]; // pig/red questions reuse existing q_word_ clips, so they're omitted here
+push(check,'chk_intro',"Let's play Twinkle's Star Check! Just try your best — it's only for fun.",'check');
+push(check,'chk_q1','Which letter says mmm?','check');
+push(check,'chk_q2','What sound does leaf start with?','check');
+push(check,'chk_q5','What rhymes with cat?','check');
+push(check,'chk_q6','Which letter says tuh?','check');
+
+// ---- merge: keep core, replace rebuilt gameplay batches ----
 const doc=JSON.parse(await readFile('tools/voice/lines.json','utf8'));
-const kept=doc.lines.filter(l=>!['letters','words','blend'].includes(l.batch));
-doc.lines=[...kept,...letters,...words,...blend];
+const kept=doc.lines.filter(l=>!['letters','words','blend','check'].includes(l.batch));
+doc.lines=[...kept,...letters,...words,...blend,...check];
 await writeFile('tools/voice/lines.json', JSON.stringify(doc,null,2)+'\n');
-console.log(`lines.json: ${kept.length} kept + ${letters.length} letters + ${words.length} words + ${blend.length} blend = ${doc.lines.length} total`);
+console.log(`lines.json: ${kept.length} kept + ${letters.length} letters + ${words.length} words + ${blend.length} blend + ${check.length} check = ${doc.lines.length} total`);

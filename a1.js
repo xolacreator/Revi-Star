@@ -584,6 +584,9 @@ const STARCHECK=[
   {skillId:'phon.rhyme',pic:'🐱',prompt:'What rhymes with  “cat”?',say:'What rhymes with cat?',options:['hat','dog','sun'],answer:'hat'},
   {skillId:'phon.letter.sound',pic:'⛺',prompt:'Which letter says  tuh?',say:'Which letter says tuh?',options:['T','M','F'],answer:'T'},
 ];
+// Batch "check": Star Check intro + questions (pig/red reuse existing word clips).
+VO_LINES["Let's play Twinkle's Star Check! Just try your best — it's only for fun."]='chk_intro';
+['chk_q1','chk_q2','chk_q3','chk_q4','chk_q5','chk_q6'].forEach((id,i)=>{ const q=STARCHECK[i]; if(q && !VO_LINES[q.say]) VO_LINES[q.say]=id; });
 
 // =====================================================================
 //  ACTIVITY RUNNER (no-fail, adaptive, instrumented)
