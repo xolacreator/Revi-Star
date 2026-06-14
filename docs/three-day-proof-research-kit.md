@@ -106,7 +106,7 @@ Local preschools/K classrooms, parenting Facebook/WhatsApp groups, library story
 - Log every intervention (time + reason) — interventions reduce the "independence" signal.
 
 ### After each session
-☐ Complete the observation checklist ☐ Day 1: **export JSON** (Parent panel 👪 → 3-7-1 → ⬇️ Export) and save as `F##_dayN.json` ☐ Note any tech issues ☐ Confirm the parent knows the Day-2/3 at-home steps (give them §5–7 parent cards).
+☐ Complete the observation checklist ☐ Day 1: **export JSON** (Parent panel 👪 → 4-2-7 → ⬇️ Export) and save as `F##_dayN.json` ☐ Note any tech issues ☐ Confirm the parent knows the Day-2/3 at-home steps (give them §5–7 parent cards).
 
 ---
 
@@ -151,7 +151,7 @@ Participant `F___` · Day `__` · Date `____` · Moderator `____`
 # 6. Day 2 Session Script (parent-facilitated, at home)
 
 Give the parent this card:
-> **Day 2 — at home.** Sometime today, if your child is interested, open the game (same link). **Please don't pressure them** — we're learning whether they choose to come back. If they ask, great; help only with the device, not the answers. It's ~5–10 min. Afterward, fill the 30-second nightly log. (If the app says "come back tomorrow," tap 👪 → 3-7-1 → **Simulate next day** to unlock Day 2.)
+> **Day 2 — at home.** Sometime today, if your child is interested, open the game (same link). **Please don't pressure them** — we're learning whether they choose to come back. If they ask, great; help only with the device, not the answers. It's ~5–10 min. Afterward, fill the 30-second nightly log. (If the app says "come back tomorrow," tap 👪 → 4-2-7 → **Simulate next day** to unlock Day 2.)
 
 **What we measure:** D1→D2 voluntary return (did the child initiate?), Day-2 engagement & hint trend (from JSON), continued delight (parent log). Moderator reviews the exported data + log; optional 5-min video call to observe.
 

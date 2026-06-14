@@ -14,7 +14,7 @@
 - **No-fail adaptive** activities (Hear-it / Hint / model-after-2-misses), instrumented per item.
 - **Daily progression + reward + "tomorrow" tease**; harbor blooms gray→color.
 - **Pre/Post "Star Check"** (6 transfer items, hint-free, <3 min) before Day 1 and after Day 3.
-- **Parent dashboard** (behind a 3-7-1 parental gate): Reading + Confidence bars, 3 streak dots, **"here's what your child practiced today,"** pre/post Stars, **data export**.
+- **Parent dashboard** (behind a 4-2-7 parental gate): Reading + Confidence bars, 3 streak dots, **"here's what your child practiced today,"** pre/post Stars, **data export**.
 - **Real day-gating:** one day per calendar day; natural return required.
 
 ## How to run the test
@@ -23,7 +23,7 @@
   - `?day=1…21` — jump to a specific day. (Days 1–3 are authored; 4–21 are auto-generated practice. The 3-Day Proof metrics below still anchor on days 1–3.)
   - `?observe=1` — show the **Observer bar** to timestamp **Time-to-Delight** (first smile / first "wow!").
   - `?reset=1` — wipe local test data.
-  - In the **Parent panel** (👪 → tap 3-7-1): **Simulate next day**, **Reset**, and **⬇️ Export data** (downloads `state` + full event log as JSON).
+  - In the **Parent panel** (👪 → tap 4-2-7): **Simulate next day**, **Reset**, and **⬇️ Export data** (downloads `state` + full event log as JSON).
 
 ## New metrics wired in
 - **Time-to-Delight:** auto-captures `first_interaction` (first voluntary tap) and `first_reward` (first sparkle/correct); Observer bar logs `delight_smile` / `delight_excited` (ms from launch).

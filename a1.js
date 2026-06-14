@@ -844,10 +844,13 @@ function completeDay(){ if(!state.completedDays.includes(state.day)) state.compl
 // =====================================================================
 //  PARENT GATE + DASHBOARD + REENGAGE + TOOLS
 // =====================================================================
-const GATE=['3','7','1']; let gateInput=[];
+const GATE=['4','2','7']; let gateInput=[];
+function padBlip(){ try{ actx=actx||new(window.AudioContext||window.webkitAudioContext)(); const o=actx.createOscillator(),g=actx.createGain(); o.type='sine'; o.frequency.value=660; o.connect(g); g.connect(actx.destination); const t=actx.currentTime; g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.12,t+0.01); g.gain.exponentialRampToValueAtTime(0.0001,t+0.12); o.start(t); o.stop(t+0.13); }catch(e){} }
 function openGate(){ gateInput=[]; $('pg-seq').textContent=GATE.join(' · '); const pad=$('pg-pad'); pad.innerHTML='';
-  ['1','2','3','4','5','6','7','8','9'].forEach(n=>{ const b=document.createElement('button'); b.textContent=n; b.onclick=()=>{ gateInput.push(n);
-    if(gateInput.length===GATE.length){ if(gateInput.join('')===GATE.join('')){ hide('parent-gate'); openParent(); } else { gateInput=[]; b.parentElement.animate?.([{transform:'translateX(-6px)'},{transform:'translateX(6px)'},{transform:'translateX(0)'}],{duration:200}); } } }; pad.appendChild(b); });
+  ['1','2','3','4','5','6','7','8','9'].forEach(n=>{ const b=document.createElement('button'); b.textContent=n; b.onclick=()=>{
+      b.animate?.([{transform:'scale(0.84)'},{transform:'scale(1)'}],{duration:170,easing:'ease-out'}); haptic(10); padBlip(); // press feedback: pop + buzz + blip
+      gateInput.push(n);
+      if(gateInput.length===GATE.length){ if(gateInput.join('')===GATE.join('')){ hide('parent-gate'); openParent(); } else { gateInput=[]; b.parentElement.animate?.([{transform:'translateX(-6px)'},{transform:'translateX(6px)'},{transform:'translateX(0)'}],{duration:200}); } } }; pad.appendChild(b); });
   show('parent-gate'); }
 $('pg-cancel').onclick=()=>hide('parent-gate');
 $('parent-open').onclick=openGate;
