@@ -366,6 +366,258 @@
       "character": "narrator",
       "text": "kuh. Trace the C with your finger!",
       "batch": "letters"
+    },
+    {
+      "id": "q_word_cat",
+      "character": "narrator",
+      "text": "Which word says cat?",
+      "batch": "words"
+    },
+    {
+      "id": "q_word_dog",
+      "character": "narrator",
+      "text": "Which word says dog?",
+      "batch": "words"
+    },
+    {
+      "id": "q_word_sun",
+      "character": "narrator",
+      "text": "Which word says sun?",
+      "batch": "words"
+    },
+    {
+      "id": "q_word_red",
+      "character": "narrator",
+      "text": "Which word says red?",
+      "batch": "words"
+    },
+    {
+      "id": "q_word_pig",
+      "character": "narrator",
+      "text": "Which word says pig?",
+      "batch": "words"
+    },
+    {
+      "id": "q_word_bus",
+      "character": "narrator",
+      "text": "Which word says bus?",
+      "batch": "words"
+    },
+    {
+      "id": "q_word_hat",
+      "character": "narrator",
+      "text": "Which word says hat?",
+      "batch": "words"
+    },
+    {
+      "id": "q_word_mom",
+      "character": "narrator",
+      "text": "Which word says mom?",
+      "batch": "words"
+    },
+    {
+      "id": "q_word_big",
+      "character": "narrator",
+      "text": "Which word says big?",
+      "batch": "words"
+    },
+    {
+      "id": "q_word_net",
+      "character": "narrator",
+      "text": "Which word says net?",
+      "batch": "words"
+    },
+    {
+      "id": "q_word_box",
+      "character": "narrator",
+      "text": "Which word says box?",
+      "batch": "words"
+    },
+    {
+      "id": "q_word_fox",
+      "character": "narrator",
+      "text": "Which word says fox?",
+      "batch": "words"
+    },
+    {
+      "id": "word_cat",
+      "character": "narrator",
+      "text": "cat",
+      "batch": "words"
+    },
+    {
+      "id": "word_dog",
+      "character": "narrator",
+      "text": "dog",
+      "batch": "words"
+    },
+    {
+      "id": "word_sun",
+      "character": "narrator",
+      "text": "sun",
+      "batch": "words"
+    },
+    {
+      "id": "word_bus",
+      "character": "narrator",
+      "text": "bus",
+      "batch": "words"
+    },
+    {
+      "id": "word_net",
+      "character": "narrator",
+      "text": "net",
+      "batch": "words"
+    },
+    {
+      "id": "word_pig",
+      "character": "narrator",
+      "text": "pig",
+      "batch": "words"
+    },
+    {
+      "id": "word_red",
+      "character": "narrator",
+      "text": "red",
+      "batch": "words"
+    },
+    {
+      "id": "word_mom",
+      "character": "narrator",
+      "text": "mom",
+      "batch": "words"
+    },
+    {
+      "id": "word_big",
+      "character": "narrator",
+      "text": "big",
+      "batch": "words"
+    },
+    {
+      "id": "word_hat",
+      "character": "narrator",
+      "text": "hat",
+      "batch": "words"
+    },
+    {
+      "id": "word_box",
+      "character": "narrator",
+      "text": "box",
+      "batch": "words"
+    },
+    {
+      "id": "word_fox",
+      "character": "narrator",
+      "text": "fox",
+      "batch": "words"
+    },
+    {
+      "id": "q_first_sun",
+      "character": "narrator",
+      "text": "What sound does sun start with? sss, sss, sun.",
+      "batch": "words"
+    },
+    {
+      "id": "q_first_moon",
+      "character": "narrator",
+      "text": "What sound does moon start with? mmm, mmm, moon.",
+      "batch": "words"
+    },
+    {
+      "id": "q_first_top",
+      "character": "narrator",
+      "text": "What sound does top start with? tuh, tuh, top.",
+      "batch": "words"
+    },
+    {
+      "id": "q_first_fish",
+      "character": "narrator",
+      "text": "What sound does fish start with? fff, fff, fish.",
+      "batch": "words"
+    },
+    {
+      "id": "q_first_bee",
+      "character": "narrator",
+      "text": "What sound does bee start with? buh, buh, bee.",
+      "batch": "words"
+    },
+    {
+      "id": "q_first_net",
+      "character": "narrator",
+      "text": "What sound does net start with? nnn, nnn, net.",
+      "batch": "words"
+    },
+    {
+      "id": "q_first_pig",
+      "character": "narrator",
+      "text": "What sound does pig start with? puh, puh, pig.",
+      "batch": "words"
+    },
+    {
+      "id": "q_first_dog",
+      "character": "narrator",
+      "text": "What sound does dog start with? duh, duh, dog.",
+      "batch": "words"
+    },
+    {
+      "id": "q_first_leaf",
+      "character": "narrator",
+      "text": "What sound does leaf start with? lll, lll, leaf.",
+      "batch": "words"
+    },
+    {
+      "id": "q_first_red",
+      "character": "narrator",
+      "text": "What sound does red start with? rrr, rrr, red.",
+      "batch": "words"
+    },
+    {
+      "id": "q_first_cat",
+      "character": "narrator",
+      "text": "What sound does cat start with? kuh, kuh, cat.",
+      "batch": "words"
+    },
+    {
+      "id": "q_first_hat",
+      "character": "narrator",
+      "text": "What sound does hat start with? huh, huh, hat.",
+      "batch": "words"
+    },
+    {
+      "id": "q_first_goat",
+      "character": "narrator",
+      "text": "What sound does goat start with? guh, guh, goat.",
+      "batch": "words"
+    },
+    {
+      "id": "q_first_kite",
+      "character": "narrator",
+      "text": "What sound does kite start with? kuh, kuh, kite.",
+      "batch": "words"
+    },
+    {
+      "id": "q_first_van",
+      "character": "narrator",
+      "text": "What sound does van start with? vvv, vvv, van.",
+      "batch": "words"
+    },
+    {
+      "id": "q_first_web",
+      "character": "narrator",
+      "text": "What sound does web start with? wuh, wuh, web.",
+      "batch": "words"
+    },
+    {
+      "id": "q_first_zip",
+      "character": "narrator",
+      "text": "What sound does zip start with? zzz, zzz, zip.",
+      "batch": "words"
+    },
+    {
+      "id": "q_first_jam",
+      "character": "narrator",
+      "text": "What sound does jam start with? juh, juh, jam.",
+      "batch": "words"
     }
   ]
 }
