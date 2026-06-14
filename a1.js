@@ -91,9 +91,10 @@ function stopAudio(){ try{ speechSynthesis.cancel(); }catch(e){} if(curClip){ tr
 function playClip(a,then){ try{ stopAudio(); a.currentTime=0; curClip=a;
   a.onended=()=>{ if(curClip===a) curClip=null; if(then) then(); };
   const p=a.play(); if(p&&p.catch) p.catch(()=>{ if(curClip===a) curClip=null; if(then) setTimeout(then,300); }); return true; }catch(e){ return false; } }
+const ALLOW_TTS=false; // device/robotic voice fully disabled — real character clips only
 function say(t,{rate=null,pitch=null,then=null,char='narrator',id=null}={}){
-  const cid=clipIdFor(t,id); if(cid && audioOn){ const ck=charProfile(char); const pick=VO_HAVE[cid+'__'+ck]||VO_HAVE[cid]; if(pick && playClip(pick,then)) return; } // per-character AI clip, then generic, then TTS
-  if(!('speechSynthesis' in window)){ if(then)setTimeout(then,400); return; }
+  const cid=clipIdFor(t,id); if(cid && audioOn){ const ck=charProfile(char); const pick=VO_HAVE[cid+'__'+ck]||VO_HAVE[cid]; if(pick && playClip(pick,then)) return; } // per-character AI clip, then generic
+  if(!ALLOW_TTS || !audioOn || !('speechSynthesis' in window)){ stopAudio(); if(then) setTimeout(then,500); return; } // no clip → silent (no robotic), keep flow alive
   const pr=VOICE_PROFILE[charProfile(char)]||VOICE_PROFILE.narrator;
   try{ stopAudio(); const u=new SpeechSynthesisUtterance(t); u.rate=(rate!=null?rate:pr.rate); u.pitch=(pitch!=null?pitch:pr.pitch);
     const vv=(pr.kid?voiceKid:voiceWarm)||voice; if(vv)u.voice=vv; if(then)u.onend=then; speechSynthesis.speak(u);}catch(e){ if(then)setTimeout(then,400);} }
@@ -986,7 +987,7 @@ function tick(now){ const dt=Math.min((now-lastT)/1000,.05); lastT=now; const t=
     if(f.flower){ const pop=p<0.18?(p/0.18):1; f.m.scale.setScalar(0.4+pop*0.7); f.m.material.opacity=(p<0.18?p/0.18:1)*Math.max(0,1-Math.max(0,(p-0.6)/0.4))*0.95; }
     else { f.m.scale.setScalar(1+p*4); f.m.material.opacity=Math.max(0,0.5*(1-p)); }
     if(p>=1){ scene.remove(f.m); f.m.material.dispose(); stepFx.splice(i,1); } }
-  if(audioOn && actx){ if(!padStarted) startPad(); if(now>nextChirp){ birdChirp(); nextChirp=now+7000+Math.random()*9000; } } // soft birdsong over the ambient pad
+  // (ambient audio pad + birdsong removed — they added a constant background drone)
   if(ambient){ ambient.rotation.y+=dt*0.03; ambient.material.opacity=0.35+0.2*Math.sin(t*1.5); }
   { const lit=lhLightMat.emissiveIntensity>0.1; lhHalo.material.opacity+=((lit?0.7+0.18*Math.sin(t*3):0)-lhHalo.material.opacity)*Math.min(1,dt*4); }
   for(const c of crystals){ const e=0.5+Math.sin(t*1.5+c.seed)*0.25; c.g.children[0].material.emissiveIntensity=e; c.g.children[1].material.emissiveIntensity=e+0.12; } // energy-infused pulse
