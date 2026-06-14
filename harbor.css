@@ -58,27 +58,27 @@ html,body{margin:0;height:100%;overflow:hidden;background:#bfe3ff;font-family:va
 .text-btn{border:none;background:transparent;color:#fff;font-family:var(--font);font-weight:700;font-size:18px;text-decoration:underline;opacity:.92}
 
 /* ---------- Challenge ---------- */
-.challenge{background:linear-gradient(160deg,#FFE3A8,#FFB1DE);overflow-y:auto;justify-content:space-between;gap:8px;padding:18px 16px 26px}
+.challenge{background:linear-gradient(160deg,#FFE3A8,#FFB1DE);overflow-y:auto;justify-content:space-between;gap:8px;padding:16px 16px 14px}
 /* Rumi coach — the engaged guide stays on screen during learning */
 /* Three bands fill the screen: question+image on top, character in the middle, answers below */
 .ch-top,.ch-bottom{display:flex;flex-direction:column;align-items:center;gap:10px;width:100%;flex:0 0 auto}
 .coach{position:static;transform:none;left:auto;bottom:auto;top:auto;display:flex;flex-direction:column;align-items:center;gap:0;z-index:12;flex:0 1 auto;min-height:0}
-.coach canvas,.coach #coach-img{height:min(34vh,300px);width:auto;aspect-ratio:185/214;flex:0 1 auto;background:rgba(255,255,255,.72);border-radius:26px;object-fit:cover;object-position:center top;box-shadow:0 8px 0 rgba(150,110,170,.4);animation:bob 3s ease-in-out infinite}
+.coach canvas,.coach #coach-img{height:min(37vh,320px);width:auto;aspect-ratio:185/214;flex:0 1 auto;background:rgba(255,255,255,.72);border-radius:26px;object-fit:cover;object-position:center top;box-shadow:0 8px 0 rgba(150,110,170,.4);animation:bob 3s ease-in-out infinite}
 .coach #coach-line{display:none} /* question shown above the character, so no duplicate bubble */
-@media (max-width:560px){.coach canvas,.coach #coach-img{height:min(27vh,220px)}}
+@media (max-width:560px){.coach canvas,.coach #coach-img{height:min(31vh,250px)}}
 .ch-lights{font-size:34px;letter-spacing:8px;color:#fff;text-shadow:0 2px 4px rgba(80,40,120,.4)}
 .ch-lights .on{color:var(--gold)}
 .ch-pic{font-size:96px;filter:drop-shadow(0 6px 10px rgba(80,40,120,.25));animation:bob 2s ease-in-out infinite}
 .challenge h2{color:var(--purple);font-size:26px;margin:4px 16px}
-.ch-options{display:flex;flex-wrap:wrap;gap:16px;justify-content:center;max-width:560px}
-.opt{min-width:120px;border:none;background:#fff;color:var(--ink);font-family:var(--font);font-weight:800;font-size:34px;padding:22px 26px;border-radius:24px;box-shadow:0 6px 0 rgba(150,110,170,.35);transition:transform .12s}
+.ch-options{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;max-width:560px}
+.opt{min-width:92px;border:none;background:#fff;color:var(--ink);font-family:var(--font);font-weight:800;font-size:27px;padding:13px 19px;border-radius:18px;box-shadow:0 5px 0 rgba(150,110,170,.35);transition:transform .12s}
 .opt:active{transform:scale(.96)}
 .opt.correct{background:var(--mint);box-shadow:0 6px 0 #43c79a;animation:pop .4s}
 .opt.dim{opacity:.45}
 .opt.glowhint{outline:5px solid var(--gold);animation:pulse 1s infinite}
 .trace-cv{background:rgba(255,255,255,.92);border-radius:24px;box-shadow:0 6px 0 rgba(150,110,170,.35);touch-action:none;width:300px;height:340px;max-width:84vw;max-height:48vh}
-.ch-actions{display:flex;gap:14px;margin-top:8px}
-.pill{border:none;background:rgba(255,255,255,.85);color:var(--purple);font-family:var(--font);font-weight:800;font-size:18px;padding:12px 22px;border-radius:999px}
+.ch-actions{display:flex;gap:12px;margin-top:2px}
+.pill{border:none;background:rgba(255,255,255,.85);color:var(--purple);font-family:var(--font);font-weight:800;font-size:16px;padding:9px 17px;border-radius:999px}
 
 /* ---------- Transform ---------- */
 .transform{background:radial-gradient(circle at center,#7d5bd6,#3a2466);overflow:hidden}
