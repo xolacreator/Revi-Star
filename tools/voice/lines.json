@@ -1,6 +1,10 @@
 {
   "_comment": "Each entry -> one or more MP3s in assets/vo/. 'character' fixes the voice. 'rotating': true generates per-guide variants <id>__rumi/__mira/__zoey so each daily guide speaks shared lines in their own voice. 'text' is what gets spoken (can be cleaner than the in-code string; the game matches by id).",
   "lines": [
+    { "id": "tut_1", "character": "rumi", "text": "Hi! I'm Rumi! Welcome to Reventure! Let me show you how to play." },
+    { "id": "tut_2", "character": "rumi", "text": "Tap the ground, or hold and drag, to walk around our magical harbor." },
+    { "id": "tut_3", "character": "rumi", "text": "Find a friend, then read and play games with me to fill the world with light!" },
+    { "id": "tut_4", "character": "rumi", "text": "Every sound you learn makes you shine brighter. Ready? Let's go!" },
     { "id": "rumi_greet_d1", "character": "rumi", "text": "Hi! I'm Rumi! Welcome to Harmony Harbor! Oh no, the lighthouse went dark and a shy Gloomling is hiding its words. Will you help me read to light it up?" },
     { "id": "rumi_greet_d2", "character": "rumi", "text": "You came back, yay! The dock signs got all mixed up in the wind. Can you read them with me?" },
     { "id": "rumi_greet_d3", "character": "rumi", "text": "Three days in a row, you're a real Star Hunter! The lighthouse keeper left you a note. Let's read it together." },

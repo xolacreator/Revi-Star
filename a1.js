@@ -21,7 +21,7 @@ let state = load() || {
   rumiStage:1, twinkleForm:0,
   pre:null, post:null,
   history:[],            // {day,skillId,correct,hints,modeled,firstTry,ms}
-  launchCount:0, voicePref:null
+  launchCount:0, voicePref:null, tutorialDone:false
 };
 let events = (()=>{ try{ return JSON.parse(localStorage.getItem(EKEY))||[]; }catch(e){ return []; } })();
 let launchT = 0, delight={interaction:null,reward:null,smile:null,excited:null};
@@ -77,7 +77,11 @@ const VO_LINES={
   "Almost! Listen again.":'fb_almost', "Trace along the glowing line, like this!":'fb_trace_hint',
   "Tap this one next!":'fb_blend_hint', "Start with the first sound!":'fb_first_sound',
   "See you tomorrow!":'nav_see_tomorrow', "Great job today, Star Hunter!":'reward_great_job',
-  "*happy twinkle!* 🦊💛":'twinkle_happy'
+  "*happy twinkle!* 🦊💛":'twinkle_happy',
+  "Hi! I'm Rumi! Welcome to Reventure! Let me show you how to play.":'tut_1',
+  "Tap the ground, or hold and drag, to walk around our magical harbor.":'tut_2',
+  "Find a friend, then read and play games with me to fill the world with light!":'tut_3',
+  "Every sound you learn makes you shine brighter. Ready? Let's go!":'tut_4'
 };
 function clipIdFor(text,explicit){ return explicit || VO_LINES[text] || null; }
 // One voice at a time across BOTH systems: stop any playing AI clip AND cancel device TTS
@@ -854,28 +858,22 @@ function boot(){
   $('start-btn').onclick=()=>{ audioOn=true; try{ actx=new(window.AudioContext||window.webkitAudioContext)(); }catch(e){}
     launchT=performance.now(); state.launchCount=(state.launchCount||0)+1; save(); log('app_open',{launchCount:state.launchCount});
     hide('intro');
-    if(!state.avatar.created) showAvatarCreate();
+    if(!state.tutorialDone) showTutorial();
     else routeDay();
   };
 }
-function showAvatarCreate(){ show('avatar-create'); creationMode=true; controlEnabled=false;
-  const skins=['#ffd9b8','#e8b48a','#a9744f','#6e4a32'], hairs=['#5a3a2a','#7B4FC4','#2a2340','#c23e6b'], colors=['#5ec8c0','#FF8FCF','#FFC83D','#8FD0FF'];
-  const styles=[['short','Short'],['ponytail','Ponytail'],['puffs','Puffs'],['bun','Bun'],['long','Long']];
-  const names=['Star','Sunny','Sky','Rae','Kai','Mimi'];
-  const mk=(host,arr,key)=>{ const el=$(host); el.innerHTML=''; arr.forEach(c=>{ const s=document.createElement('div'); s.className='sw'+(state.avatar[key]===c?' sel':''); s.style.background=c;
-    s.onclick=()=>{ state.avatar[key]=c; [...el.children].forEach(x=>x.classList.remove('sel')); s.classList.add('sel'); applyAvatar(); }; el.appendChild(s); }); };
-  const styleEl=$('ac-style'); styleEl.innerHTML=''; styles.forEach(([v,lbl])=>{ const b=document.createElement('button'); b.className='chip'+(((state.avatar.style||'short')===v)?' sel':''); b.textContent=lbl;
-    b.onclick=()=>{ state.avatar.style=v; [...styleEl.children].forEach(x=>x.classList.remove('sel')); b.classList.add('sel'); rebuildHair(v); }; styleEl.appendChild(b); });
-  const nameEl=$('ac-names'); nameEl.innerHTML=''; names.forEach(n=>{ const b=document.createElement('button'); b.className='chip'; b.textContent=n;
-    b.onclick=()=>{ state.avatar.name=n; $('ac-name').value=n; if(audioOn) say(n,{rate:.85}); }; nameEl.appendChild(b); });
-  $('ac-name').value=state.avatar.name||''; $('ac-name').oninput=e=>{ state.avatar.name=e.target.value; };
-  mk('ac-skin',skins,'skin'); mk('ac-hair',hairs,'hair'); mk('ac-color',colors,'color'); applyAvatar();
-  // With a real rigged model, Outfit/Hair/Skin COLORS tint the model's material zones; only the hairstyle MESH-swap row needs the model to ship hair variants (hidden for now).
-  if(heroLoaded){ const el=$('ac-style'), row=el&&el.closest('.ac-row'); if(row) row.style.display='none'; }
-  if(audioOn) say("Make your very own Star Hunter! Pick your hair, your colors, and your name.");
-  $('ac-done').onclick=()=>{ state.avatar.created=true; creationMode=false; save();
-    log('avatar_created',{skin:state.avatar.skin,hair:state.avatar.hair,color:state.avatar.color,style:state.avatar.style,named:!!(state.avatar.name&&state.avatar.name.trim())}); hide('avatar-create');
-    if(audioOn) say(`Welcome, ${heroName()}! Let's go to Harmony Harbor!`,{then:()=>runStarCheck('pre',()=>routeDay())}); else runStarCheck('pre',()=>routeDay()); };
+// Brief gameplay tutorial, voiced by Rumi (replaces the old avatar-creation page).
+function showTutorial(){ controlEnabled=false; creationMode=false; rebuildHair(state.avatar.style||'short'); applyAvatar();
+  const steps=[
+    "Hi! I'm Rumi! Welcome to Reventure! Let me show you how to play.",
+    "Tap the ground, or hold and drag, to walk around our magical harbor.",
+    "Find a friend, then read and play games with me to fill the world with light!",
+    "Every sound you learn makes you shine brighter. Ready? Let's go!"
+  ];
+  let i=0;
+  const step=()=>{ if(i>=steps.length){ state.tutorialDone=true; save(); log('tutorial_done'); runStarCheck('pre',()=>routeDay()); return; }
+    const last=(i===steps.length-1); speak('Rumi',steps[i++],last?"Let's go! ✨":"Next ▶",step); };
+  step();
 }
 function routeDay(){ // restore prior cosmetics/rumi/twinkle visual state
   rebuildHair(state.avatar.style||'short'); applyAvatar();
