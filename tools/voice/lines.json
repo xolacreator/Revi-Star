@@ -618,6 +618,264 @@
       "character": "narrator",
       "text": "What sound does jam start with? juh, juh, jam.",
       "batch": "words"
+    },
+    {
+      "id": "q_blend_cat",
+      "character": "narrator",
+      "text": "Tap the sounds in order. c… a… t… cat!",
+      "batch": "blend"
+    },
+    {
+      "id": "ph_cuh",
+      "character": "narrator",
+      "text": "cuh",
+      "batch": "blend"
+    },
+    {
+      "id": "ph_aah",
+      "character": "narrator",
+      "text": "aah",
+      "batch": "blend"
+    },
+    {
+      "id": "q_blend_sun",
+      "character": "narrator",
+      "text": "Tap the sounds in order. s… u… n… sun!",
+      "batch": "blend"
+    },
+    {
+      "id": "ph_uh",
+      "character": "narrator",
+      "text": "uh",
+      "batch": "blend"
+    },
+    {
+      "id": "q_blend_dog",
+      "character": "narrator",
+      "text": "Tap the sounds in order. d… o… g… dog!",
+      "batch": "blend"
+    },
+    {
+      "id": "ph_awe",
+      "character": "narrator",
+      "text": "awe",
+      "batch": "blend"
+    },
+    {
+      "id": "q_blend_pig",
+      "character": "narrator",
+      "text": "Tap the sounds in order. p… i… g… pig!",
+      "batch": "blend"
+    },
+    {
+      "id": "ph_ih",
+      "character": "narrator",
+      "text": "ih",
+      "batch": "blend"
+    },
+    {
+      "id": "q_blend_hen",
+      "character": "narrator",
+      "text": "Tap the sounds in order. h… e… n… hen!",
+      "batch": "blend"
+    },
+    {
+      "id": "word_hen",
+      "character": "narrator",
+      "text": "hen",
+      "batch": "blend"
+    },
+    {
+      "id": "ph_eh",
+      "character": "narrator",
+      "text": "eh",
+      "batch": "blend"
+    },
+    {
+      "id": "q_blend_bed",
+      "character": "narrator",
+      "text": "Tap the sounds in order. b… e… d… bed!",
+      "batch": "blend"
+    },
+    {
+      "id": "word_bed",
+      "character": "narrator",
+      "text": "bed",
+      "batch": "blend"
+    },
+    {
+      "id": "q_blend_top",
+      "character": "narrator",
+      "text": "Tap the sounds in order. t… o… p… top!",
+      "batch": "blend"
+    },
+    {
+      "id": "word_top",
+      "character": "narrator",
+      "text": "top",
+      "batch": "blend"
+    },
+    {
+      "id": "q_blend_bug",
+      "character": "narrator",
+      "text": "Tap the sounds in order. b… u… g… bug!",
+      "batch": "blend"
+    },
+    {
+      "id": "word_bug",
+      "character": "narrator",
+      "text": "bug",
+      "batch": "blend"
+    },
+    {
+      "id": "q_blend_map",
+      "character": "narrator",
+      "text": "Tap the sounds in order. m… a… p… map!",
+      "batch": "blend"
+    },
+    {
+      "id": "word_map",
+      "character": "narrator",
+      "text": "map",
+      "batch": "blend"
+    },
+    {
+      "id": "q_blend_fan",
+      "character": "narrator",
+      "text": "Tap the sounds in order. f… a… n… fan!",
+      "batch": "blend"
+    },
+    {
+      "id": "word_fan",
+      "character": "narrator",
+      "text": "fan",
+      "batch": "blend"
+    },
+    {
+      "id": "q_blend_net",
+      "character": "narrator",
+      "text": "Tap the sounds in order. n… e… t… net!",
+      "batch": "blend"
+    },
+    {
+      "id": "q_blend_cup",
+      "character": "narrator",
+      "text": "Tap the sounds in order. c… u… p… cup!",
+      "batch": "blend"
+    },
+    {
+      "id": "word_cup",
+      "character": "narrator",
+      "text": "cup",
+      "batch": "blend"
+    },
+    {
+      "id": "q_blend_box",
+      "character": "narrator",
+      "text": "Tap the sounds in order. b… o… x… box!",
+      "batch": "blend"
+    },
+    {
+      "id": "ph_ks",
+      "character": "narrator",
+      "text": "ks",
+      "batch": "blend"
+    },
+    {
+      "id": "q_blend_log",
+      "character": "narrator",
+      "text": "Tap the sounds in order. l… o… g… log!",
+      "batch": "blend"
+    },
+    {
+      "id": "word_log",
+      "character": "narrator",
+      "text": "log",
+      "batch": "blend"
+    },
+    {
+      "id": "q_blend_mop",
+      "character": "narrator",
+      "text": "Tap the sounds in order. m… o… p… mop!",
+      "batch": "blend"
+    },
+    {
+      "id": "word_mop",
+      "character": "narrator",
+      "text": "mop",
+      "batch": "blend"
+    },
+    {
+      "id": "q_blend_jam",
+      "character": "narrator",
+      "text": "Tap the sounds in order. j… a… m… jam!",
+      "batch": "blend"
+    },
+    {
+      "id": "word_jam",
+      "character": "narrator",
+      "text": "jam",
+      "batch": "blend"
+    },
+    {
+      "id": "q_blend_ten",
+      "character": "narrator",
+      "text": "Tap the sounds in order. t… e… n… ten!",
+      "batch": "blend"
+    },
+    {
+      "id": "word_ten",
+      "character": "narrator",
+      "text": "ten",
+      "batch": "blend"
+    },
+    {
+      "id": "q_blend_rug",
+      "character": "narrator",
+      "text": "Tap the sounds in order. r… u… g… rug!",
+      "batch": "blend"
+    },
+    {
+      "id": "word_rug",
+      "character": "narrator",
+      "text": "rug",
+      "batch": "blend"
+    },
+    {
+      "id": "q_blend_van",
+      "character": "narrator",
+      "text": "Tap the sounds in order. v… a… n… van!",
+      "batch": "blend"
+    },
+    {
+      "id": "word_van",
+      "character": "narrator",
+      "text": "van",
+      "batch": "blend"
+    },
+    {
+      "id": "q_blend_web",
+      "character": "narrator",
+      "text": "Tap the sounds in order. w… e… b… web!",
+      "batch": "blend"
+    },
+    {
+      "id": "word_web",
+      "character": "narrator",
+      "text": "web",
+      "batch": "blend"
+    },
+    {
+      "id": "q_blend_zip",
+      "character": "narrator",
+      "text": "Tap the sounds in order. z… i… p… zip!",
+      "batch": "blend"
+    },
+    {
+      "id": "word_zip",
+      "character": "narrator",
+      "text": "zip",
+      "batch": "blend"
     }
   ]
 }
