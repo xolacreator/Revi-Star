@@ -10,7 +10,7 @@ on:
         description: 'Which voice batch to generate'
         default: 'all'
         type: choice
-        options: [all, core, tut, letters, words, blend, check]
+        options: [all, core, tut, letters, words, blend, check, extra]
 
 permissions:
   contents: write

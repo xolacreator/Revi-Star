@@ -437,7 +437,7 @@ let rumiTipT=0;
 function rumiTip(){ const np=performance.now(); if(np<rumiTipT) return; rumiTipT=np+1400;
   if(rumiActions.wave){ playRumi('wave'); rumiWaveUntil=np+1500; rumiNextWave=np+8000; }
   burst(new THREE.Vector3(rumi.position.x,1.9,rumi.position.z),'#FFE08A',8);
-  if(audioOn) say(RUMI_TIPS[(Math.random()*RUMI_TIPS.length)|0]); }
+  if(audioOn){ const ti=(Math.random()*RUMI_TIPS.length)|0; say(RUMI_TIPS[ti],{id:'tip_'+ti}); } }
 renderer.domElement.addEventListener('pointerdown',e=>{ tapRing(e.clientX,e.clientY); haptic(8); if(!controlEnabled) return;
   ndc.x=(e.clientX/innerWidth)*2-1; ndc.y=-(e.clientY/innerHeight)*2+1; ray.setFromCamera(ndc,camera);
   if(rumi.visible && ray.intersectObject(rumi,true).length){ rumiTip(); return; } // tap Rumi → tip
@@ -480,8 +480,8 @@ function twinkleSpin(ms=1600){ twSpinUntil=performance.now()+ms; }
 // ---------------- UI helpers ----------------
 function show(id){ $(id).classList.remove('hidden'); }
 function hide(id){ $(id).classList.add('hidden'); }
-function speak(name,text,btn,next){ $('bubble-name').textContent=name; $('bubble-text').textContent=text; $('bubble-next').textContent=btn||'Tap ▶'; show('bubble');
-  if(audioOn) say(text,{char:name}); $('bubble-next').onclick=()=>{ hide('bubble'); if(next) next(); }; }
+function speak(name,text,btn,next,id){ $('bubble-name').textContent=name; $('bubble-text').textContent=text; $('bubble-next').textContent=btn||'Tap ▶'; show('bubble');
+  if(audioOn) say(text,{char:name,id}); $('bubble-next').onclick=()=>{ hide('bubble'); if(next) next(); }; }
 function setEnergy(p){ $('energy-fill').style.width=p+'%'; }
 function setHint(t){ $('hint').textContent=t; $('hint').style.opacity=1; }
 function heroName(){ return (state.avatar.name&&state.avatar.name.trim())?state.avatar.name.trim():'Revi Star'; }
@@ -497,7 +497,7 @@ function avatarTransform(accessoryFn,label,then){
     if(accessoryFn) accessoryFn();
     magicRing(avatar.position,'#FFD24D'); setTimeout(()=>magicRing(avatar.position,'#FF8FCF'),150);
     magicBurst(avatar.position,46); show('transform');
-    if(audioOn) say(`Wow ${heroName()}! YOUR Star Hunter grew today! You unlocked a ${label}!`);
+    if(audioOn) say(`Wow ${heroName()}! YOUR Star Hunter grew today! You unlocked a ${label}!`,{id:'xtra_grew'});
     let g=0; const pulse=()=>{ g+=.04; const e=Math.max(0,Math.sin(g*Math.PI))*0.6;
       avBodyMat.emissive.set('#FFD24D'); avBodyMat.emissiveIntensity=e;
       heroMats.forEach(m=>{ if(m.emissive){ m.emissive.set('#FFD24D'); m.emissiveIntensity=e*0.8; } });
@@ -505,7 +505,7 @@ function avatarTransform(accessoryFn,label,then){
     pulse();
   },650);
   // 3) restore + spotlight show-off + Twinkle cheers
-  setTimeout(()=>{ hide('transform'); hemi.intensity=dimFrom; spotOn=0; focusAvatarUntil=performance.now()+2300; twinkleCheer(2000); if(audioOn) say(`Look at you, ${heroName()}!`); save(); },3650);
+  setTimeout(()=>{ hide('transform'); hemi.intensity=dimFrom; spotOn=0; focusAvatarUntil=performance.now()+2300; twinkleCheer(2000); if(audioOn) say(`Look at you, ${heroName()}!`,{id:'xtra_lookatyou'}); save(); },3650);
   setTimeout(()=>{ heroPerforming=false; if(then) then(); },5600);
 }
 function recordExcitement(kind){ if(delight[kind]===null){ delight[kind]=Math.round(performance.now()-launchT); log('delight_'+kind,{ms:delight[kind]}); $('obs-readout').textContent=`smile ${delight.smile??'–'}ms · wow ${delight.excited??'–'}ms`; } }
@@ -523,14 +523,14 @@ const DAYS = {
       {template:'soundMatch',skillId:'phon.letter.sound',pic:'☀️',prompt:'Which letter says  sss…  like  sun?',say:'Which letter says sss, like sun?',options:[{t:'S',say:'sss'},{t:'M',say:'mmm'},{t:'T',say:'tuh'}],answer:'S'},
       {template:'firstSound',skillId:'phon.onset',pic:'🐝',prompt:'What sound does  “bee”  start with?',say:'What sound does bee start with? buh, buh, bee.',options:[{t:'B',say:'buh'},{t:'F',say:'fff'},{t:'N',say:'nnn'}],answer:'B'},
     ],
-    tease:["Tomorrow: help read the harbor signs — and find Twinkle a brand-new look!"] },
+    tease:["Tomorrow: help read the harbor signs — and find Twinkle a brand-new look!"], teaseId:"tease_d1" },
   2:{ skillLabel:'Sight words',
     greet:["Rumi","You came back — yay! The dock signs got all mixed up in the wind. Can you read them with me?","Let's read! ▶"],
     activities:[
       {template:'wordPicture',skillId:'read.sightword',pic:'🐱',prompt:'Which word says  “cat”?',say:'Which word says cat?',options:[{t:'cat',say:'cat'},{t:'dog',say:'dog'},{t:'sun',say:'sun'}],answer:'cat'},
       {template:'soundMatch',skillId:'phon.letter.sound',pic:'🐟',prompt:'Which letter says  fff…  like  fish?',say:'Which letter says fff, like fish?',options:[{t:'F',say:'fff'},{t:'L',say:'lll'},{t:'R',say:'rrr'}],answer:'F'},
     ],
-    tease:["Tomorrow: blend sounds to read a WHOLE word — and Twinkle will EVOLVE!"] },
+    tease:["Tomorrow: blend sounds to read a WHOLE word — and Twinkle will EVOLVE!"], teaseId:"tease_d2" },
   3:{ skillLabel:'Blending words',
     greet:["Rumi","Three days in a row — you're a real Star Hunter! The lighthouse keeper left you a note. Let's read it together…","Open the note ▶"],
     story:["Keeper's note","“Dear friend… the harbor shines because of YOU. Read on!”"],
@@ -538,7 +538,7 @@ const DAYS = {
       {template:'blend',skillId:'phon.cvc.blend',pic:'🐱',word:'cat',say:'Tap the sounds in order. c… a… t… cat!',prompt:'Tap the sounds in order to read it!',sounds:[{t:'c',say:'cuh'},{t:'a',say:'aah'},{t:'t',say:'tuh'}]},
       {template:'blend',skillId:'phon.cvc.blend',pic:'☀️',word:'sun',say:'Now this one. s… u… n… sun!',prompt:'Tap the sounds in order!',sounds:[{t:'s',say:'sss'},{t:'u',say:'uh'},{t:'n',say:'nnn'}]},
     ],
-    tease:["You played 3 days in a row! More adventures are coming soon…"] }
+    tease:["You played 3 days in a row! More adventures are coming soon…"], teaseId:"tease_d3" }
 };
 const MAX_DAY = 21; // the daily loop now runs three weeks
 // ---- Procedural content for days 4..21: rotating skills, offset indexing so items vary day to day ----
@@ -571,8 +571,8 @@ function genDay(day){ const i=day, idx=(b,n)=>b[(i*7+n*5)%b.length], otherL=n=>L
   else { const F=idx(LETTERBANK,3),g1=otherL(6),g2=otherL(11); acts.push({template:'firstSound',skillId:'phon.onset',pic:F[3],prompt:`What sound does  “${F[2]}”  start with?`,say:vFirst(F),options:[{t:F[0],say:F[1]},{t:g1[0]===F[0]?g2[0]:g1[0],say:g1[1]},{t:g2[0]===F[0]?otherL(2)[0]:g2[0],say:g2[1]}],answer:F[0]}); }
   const W=idx(CVCWORDS,4); acts.push({template:'blend',skillId:'phon.cvc.blend',pic:W[1],word:W[0],say:vBlend(W[0]),prompt:'Tap the sounds in order to read it!',sounds:W[0].split('').map(ch=>({t:ch,say:PH[ch]||ch}))});
   const labels=['Letter sounds','Reading words','Blending words']; const gn=coachNameFor(day), GN=gn.charAt(0).toUpperCase()+gn.slice(1);
-  return { skillLabel:labels[i%3], greet:[GN,GENGREET[i%GENGREET.length],"Let's read! ▶"], activities:acts,
-    tease:[ day>=MAX_DAY ? "Three whole weeks of reading — you're a true Star Hunter! 🌟" : "Come back tomorrow for more sounds, words, and sparkles!" ] }; }
+  return { skillLabel:labels[i%3], greet:[GN,GENGREET[i%GENGREET.length],"Let's read! ▶"], greetId:'greet_g'+(i%GENGREET.length), activities:acts,
+    tease:[ day>=MAX_DAY ? "Three whole weeks of reading — you're a true Star Hunter! 🌟" : "Come back tomorrow for more sounds, words, and sparkles!" ], teaseId: day>=MAX_DAY?'tease_wk3':'tease_more' }; }
 function getDay(day){ return DAYS[day] || genDay(day); }
 
 
@@ -690,7 +690,7 @@ function hintActivity(a){ itemHints++; log('hint_used',{skillId:a.skillId}); coa
   const r=btns.find(b=>b.textContent===a.answer); if(r){ r.classList.add('glowhint'); setTimeout(()=>r.classList.remove('glowhint'),1600);} if(audioOn) say(a.say,{char:coachChar}); }
 function wrong(a,btn){ mistakes++; dayMistakes++; itemHints++; btn.classList.add('dim'); coach('think',"Almost! Let's try again."); if(audioOn) say("Almost! Listen again.",{char:coachChar});
   if(mistakes>=2){ itemModeled=true; const r=[...$('ch-options').querySelectorAll('.opt')].find(b=>b.textContent===a.answer);
-    if(r){ r.classList.add('glowhint'); if(audioOn) say(`This one says ${a.answer}. Tap it with me!`); r.onclick=()=>{ if(audioOn) say(a.answer,{rate:.8}); correct(a,r);}; } } }
+    if(r){ r.classList.add('glowhint'); if(audioOn) say(`This one says ${a.answer}. Tap it with me!`,{id:'xtra_thisone'}); r.onclick=()=>{ if(audioOn) say(a.answer,{rate:.8,char:coachChar}); correct(a,r);}; } } }
 function correct(a,btn){ btn.classList.remove('glowhint'); btn.classList.add('correct'); chime('good'); burst(lighthouse.position,'#FFE9A8',10); twCheerUntil=performance.now()+900; heroEmote('cheer',900); // Twinkle + hero cheer learning success
   if(delight.reward===null){ delight.reward=Math.round(performance.now()-launchT); log('first_reward',{ms:delight.reward}); }
   const firstTry=(mistakes===0&&itemHints===0);
@@ -720,7 +720,7 @@ function renderSC(){ const q=STARCHECK[scIdx]; $('sc-pic').textContent=q.pic; $(
       setTimeout(()=>{ scIdx++; if(scIdx<STARCHECK.length) renderSC(); else finishSC(); },650); };
     $('sc-options').appendChild(b); }); }
 function finishSC(){ hide('starcheck'); state[scTag]=scScore; log('starcheck_done',{phase:scTag,score:scScore,outOf:STARCHECK.length}); save();
-  if(audioOn) say(`You got ${scScore} stars! Great trying!`); if(scDone) setTimeout(scDone,800); }
+  if(audioOn) say(`You got ${scScore} stars! Great trying!`,{id:'xtra_startry'}); if(scDone) setTimeout(scDone,800); }
 
 // =====================================================================
 //  DAY FLOW
@@ -734,14 +734,14 @@ function startDay(day){ state.day=day; save(); $('day-num').textContent=day; $('
   if(day>1){ gloomling.visible=true; gloomling.scale.setScalar(1); twinkle.visible=(state.twinkleForm>0); twinkleFollows=(state.twinkleForm>0);
     if(state.twinkleForm>0){ gloomling.visible=false; } }
   speak(D.greet[0],D.greet[1],D.greet[2],()=>{
-    if(day===3 && D.story){ speak(D.story[0],D.story[1],"Wow! ▶",()=>beginExplore(day)); }
+    if(day===3 && D.story){ speak(D.story[0],D.story[1],"Wow! ▶",()=>beginExplore(day),'keeper_note'); }
     else beginExplore(day);
-  });
+  },D.greetId);
 }
 let reached=false;
 function beginExplore(day){ controlEnabled=true; reached=false; setMarker(gloomling.position);
   setHint(state.twinkleForm>0?'Tap or hold & drag to explore! 👣':'Tap the ground to walk to the Gloomling! 👣');
-  if(audioOn) say(state.twinkleForm>0?"Let's find today's adventure!":"Follow the sparkles!"); }
+  if(audioOn) say(state.twinkleForm>0?"Let's find today's adventure!":"Follow the sparkles!",{id:state.twinkleForm>0?'explore_new':'explore_first'}); }
 function reachSpot(){ if(reached)return; reached=true; controlEnabled=false; setMarker(null); $('hint').style.opacity=0;
   const D=getDay(state.day);
   if(state.day===1){ speak('Gloomling',"…I lost the words. Will you read them with me?","Yes! Let's read ✨",()=>runActivities(D.activities,dayProgress)); }
@@ -755,10 +755,10 @@ function dayProgress(){
   if(state.day===1){
     relightLighthouse();
     setTimeout(()=>{ gloomling.visible=false; twinkle.visible=true; twinkle.position.copy(gloomling.position); state.twinkleForm=1; burst(twinkle.position,'#7EF0C0',30);
-      speak('Rumi',`Amazing reading, ${heroName()}! The Lighthouse is shining and the Gloomling became a happy Star Pal. Tap your new friend!`,"Tap Twinkle! 🦊",enableTwinkleTap); },1500);
+      speak('Rumi',`Amazing reading, ${heroName()}! The Lighthouse is shining and the Gloomling became a happy Star Pal. Tap your new friend!`,"Tap Twinkle! 🦊",enableTwinkleTap,'xtra_day1'); },1500);
   } else if(state.day===2){
     twTailStar.material.emissiveIntensity=1.4;
-    avatarTransform(addHat,'Stylish New Hat',()=>{ speak('Rumi',`Wonderful, ${heroName()}! Look — Twinkle is glowing… almost ready to evolve tomorrow!`,'▶',rewardDay); });
+    avatarTransform(addHat,'Stylish New Hat',()=>{ speak('Rumi',`Wonderful, ${heroName()}! Look — Twinkle is glowing… almost ready to evolve tomorrow!`,'▶',rewardDay,'xtra_day2'); });
   } else if(state.day===3){
     twinkleEvolve(()=> avatarTransform(addCape,'Hero Cape',()=> runStarCheck('post',()=>rewardDay()) ));
   } else { // days 4..21: keep the streak rewarding; a weekly milestone gives an extra sparkle
@@ -812,7 +812,7 @@ function completeDay(){ if(!state.completedDays.includes(state.day)) state.compl
   $('dg-emoji').textContent = state.day>=MAX_DAY?'🏆':(state.day%7===0?'🏅':'🌙');
   $('dg-title').textContent = state.day>=MAX_DAY?'You played 21 days!':(state.day%7===0?`Week ${Math.ceil(state.day/7)} done!`:'See you tomorrow!');
   $('dg-text').textContent = D.tease[0];
-  show('daygate'); if(audioOn) say(D.tease[0]);
+  show('daygate'); if(audioOn) say(D.tease[0],{id:D.teaseId});
   if(state.day===3){ /* offer parent re-engagement next time they open parent panel */ state.askReengage=true; save(); }
   $('dg-close').onclick=()=>{ hide('daygate'); };
 }

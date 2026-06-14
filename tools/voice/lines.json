@@ -910,6 +910,144 @@
       "character": "narrator",
       "text": "Which letter says tuh?",
       "batch": "check"
+    },
+    {
+      "id": "xtra_grew",
+      "character": "narrator",
+      "text": "Wow, Revi Star! You grew today! Look how brightly you shine!",
+      "batch": "extra"
+    },
+    {
+      "id": "xtra_lookatyou",
+      "character": "narrator",
+      "text": "Look at you, Revi Star!",
+      "batch": "extra"
+    },
+    {
+      "id": "xtra_thisone",
+      "character": "narrator",
+      "text": "This one! Let's tap it together!",
+      "batch": "extra"
+    },
+    {
+      "id": "xtra_startry",
+      "character": "narrator",
+      "text": "Great trying! You're a reading star!",
+      "batch": "extra"
+    },
+    {
+      "id": "xtra_day1",
+      "character": "rumi",
+      "text": "Amazing reading, Revi Star! The lighthouse is shining, and the Gloomling became a happy Star Pal. Tap your new friend!",
+      "batch": "extra"
+    },
+    {
+      "id": "xtra_day2",
+      "character": "rumi",
+      "text": "Wonderful, Revi Star! Look, Twinkle is glowing, almost ready to evolve tomorrow!",
+      "batch": "extra"
+    },
+    {
+      "id": "explore_new",
+      "character": "narrator",
+      "text": "Let's find today's adventure!",
+      "batch": "extra"
+    },
+    {
+      "id": "explore_first",
+      "character": "narrator",
+      "text": "Follow the sparkles!",
+      "batch": "extra"
+    },
+    {
+      "id": "tip_0",
+      "character": "narrator",
+      "text": "Tap the ground, or hold and drag, to walk with me!",
+      "batch": "extra"
+    },
+    {
+      "id": "tip_1",
+      "character": "narrator",
+      "text": "Look for the glowing star and listen for its sound!",
+      "batch": "extra"
+    },
+    {
+      "id": "tip_2",
+      "character": "narrator",
+      "text": "You're doing amazing. Sound it out, nice and slow.",
+      "batch": "extra"
+    },
+    {
+      "id": "tip_3",
+      "character": "narrator",
+      "text": "Tap Twinkle to say hello!",
+      "batch": "extra"
+    },
+    {
+      "id": "tip_4",
+      "character": "narrator",
+      "text": "Every sound you learn makes you shine brighter!",
+      "batch": "extra"
+    },
+    {
+      "id": "greet_g0",
+      "character": "narrator",
+      "text": "You're back! Let's keep our reading streak glowing!",
+      "batch": "extra"
+    },
+    {
+      "id": "greet_g1",
+      "character": "narrator",
+      "text": "Another day, another adventure in Harmony Harbor!",
+      "batch": "extra"
+    },
+    {
+      "id": "greet_g2",
+      "character": "narrator",
+      "text": "Twinkle missed you! Ready to read together?",
+      "batch": "extra"
+    },
+    {
+      "id": "greet_g3",
+      "character": "narrator",
+      "text": "The harbor shines brighter every day you read!",
+      "batch": "extra"
+    },
+    {
+      "id": "greet_g4",
+      "character": "narrator",
+      "text": "Let's find new sounds and words today!",
+      "batch": "extra"
+    },
+    {
+      "id": "tease_d1",
+      "character": "narrator",
+      "text": "Tomorrow, help read the harbor signs, and find Twinkle a brand-new look!",
+      "batch": "extra"
+    },
+    {
+      "id": "tease_d2",
+      "character": "narrator",
+      "text": "Tomorrow, blend sounds to read a whole word, and Twinkle will evolve!",
+      "batch": "extra"
+    },
+    {
+      "id": "tease_d3",
+      "character": "narrator",
+      "text": "You played three days in a row! More adventures are coming soon.",
+      "batch": "extra"
+    },
+    {
+      "id": "tease_more",
+      "character": "narrator",
+      "text": "Come back tomorrow for more sounds, words, and sparkles!",
+      "batch": "extra"
+    },
+    {
+      "id": "tease_wk3",
+      "character": "narrator",
+      "text": "Three whole weeks of reading! You're a true Star Hunter!",
+      "batch": "extra"
     }
   ]
 }

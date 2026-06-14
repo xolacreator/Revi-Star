@@ -39,9 +39,37 @@ push(check,'chk_q2','What sound does leaf start with?','check');
 push(check,'chk_q5','What rhymes with cat?','check');
 push(check,'chk_q6','Which letter says tuh?','check');
 
+// "extra" batch: narration that was previously on the device voice (now clipped so nothing is silent).
+const R='rumi', N='narrator';
+const extra=[
+  ['xtra_grew', N, 'Wow, Revi Star! You grew today! Look how brightly you shine!'],
+  ['xtra_lookatyou', N, 'Look at you, Revi Star!'],
+  ['xtra_thisone', N, "This one! Let's tap it together!"],
+  ['xtra_startry', N, "Great trying! You're a reading star!"],
+  ['xtra_day1', R, 'Amazing reading, Revi Star! The lighthouse is shining, and the Gloomling became a happy Star Pal. Tap your new friend!'],
+  ['xtra_day2', R, 'Wonderful, Revi Star! Look, Twinkle is glowing, almost ready to evolve tomorrow!'],
+  ['explore_new', N, "Let's find today's adventure!"],
+  ['explore_first', N, 'Follow the sparkles!'],
+  ['tip_0', N, 'Tap the ground, or hold and drag, to walk with me!'],
+  ['tip_1', N, 'Look for the glowing star and listen for its sound!'],
+  ['tip_2', N, "You're doing amazing. Sound it out, nice and slow."],
+  ['tip_3', N, 'Tap Twinkle to say hello!'],
+  ['tip_4', N, 'Every sound you learn makes you shine brighter!'],
+  ['greet_g0', N, "You're back! Let's keep our reading streak glowing!"],
+  ['greet_g1', N, 'Another day, another adventure in Harmony Harbor!'],
+  ['greet_g2', N, 'Twinkle missed you! Ready to read together?'],
+  ['greet_g3', N, 'The harbor shines brighter every day you read!'],
+  ['greet_g4', N, "Let's find new sounds and words today!"],
+  ['tease_d1', N, 'Tomorrow, help read the harbor signs, and find Twinkle a brand-new look!'],
+  ['tease_d2', N, 'Tomorrow, blend sounds to read a whole word, and Twinkle will evolve!'],
+  ['tease_d3', N, 'You played three days in a row! More adventures are coming soon.'],
+  ['tease_more', N, 'Come back tomorrow for more sounds, words, and sparkles!'],
+  ['tease_wk3', N, "Three whole weeks of reading! You're a true Star Hunter!"],
+].map(([id,character,text])=>({id,character,text,batch:'extra'}));
+
 // ---- merge: keep core, replace rebuilt gameplay batches ----
 const doc=JSON.parse(await readFile('tools/voice/lines.json','utf8'));
-const kept=doc.lines.filter(l=>!['letters','words','blend','check'].includes(l.batch));
-doc.lines=[...kept,...letters,...words,...blend,...check];
+const kept=doc.lines.filter(l=>!['letters','words','blend','check','extra'].includes(l.batch));
+doc.lines=[...kept,...letters,...words,...blend,...check,...extra];
 await writeFile('tools/voice/lines.json', JSON.stringify(doc,null,2)+'\n');
-console.log(`lines.json: ${kept.length} kept + ${letters.length} letters + ${words.length} words + ${blend.length} blend + ${check.length} check = ${doc.lines.length} total`);
+console.log(`lines.json: ${kept.length} kept + ${letters.length} letters + ${words.length} words + ${blend.length} blend + ${check.length} check + ${extra.length} extra = ${doc.lines.length} total`);
