@@ -68,9 +68,9 @@ html,body{margin:0;height:100%;overflow:hidden;background:#bfe3ff;font-family:va
 .challenge .ch-options{order:5}
 .challenge .ch-actions{order:6}
 .coach{position:static;transform:none;left:auto;bottom:auto;top:auto;display:flex;flex-direction:column;align-items:center;gap:0;max-width:96%;z-index:12}
-.coach canvas,.coach #coach-img{width:150px;height:172px;flex:0 0 auto;background:rgba(255,255,255,.72);border-radius:24px;object-fit:cover;object-position:center top;box-shadow:0 8px 0 rgba(150,110,170,.4);animation:bob 3s ease-in-out infinite}
+.coach canvas,.coach #coach-img{width:195px;height:224px;flex:0 0 auto;background:rgba(255,255,255,.72);border-radius:26px;object-fit:cover;object-position:center top;box-shadow:0 8px 0 rgba(150,110,170,.4);animation:bob 3s ease-in-out infinite}
 .coach #coach-line{display:none} /* question is shown above the character, so no duplicate speech bubble */
-@media (max-width:520px){.coach canvas,.coach #coach-img{width:126px;height:146px}}
+@media (max-width:520px){.coach canvas,.coach #coach-img{width:164px;height:190px}}
 .ch-lights{font-size:34px;letter-spacing:8px;color:#fff;text-shadow:0 2px 4px rgba(80,40,120,.4)}
 .ch-lights .on{color:var(--gold)}
 .ch-pic{font-size:96px;filter:drop-shadow(0 6px 10px rgba(80,40,120,.25));animation:bob 2s ease-in-out infinite}
