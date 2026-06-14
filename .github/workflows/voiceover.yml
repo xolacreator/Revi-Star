@@ -5,6 +5,12 @@ name: Generate Voiceover
 
 on:
   workflow_dispatch:
+    inputs:
+      batch:
+        description: 'Which voice batch to generate'
+        default: 'all'
+        type: choice
+        options: [all, core, letters, words, blend, check]
 
 permissions:
   contents: write
@@ -24,6 +30,7 @@ jobs:
       - name: Generate voice clips
         env:
           ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
+          VO_BATCH: ${{ inputs.batch }}
         run: node tools/voice/generate.mjs
 
       - name: Commit clips

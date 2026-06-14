@@ -1,30 +1,371 @@
 {
   "_comment": "Each entry -> one or more MP3s in assets/vo/. 'character' fixes the voice. 'rotating': true generates per-guide variants <id>__rumi/__mira/__zoey so each daily guide speaks shared lines in their own voice. 'text' is what gets spoken (can be cleaner than the in-code string; the game matches by id).",
   "lines": [
-    { "id": "tut_1", "character": "rumi", "text": "Hi! I'm Rumi! Welcome to Reventure! Let me show you how to play." },
-    { "id": "tut_2", "character": "rumi", "text": "Tap the ground, or hold and drag, to walk around our magical harbor." },
-    { "id": "tut_3", "character": "rumi", "text": "Find a friend, then read and play games with me to fill the world with light!" },
-    { "id": "tut_4", "character": "rumi", "text": "Every sound you learn makes you shine brighter. Ready? Let's go!" },
-    { "id": "rumi_greet_d1", "character": "rumi", "text": "Hi! I'm Rumi! Welcome to Harmony Harbor! Oh no, the lighthouse went dark and a shy Gloomling is hiding its words. Will you help me read to light it up?" },
-    { "id": "rumi_greet_d2", "character": "rumi", "text": "You came back, yay! The dock signs got all mixed up in the wind. Can you read them with me?" },
-    { "id": "rumi_greet_d3", "character": "rumi", "text": "Three days in a row, you're a real Star Hunter! The lighthouse keeper left you a note. Let's read it together." },
-    { "id": "rumi_rising", "character": "rumi", "text": "You filled the harbor with harmony! Watch, Rumi is becoming a Rising Star!" },
-    { "id": "keeper_note", "character": "narrator", "text": "Dear friend, the harbor shines because of you. Read on!" },
-    { "id": "twinkle_evolve", "character": "narrator", "text": "Twinkle is evolving into Glimmerfox!" },
-    { "id": "twinkle_happy", "character": "twinkle", "text": "Yay! We're friends now! Twinkle, twinkle!" },
-    { "id": "gloomling_lost", "character": "gloomling", "text": "I lost the words. Will you read them with me?" },
-    { "id": "nav_see_tomorrow", "character": "narrator", "text": "See you tomorrow!" },
-    { "id": "reward_great_job", "character": "narrator", "text": "Great job today, Star Hunter!" },
-
-    { "id": "coach_here_we_go", "rotating": true, "text": "Here we go, read these with me!" },
-    { "id": "praise_did_it", "rotating": true, "text": "You did it!" },
-    { "id": "praise_wonderful", "rotating": true, "text": "Wonderful reading!" },
-    { "id": "praise_reading_star", "rotating": true, "text": "You're a reading star!" },
-    { "id": "praise_amazing", "rotating": true, "text": "Amazing!" },
-    { "id": "praise_yay", "rotating": true, "text": "Yay! You read it!" },
-    { "id": "fb_almost", "rotating": true, "text": "Almost! Listen again." },
-    { "id": "fb_trace_hint", "rotating": true, "text": "Trace along the glowing line, like this!" },
-    { "id": "fb_blend_hint", "rotating": true, "text": "Tap this one next!" },
-    { "id": "fb_first_sound", "rotating": true, "text": "Start with the first sound!" }
+    {
+      "id": "tut_1",
+      "character": "rumi",
+      "text": "Hi! I'm Rumi! Welcome to Reventure! Let me show you how to play."
+    },
+    {
+      "id": "tut_2",
+      "character": "rumi",
+      "text": "Tap the ground, or hold and drag, to walk around our magical harbor."
+    },
+    {
+      "id": "tut_3",
+      "character": "rumi",
+      "text": "Find a friend, then read and play games with me to fill the world with light!"
+    },
+    {
+      "id": "tut_4",
+      "character": "rumi",
+      "text": "Every sound you learn makes you shine brighter. Ready? Let's go!"
+    },
+    {
+      "id": "rumi_greet_d1",
+      "character": "rumi",
+      "text": "Hi! I'm Rumi! Welcome to Harmony Harbor! Oh no, the lighthouse went dark and a shy Gloomling is hiding its words. Will you help me read to light it up?"
+    },
+    {
+      "id": "rumi_greet_d2",
+      "character": "rumi",
+      "text": "You came back, yay! The dock signs got all mixed up in the wind. Can you read them with me?"
+    },
+    {
+      "id": "rumi_greet_d3",
+      "character": "rumi",
+      "text": "Three days in a row, you're a real Star Hunter! The lighthouse keeper left you a note. Let's read it together."
+    },
+    {
+      "id": "rumi_rising",
+      "character": "rumi",
+      "text": "You filled the harbor with harmony! Watch, Rumi is becoming a Rising Star!"
+    },
+    {
+      "id": "keeper_note",
+      "character": "narrator",
+      "text": "Dear friend, the harbor shines because of you. Read on!"
+    },
+    {
+      "id": "twinkle_evolve",
+      "character": "narrator",
+      "text": "Twinkle is evolving into Glimmerfox!"
+    },
+    {
+      "id": "twinkle_happy",
+      "character": "twinkle",
+      "text": "Yay! We're friends now! Twinkle, twinkle!"
+    },
+    {
+      "id": "gloomling_lost",
+      "character": "gloomling",
+      "text": "I lost the words. Will you read them with me?"
+    },
+    {
+      "id": "nav_see_tomorrow",
+      "character": "narrator",
+      "text": "See you tomorrow!"
+    },
+    {
+      "id": "reward_great_job",
+      "character": "narrator",
+      "text": "Great job today, Star Hunter!"
+    },
+    {
+      "id": "coach_here_we_go",
+      "rotating": true,
+      "text": "Here we go, read these with me!"
+    },
+    {
+      "id": "praise_did_it",
+      "rotating": true,
+      "text": "You did it!"
+    },
+    {
+      "id": "praise_wonderful",
+      "rotating": true,
+      "text": "Wonderful reading!"
+    },
+    {
+      "id": "praise_reading_star",
+      "rotating": true,
+      "text": "You're a reading star!"
+    },
+    {
+      "id": "praise_amazing",
+      "rotating": true,
+      "text": "Amazing!"
+    },
+    {
+      "id": "praise_yay",
+      "rotating": true,
+      "text": "Yay! You read it!"
+    },
+    {
+      "id": "fb_almost",
+      "rotating": true,
+      "text": "Almost! Listen again."
+    },
+    {
+      "id": "fb_trace_hint",
+      "rotating": true,
+      "text": "Trace along the glowing line, like this!"
+    },
+    {
+      "id": "fb_blend_hint",
+      "rotating": true,
+      "text": "Tap this one next!"
+    },
+    {
+      "id": "fb_first_sound",
+      "rotating": true,
+      "text": "Start with the first sound!"
+    },
+    {
+      "id": "ph_sss",
+      "character": "narrator",
+      "text": "sss",
+      "batch": "letters"
+    },
+    {
+      "id": "q_snd_s",
+      "character": "narrator",
+      "text": "Which letter says sss, like sun?",
+      "batch": "letters"
+    },
+    {
+      "id": "ph_mmm",
+      "character": "narrator",
+      "text": "mmm",
+      "batch": "letters"
+    },
+    {
+      "id": "q_snd_m",
+      "character": "narrator",
+      "text": "Which letter says mmm, like moon?",
+      "batch": "letters"
+    },
+    {
+      "id": "ph_tuh",
+      "character": "narrator",
+      "text": "tuh",
+      "batch": "letters"
+    },
+    {
+      "id": "q_snd_t",
+      "character": "narrator",
+      "text": "Which letter says tuh, like top?",
+      "batch": "letters"
+    },
+    {
+      "id": "ph_fff",
+      "character": "narrator",
+      "text": "fff",
+      "batch": "letters"
+    },
+    {
+      "id": "q_snd_f",
+      "character": "narrator",
+      "text": "Which letter says fff, like fish?",
+      "batch": "letters"
+    },
+    {
+      "id": "ph_buh",
+      "character": "narrator",
+      "text": "buh",
+      "batch": "letters"
+    },
+    {
+      "id": "q_snd_b",
+      "character": "narrator",
+      "text": "Which letter says buh, like bee?",
+      "batch": "letters"
+    },
+    {
+      "id": "ph_nnn",
+      "character": "narrator",
+      "text": "nnn",
+      "batch": "letters"
+    },
+    {
+      "id": "q_snd_n",
+      "character": "narrator",
+      "text": "Which letter says nnn, like net?",
+      "batch": "letters"
+    },
+    {
+      "id": "ph_puh",
+      "character": "narrator",
+      "text": "puh",
+      "batch": "letters"
+    },
+    {
+      "id": "q_snd_p",
+      "character": "narrator",
+      "text": "Which letter says puh, like pig?",
+      "batch": "letters"
+    },
+    {
+      "id": "ph_duh",
+      "character": "narrator",
+      "text": "duh",
+      "batch": "letters"
+    },
+    {
+      "id": "q_snd_d",
+      "character": "narrator",
+      "text": "Which letter says duh, like dog?",
+      "batch": "letters"
+    },
+    {
+      "id": "ph_lll",
+      "character": "narrator",
+      "text": "lll",
+      "batch": "letters"
+    },
+    {
+      "id": "q_snd_l",
+      "character": "narrator",
+      "text": "Which letter says lll, like leaf?",
+      "batch": "letters"
+    },
+    {
+      "id": "ph_rrr",
+      "character": "narrator",
+      "text": "rrr",
+      "batch": "letters"
+    },
+    {
+      "id": "q_snd_r",
+      "character": "narrator",
+      "text": "Which letter says rrr, like red?",
+      "batch": "letters"
+    },
+    {
+      "id": "ph_kuh",
+      "character": "narrator",
+      "text": "kuh",
+      "batch": "letters"
+    },
+    {
+      "id": "q_snd_c",
+      "character": "narrator",
+      "text": "Which letter says kuh, like cat?",
+      "batch": "letters"
+    },
+    {
+      "id": "ph_huh",
+      "character": "narrator",
+      "text": "huh",
+      "batch": "letters"
+    },
+    {
+      "id": "q_snd_h",
+      "character": "narrator",
+      "text": "Which letter says huh, like hat?",
+      "batch": "letters"
+    },
+    {
+      "id": "ph_guh",
+      "character": "narrator",
+      "text": "guh",
+      "batch": "letters"
+    },
+    {
+      "id": "q_snd_g",
+      "character": "narrator",
+      "text": "Which letter says guh, like goat?",
+      "batch": "letters"
+    },
+    {
+      "id": "q_snd_k",
+      "character": "narrator",
+      "text": "Which letter says kuh, like kite?",
+      "batch": "letters"
+    },
+    {
+      "id": "ph_vvv",
+      "character": "narrator",
+      "text": "vvv",
+      "batch": "letters"
+    },
+    {
+      "id": "q_snd_v",
+      "character": "narrator",
+      "text": "Which letter says vvv, like van?",
+      "batch": "letters"
+    },
+    {
+      "id": "ph_wuh",
+      "character": "narrator",
+      "text": "wuh",
+      "batch": "letters"
+    },
+    {
+      "id": "q_snd_w",
+      "character": "narrator",
+      "text": "Which letter says wuh, like web?",
+      "batch": "letters"
+    },
+    {
+      "id": "ph_zzz",
+      "character": "narrator",
+      "text": "zzz",
+      "batch": "letters"
+    },
+    {
+      "id": "q_snd_z",
+      "character": "narrator",
+      "text": "Which letter says zzz, like zip?",
+      "batch": "letters"
+    },
+    {
+      "id": "ph_juh",
+      "character": "narrator",
+      "text": "juh",
+      "batch": "letters"
+    },
+    {
+      "id": "q_snd_j",
+      "character": "narrator",
+      "text": "Which letter says juh, like jam?",
+      "batch": "letters"
+    },
+    {
+      "id": "q_trace_s",
+      "character": "narrator",
+      "text": "sss. Trace the S with your finger!",
+      "batch": "letters"
+    },
+    {
+      "id": "q_trace_m",
+      "character": "narrator",
+      "text": "mmm. Trace the M with your finger!",
+      "batch": "letters"
+    },
+    {
+      "id": "q_trace_t",
+      "character": "narrator",
+      "text": "tuh. Trace the T with your finger!",
+      "batch": "letters"
+    },
+    {
+      "id": "q_trace_n",
+      "character": "narrator",
+      "text": "nnn. Trace the N with your finger!",
+      "batch": "letters"
+    },
+    {
+      "id": "q_trace_l",
+      "character": "narrator",
+      "text": "lll. Trace the L with your finger!",
+      "batch": "letters"
+    },
+    {
+      "id": "q_trace_c",
+      "character": "narrator",
+      "text": "kuh. Trace the C with your finger!",
+      "batch": "letters"
+    }
   ]
 }

@@ -2,7 +2,7 @@
 // Generate Reventure character voice clips with ElevenLabs.
 // Reads tools/voice/casting.json + lines.json, writes assets/vo/<id>.mp3 + manifest.json.
 // Requires env ELEVENLABS_API_KEY. Run from the repo root: node tools/voice/generate.mjs
-import { readFile, writeFile, mkdir } from 'node:fs/promises';
+import { readFile, writeFile, mkdir, readdir } from 'node:fs/promises';
 import path from 'node:path';
 
 const API = 'https://api.elevenlabs.io/v1';
@@ -74,9 +74,15 @@ async function tts(file, text, voiceKey) {
   console.log(`  ✓ ${file}.mp3  (${voiceKey}/${casting.voices[voiceKey].name}, ${buf.length} bytes)`);
 }
 
+// Optional batching: VO_BATCH=letters|words|blend|check|core|all (default all).
+// Lines with no "batch" are treated as "core". Lets us spread generation across runs.
+const BATCH = (process.env.VO_BATCH || 'all').trim();
+const selected = lines.filter(l => BATCH === 'all' || (l.batch || 'core') === BATCH);
+console.log(`Batch "${BATCH}": ${selected.length} of ${lines.length} lines`);
+
 const GUIDES = ['rumi', 'mira', 'zoey'];
 const stems = [];
-for (const line of lines) {
+for (const line of selected) {
   if (line.rotating) {
     for (const g of GUIDES) { await tts(`${line.id}__${g}`, line.text, g); stems.push(`${line.id}__${g}`); await sleep(350); }
   } else {
@@ -84,8 +90,9 @@ for (const line of lines) {
   }
 }
 
-stems.sort();
-await writeFile(path.join(OUT, 'manifest.json'), JSON.stringify(stems, null, 0) + '\n');
-console.log(`\n✅ Generated ${stems.length} clips -> assets/vo/  (manifest.json updated)`);
+// Manifest = EVERY mp3 currently in the folder (so earlier batches aren't dropped).
+const onDisk = (await readdir(OUT)).filter(f => f.endsWith('.mp3')).map(f => f.slice(0, -4)).sort();
+await writeFile(path.join(OUT, 'manifest.json'), JSON.stringify(onDisk, null, 0) + '\n');
+console.log(`\n✅ Generated ${stems.length} clip(s) this run. Manifest now lists ${onDisk.length} total.`);
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }

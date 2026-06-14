@@ -518,7 +518,7 @@ const DAYS = {
   1:{ skillLabel:'Letter sounds',
     greet:["Rumi","Hi! I'm Rumi! Welcome to Harmony Harbor! Oh no — the Lighthouse went dark and a shy Gloomling is hiding its words. Will you help me read to light it up?","Let's go! ▶"],
     activities:[
-      {template:'trace',skillId:'phon.letter.form',letter:'S',pic:'☀️',prompt:'Trace the letter  S  — sss, like sun!',say:'Sss. Trace the S with your finger!',coachLine:'Trace it with your finger! ✏️'},
+      {template:'trace',skillId:'phon.letter.form',letter:'S',pic:'☀️',prompt:'Trace the letter  S  — sss, like sun!',say:'sss. Trace the S with your finger!',coachLine:'Trace it with your finger! ✏️'},
       {template:'soundMatch',skillId:'phon.letter.sound',pic:'☀️',prompt:'Which letter says  sss…  like  sun?',say:'Which letter says sss, like sun?',options:[{t:'S',say:'sss'},{t:'M',say:'mmm'},{t:'T',say:'tuh'}],answer:'S'},
       {template:'firstSound',skillId:'phon.onset',pic:'🐝',prompt:'What sound does  “bee”  start with?',say:'What sound does bee start with? Buh, buh, bee.',options:[{t:'B',say:'buh'},{t:'F',say:'fff'},{t:'N',say:'nnn'}],answer:'B'},
     ],
@@ -547,11 +547,19 @@ const PH={a:'aah',e:'eh',i:'ih',o:'awe',u:'uh',b:'buh',c:'cuh',d:'duh',f:'fff',g
 const CVCWORDS=[['cat','🐱'],['sun','☀️'],['dog','🐶'],['pig','🐷'],['hen','🐔'],['bed','🛏️'],['top','🔝'],['bug','🐛'],['map','🗺️'],['fan','🪭'],['net','🥅'],['cup','☕'],['box','📦'],['log','🪵'],['mop','🧹'],['jam','🍓'],['ten','🔟'],['rug','🧶'],['van','🚐'],['web','🕸️'],['zip','🤐']];
 const GENGREET=["You're back — let's keep our reading streak glowing!","Another day, another adventure in Harmony Harbor!","Twinkle missed you! Ready to read together?","The harbor shines brighter every day you read!","Let's find new sounds and words today!"];
 const TRSET=['S','C','O','U','A','M','N','I','L','T'], TRBANK=LETTERBANK.filter(e=>TRSET.includes(e[0]));
+// Spoken-text templates — used by genDay AND the gameplay clip-id map below, so they stay in sync.
+const vSound=L=>`Which letter says ${L[1]}, like ${L[2]}?`;
+const vTrace=L=>`${L[1]}. Trace the ${L[0]} with your finger!`;
+// Batch "letters": map letter-sound prompts, phoneme taps, and trace prompts to AI clip ids.
+(function(){ const phId=p=>'ph_'+p.replace(/[^a-z]/gi,'');
+  LETTERBANK.forEach(L=>{ VO_LINES[L[1]]=phId(L[1]); VO_LINES[vSound(L)]='q_snd_'+L[0].toLowerCase(); });
+  TRBANK.forEach(L=>{ VO_LINES[vTrace(L)]='q_trace_'+L[0].toLowerCase(); });
+})();
 function genDay(day){ const i=day, idx=(b,n)=>b[(i*7+n*5)%b.length], otherL=n=>LETTERBANK[(i*3+n)%LETTERBANK.length];
   const L=idx(LETTERBANK,1), d1=otherL(4), d2=otherL(9);
   const acts=[]; // odd days lead with finger-tracing, even days with sound-matching (variety + multimodal)
-  if(i%2===1){ const TL=TRBANK[i%TRBANK.length]; acts.push({template:'trace',skillId:'phon.letter.form',letter:TL[0],pic:TL[3],prompt:`Trace the letter  ${TL[0]}  — ${TL[1]}, like ${TL[2]}!`,say:`${TL[1]}. Trace the ${TL[0]} with your finger!`,coachLine:'Trace it with your finger! ✏️'}); }
-  else { acts.push({template:'soundMatch',skillId:'phon.letter.sound',pic:L[3],prompt:`Which letter says  ${L[1]}…  like  ${L[2]}?`,say:`Which letter says ${L[1]}, like ${L[2]}?`,options:[{t:L[0],say:L[1]},{t:d1[0]===L[0]?d2[0]:d1[0],say:d1[1]},{t:d2[0]===L[0]?otherL(13)[0]:d2[0],say:d2[1]}],answer:L[0]}); }
+  if(i%2===1){ const TL=TRBANK[i%TRBANK.length]; acts.push({template:'trace',skillId:'phon.letter.form',letter:TL[0],pic:TL[3],prompt:`Trace the letter  ${TL[0]}  — ${TL[1]}, like ${TL[2]}!`,say:vTrace(TL),coachLine:'Trace it with your finger! ✏️'}); }
+  else { acts.push({template:'soundMatch',skillId:'phon.letter.sound',pic:L[3],prompt:`Which letter says  ${L[1]}…  like  ${L[2]}?`,say:vSound(L),options:[{t:L[0],say:L[1]},{t:d1[0]===L[0]?d2[0]:d1[0],say:d1[1]},{t:d2[0]===L[0]?otherL(13)[0]:d2[0],say:d2[1]}],answer:L[0]}); }
   if(i%2===0){ const S=idx(SIGHTBANK,2); acts.push({template:'wordPicture',skillId:'read.sightword',pic:S[1],prompt:`Which word says  “${S[0]}”?`,say:`Which word says ${S[0]}?`,options:[{t:S[0],say:S[0]},{t:S[2],say:S[2]},{t:S[3],say:S[3]}],answer:S[0]}); }
   else { const F=idx(LETTERBANK,3),g1=otherL(6),g2=otherL(11); acts.push({template:'firstSound',skillId:'phon.onset',pic:F[3],prompt:`What sound does  “${F[2]}”  start with?`,say:`What sound does ${F[2]} start with? ${F[1]}, ${F[1]}, ${F[2]}.`,options:[{t:F[0],say:F[1]},{t:g1[0]===F[0]?g2[0]:g1[0],say:g1[1]},{t:g2[0]===F[0]?otherL(2)[0]:g2[0],say:g2[1]}],answer:F[0]}); }
   const W=idx(CVCWORDS,4); acts.push({template:'blend',skillId:'phon.cvc.blend',pic:W[1],word:W[0],say:`Tap the sounds in order. ${W[0].split('').join('… ')}… ${W[0]}!`,prompt:'Tap the sounds in order to read it!',sounds:W[0].split('').map(ch=>({t:ch,say:PH[ch]||ch}))});
