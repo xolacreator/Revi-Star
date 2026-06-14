@@ -21,7 +21,7 @@ let state = load() || {
   rumiStage:1, twinkleForm:0,
   pre:null, post:null,
   history:[],            // {day,skillId,correct,hints,modeled,firstTry,ms}
-  launchCount:0, voicePref:null, tutorialDone:false
+  launchCount:0, voicePref:null, tutorialDone:false, musicOff:false
 };
 let events = (()=>{ try{ return JSON.parse(localStorage.getItem(EKEY))||[]; }catch(e){ return []; } })();
 let launchT = 0, delight={interaction:null,reward:null,smile:null,excited:null};
@@ -87,10 +87,10 @@ function clipIdFor(text,explicit){ return explicit || VO_LINES[text] || null; }
 // One voice at a time across BOTH systems: stop any playing AI clip AND cancel device TTS
 // before starting either. (Otherwise a clip on headphones + TTS on the phone speaker overlap.)
 let curClip=null;
-function stopAudio(){ try{ speechSynthesis.cancel(); }catch(e){} if(curClip){ try{ curClip.onended=null; curClip.pause(); curClip.currentTime=0; }catch(e){} curClip=null; } }
-function playClip(a,then){ try{ stopAudio(); a.currentTime=0; curClip=a;
-  a.onended=()=>{ if(curClip===a) curClip=null; if(then) then(); };
-  const p=a.play(); if(p&&p.catch) p.catch(()=>{ if(curClip===a) curClip=null; if(then) setTimeout(then,300); }); return true; }catch(e){ return false; } }
+function stopAudio(){ try{ speechSynthesis.cancel(); }catch(e){} if(curClip){ try{ curClip.onended=null; curClip.pause(); curClip.currentTime=0; }catch(e){} curClip=null; if(typeof duckMusic==='function') duckMusic(false); } }
+function playClip(a,then){ try{ stopAudio(); a.currentTime=0; curClip=a; if(typeof duckMusic==='function') duckMusic(true);
+  a.onended=()=>{ if(curClip===a) curClip=null; if(typeof duckMusic==='function') duckMusic(false); if(then) then(); };
+  const p=a.play(); if(p&&p.catch) p.catch(()=>{ if(curClip===a) curClip=null; if(typeof duckMusic==='function') duckMusic(false); if(then) setTimeout(then,300); }); return true; }catch(e){ return false; } }
 const ALLOW_TTS=false; // device/robotic voice fully disabled — real character clips only
 function say(t,{rate=null,pitch=null,then=null,char='narrator',id=null}={}){
   const cid=clipIdFor(t,id); if(cid && audioOn){ const ck=charProfile(char); const pick=VO_HAVE[cid+'__'+ck]||VO_HAVE[cid]; if(pick && playClip(pick,then)) return; } // per-character AI clip, then generic
@@ -98,6 +98,17 @@ function say(t,{rate=null,pitch=null,then=null,char='narrator',id=null}={}){
   const pr=VOICE_PROFILE[charProfile(char)]||VOICE_PROFILE.narrator;
   try{ stopAudio(); const u=new SpeechSynthesisUtterance(t); u.rate=(rate!=null?rate:pr.rate); u.pitch=(pitch!=null?pitch:pr.pitch);
     const vv=(pr.kid?voiceKid:voiceWarm)||voice; if(vv)u.voice=vv; if(then)u.onend=then; speechSynthesis.speak(u);}catch(e){ if(then)setTimeout(then,400);} }
+// ---- Looping background music (assets/music/theme.mp3) — quiet, ducks under voices ----
+let bgm=null, bgmBase=0.20, unduckT=null;
+function fadeMusic(target){ if(!bgm) return; const step=()=>{ if(!bgm) return; const d=target-bgm.volume; if(Math.abs(d)<0.012){ bgm.volume=Math.max(0,Math.min(1,target)); return; } bgm.volume=Math.max(0,Math.min(1,bgm.volume+Math.sign(d)*0.025)); requestAnimationFrame(step); }; step(); }
+function initMusic(){ if(bgm || state.musicOff) return; const url='assets/music/theme.mp3';
+  try{ fetch(url,{method:'HEAD'}).then(r=>{ if(!r||!r.ok) return; bgm=new Audio(url); bgm.loop=true; bgm.volume=0; bgm.play().then(()=>fadeMusic(bgmBase)).catch(()=>{}); }).catch(()=>{}); }catch(e){} }
+function duckMusic(on){ if(!bgm||state.musicOff) return;
+  if(on){ if(unduckT){clearTimeout(unduckT);unduckT=null;} fadeMusic(bgmBase*0.28); }
+  else { if(unduckT)clearTimeout(unduckT); unduckT=setTimeout(()=>{ fadeMusic(bgmBase); unduckT=null; },500); } }
+function updateMusicBtn(){ const b=$('music-btn'); if(b) b.textContent=state.musicOff?'🔇':'🎵'; }
+function toggleMusic(){ state.musicOff=!state.musicOff; save(); updateMusicBtn();
+  if(state.musicOff){ if(bgm) fadeMusic(0); } else { if(bgm){ bgm.play().catch(()=>{}); fadeMusic(bgmBase); } else initMusic(); } }
 function chime(type='good'){ try{ actx=actx||new(window.AudioContext||window.webkitAudioContext)();
   const seq=type==='good'?[660,880]:type==='win'?[660,880,1320]:[520];
   seq.forEach((f,i)=>{ const o=actx.createOscillator(),g=actx.createGain(); o.type='sine'; o.frequency.value=f; o.connect(g); g.connect(actx.destination);
@@ -871,9 +882,11 @@ function decideDay(){ const forced=QS.get('day'); if(forced){ return Math.max(1,
 }
 function boot(){
   loadVOManifest(); maybeLoadHero(); maybeLoadRumi();
+  updateMusicBtn(); const mb=$('music-btn'); if(mb) mb.onclick=toggleMusic;
   if(QS.get('observe')==='1'){ show('observer'); $('mark-smile').onclick=()=>recordExcitement('smile'); $('mark-excited').onclick=()=>recordExcitement('excited'); }
   if(QS.get('reset')==='1'){ localStorage.removeItem(KEY); localStorage.removeItem(EKEY); location.search=''; }
   $('start-btn').onclick=()=>{ audioOn=true; try{ actx=new(window.AudioContext||window.webkitAudioContext)(); }catch(e){}
+    initMusic();
     launchT=performance.now(); state.launchCount=(state.launchCount||0)+1; save(); log('app_open',{launchCount:state.launchCount});
     hide('intro');
     if(!state.tutorialDone) showTutorial();
