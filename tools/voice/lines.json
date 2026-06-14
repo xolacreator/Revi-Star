@@ -4,22 +4,26 @@
     {
       "id": "tut_1",
       "character": "rumi",
-      "text": "Hi! I'm Rumi! Welcome to Reventure! Let me show you how to play."
+      "text": "Hi! I'm Rumi! Welcome to Reventure! Let me show you how to play.",
+      "batch": "tut"
     },
     {
       "id": "tut_2",
       "character": "rumi",
-      "text": "Tap the ground, or hold and drag, to walk around our magical harbor."
+      "text": "Tap the ground, or hold and drag, to walk around our magical harbor.",
+      "batch": "tut"
     },
     {
       "id": "tut_3",
       "character": "rumi",
-      "text": "Find a friend, then read and play games with me to fill the world with light!"
+      "text": "Find a friend, then read and play games with me to fill the world with light!",
+      "batch": "tut"
     },
     {
       "id": "tut_4",
       "character": "rumi",
-      "text": "Every sound you learn makes you shine brighter. Ready? Let's go!"
+      "text": "Every sound you learn makes you shine brighter. Ready? Let's go!",
+      "batch": "tut"
     },
     {
       "id": "rumi_greet_d1",
