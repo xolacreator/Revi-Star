@@ -58,13 +58,19 @@ html,body{margin:0;height:100%;overflow:hidden;background:#bfe3ff;font-family:va
 .text-btn{border:none;background:transparent;color:#fff;font-family:var(--font);font-weight:700;font-size:18px;text-decoration:underline;opacity:.92}
 
 /* ---------- Challenge ---------- */
-.challenge{background:linear-gradient(160deg,#FFE3A8,#FFB1DE);padding-bottom:120px}
+.challenge{background:linear-gradient(160deg,#FFE3A8,#FFB1DE);overflow-y:auto;gap:10px}
 /* Rumi coach — the engaged guide stays on screen during learning */
-.coach{position:absolute;left:10px;bottom:10px;top:auto;transform:none;display:flex;flex-direction:column-reverse;align-items:flex-start;gap:8px;max-width:96%;z-index:12}
-.coach canvas,.coach #coach-img{width:172px;height:200px;flex:0 0 auto;background:rgba(255,255,255,.72);border-radius:24px;object-fit:cover;object-position:center top;box-shadow:0 8px 0 rgba(150,110,170,.4);animation:bob 3s ease-in-out infinite}
-.coach #coach-line{margin:0 0 0 8px;background:#fff;color:var(--purple);font-weight:800;font-size:18px;line-height:1.25;padding:13px 17px;border-radius:18px;box-shadow:0 4px 0 rgba(150,110,170,.25);position:relative;max-width:240px}
-.coach #coach-line::before{content:"";position:absolute;left:46px;bottom:-9px;border:9px solid transparent;border-top-color:#fff}
-@media (max-width:520px){.coach canvas,.coach #coach-img{width:128px;height:152px}.coach #coach-line{font-size:15px;padding:10px 13px;max-width:180px}}
+/* Stacked layout: question + image on top, character in the middle, answers below */
+.challenge .ch-lights{order:1}
+.challenge .ch-pic{order:2}
+.challenge h2{order:3}
+.challenge #coach{order:4}
+.challenge .ch-options{order:5}
+.challenge .ch-actions{order:6}
+.coach{position:static;transform:none;left:auto;bottom:auto;top:auto;display:flex;flex-direction:column;align-items:center;gap:0;max-width:96%;z-index:12}
+.coach canvas,.coach #coach-img{width:150px;height:172px;flex:0 0 auto;background:rgba(255,255,255,.72);border-radius:24px;object-fit:cover;object-position:center top;box-shadow:0 8px 0 rgba(150,110,170,.4);animation:bob 3s ease-in-out infinite}
+.coach #coach-line{display:none} /* question is shown above the character, so no duplicate speech bubble */
+@media (max-width:520px){.coach canvas,.coach #coach-img{width:126px;height:146px}}
 .ch-lights{font-size:34px;letter-spacing:8px;color:#fff;text-shadow:0 2px 4px rgba(80,40,120,.4)}
 .ch-lights .on{color:var(--gold)}
 .ch-pic{font-size:96px;filter:drop-shadow(0 6px 10px rgba(80,40,120,.25));animation:bob 2s ease-in-out infinite}
