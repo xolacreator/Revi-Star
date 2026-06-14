@@ -53,10 +53,11 @@ function pickVoice(){ const v=speechSynthesis.getVoices(); const en=x=>/en(-|_|\
   voiceKid = v.find(x=>en(x)&&/(ana|child|kid|junior|shelley|grandma)/i.test(x.name)) || voiceWarm; // younger voice if present
   voice=voiceWarm; }
 if('speechSynthesis' in window){ pickVoice(); speechSynthesis.onvoiceschanged=()=>{ pickVoice(); if(!$('parent').classList.contains('hidden')) populateVoicePicker(); }; }
-function populateVoicePicker(){ const sel=$('pc-voice'); if(!sel) return; const vs=englishVoices(); sel.innerHTML='';
-  if(!vs.length){ const o=document.createElement('option'); o.textContent='(device has no extra voices)'; sel.appendChild(o); return; }
-  vs.forEach(v=>{ const o=document.createElement('option'); o.value=v.name; o.textContent=v.name.replace(/\(.*?\)/,'').trim()+(voiceScore(v)>=60?' ⭐':''); if((state.voicePref||(voiceWarm&&voiceWarm.name))===v.name) o.selected=true; sel.appendChild(o); });
-  sel.onchange=()=>{ state.voicePref=sel.value; save(); pickVoice(); say("Hi! I'm your reading buddy. Let's learn together!",{char:'rumi'}); };
+// Character voices to audition (label, sample clip id). Guides share one line so you can compare them.
+const CHARACTER_SAMPLES=[['Rumi','praise_reading_star__rumi'],['Mira','praise_reading_star__mira'],['Zoey','praise_reading_star__zoey'],['Twinkle','twinkle_happy'],['Gloomling','gloomling_lost'],['Narrator','reward_great_job']];
+function populateVoicePicker(){ const sel=$('pc-voice'); if(!sel) return; sel.innerHTML='';
+  CHARACTER_SAMPLES.forEach(([label,clip])=>{ const o=document.createElement('option'); o.value=clip; o.textContent=label; sel.appendChild(o); });
+  sel.onchange=()=>{ if(sel.value) say('',{id:sel.value}); }; // play the picked voice on selection too
 }
 // ---- AI voice clips (assets/vo/<id>.mp3) — film/TV-style; auto-used when present, TTS otherwise ----
 const VO_HAVE={}; // id -> preloaded Audio (only ids listed in assets/vo/manifest.json)
@@ -92,7 +93,9 @@ function playClip(a,then){ try{ stopAudio(); a.currentTime=0; curClip=a; if(type
   a.onended=()=>{ if(curClip===a) curClip=null; if(typeof duckMusic==='function') duckMusic(false); if(then) then(); };
   const p=a.play(); if(p&&p.catch) p.catch(()=>{ if(curClip===a) curClip=null; if(typeof duckMusic==='function') duckMusic(false); if(then) setTimeout(then,300); }); return true; }catch(e){ return false; } }
 const ALLOW_TTS=false; // device/robotic voice fully disabled — real character clips only
+let lastSay=null; // remembered so the HUD 🔊 can replay the last line
 function say(t,{rate=null,pitch=null,then=null,char='narrator',id=null}={}){
+  if(t||id) lastSay={t,id,char};
   const cid=clipIdFor(t,id); if(cid && audioOn){ const ck=charProfile(char); const pick=VO_HAVE[cid+'__'+ck]||VO_HAVE[cid]; if(pick && playClip(pick,then)) return; } // per-character AI clip, then generic
   if(!ALLOW_TTS || !audioOn || !('speechSynthesis' in window)){ stopAudio(); if(then) setTimeout(then,500); return; } // no clip → silent (no robotic), keep flow alive
   const pr=VOICE_PROFILE[charProfile(char)]||VOICE_PROFILE.narrator;
@@ -874,15 +877,13 @@ function buildDashboard(){ const m=metrics();
   $('pc-today').innerHTML = `<li>Practiced <b>${skillName}</b></li><li>Tried ${tried}, got ${got}, used ${usedHints} hint${usedHints===1?'':'s'}</li>`+(state.day===3?'<li>Read a whole word independently 🎉</li>':'');
   $('pc-pre').textContent = state.pre==null?'–':state.pre; $('pc-post').textContent = state.post==null?'–':state.post;
 }
-function openParent(){ buildDashboard(); show('parent');
+function openParent(){ buildDashboard(); populateVoicePicker(); show('parent');
   $('reengage').classList.toggle('hidden', !state.askReengage);
   log('dashboard_view');
   [...document.querySelectorAll('#reengage .re-btns button')].forEach(b=>b.onclick=()=>{ log('parent_reengage',{value:b.dataset.v}); state.askReengage=false; save(); $('reengage').classList.add('hidden'); });
 }
 $('pc-close').onclick=()=>hide('parent');
-$('pc-voice-test').onclick=()=>{ // demo the real character voices (device TTS is off — clips only)
-  const seq=[['rumi','praise_did_it'],['mira','praise_amazing'],['zoey','praise_yay']]; let i=0;
-  const next=()=>{ if(i>=seq.length) return; const [g,id]=seq[i++]; say('',{id,char:g,then:()=>setTimeout(next,220)}); }; next(); };
+$('pc-voice-test').onclick=()=>{ const sel=$('pc-voice'); say('',{id:(sel&&sel.value)||'praise_reading_star__rumi'}); }; // play the selected character voice
 $('pc-export').onclick=()=>{ const blob=new Blob([JSON.stringify({state,events},null,2)],{type:'application/json'});
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='little-legends-a1-data.json'; a.click(); };
 $('pc-sim').onclick=()=>{ state.lastCompletedDate=null; save(); hide('parent'); location.reload(); };
@@ -901,6 +902,7 @@ function decideDay(){ const forced=QS.get('day'); if(forced){ return Math.max(1,
 function boot(){
   loadVOManifest(); maybeLoadHero(); maybeLoadRumi();
   updateMusicBtn(); const mb=$('music-btn'); if(mb) mb.onclick=toggleMusic;
+  const hb=$('hear-btn'); if(hb) hb.onclick=()=>{ if(lastSay) say(lastSay.t,{id:lastSay.id,char:lastSay.char}); }; // 🔊 = hear it again
   if(QS.get('observe')==='1'){ show('observer'); $('mark-smile').onclick=()=>recordExcitement('smile'); $('mark-excited').onclick=()=>recordExcitement('excited'); }
   if(QS.get('reset')==='1'){ localStorage.removeItem(KEY); localStorage.removeItem(EKEY); location.search=''; }
   $('start-btn').onclick=()=>{ audioOn=true; try{ actx=new(window.AudioContext||window.webkitAudioContext)(); }catch(e){}
