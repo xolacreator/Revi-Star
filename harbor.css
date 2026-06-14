@@ -58,13 +58,13 @@ html,body{margin:0;height:100%;overflow:hidden;background:#bfe3ff;font-family:va
 .text-btn{border:none;background:transparent;color:#fff;font-family:var(--font);font-weight:700;font-size:18px;text-decoration:underline;opacity:.92}
 
 /* ---------- Challenge ---------- */
-.challenge{background:linear-gradient(160deg,#FFE3A8,#FFB1DE);padding-top:165px}
+.challenge{background:linear-gradient(160deg,#FFE3A8,#FFB1DE);padding-bottom:120px}
 /* Rumi coach — the engaged guide stays on screen during learning */
-.coach{position:absolute;top:16px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:12px;max-width:94%;z-index:12}
-.coach canvas,.coach #coach-img{width:116px;height:116px;flex:0 0 auto;background:rgba(255,255,255,.72);border-radius:50%;object-fit:cover;box-shadow:0 6px 0 rgba(150,110,170,.4);animation:bob 2.6s ease-in-out infinite}
-.coach #coach-line{margin:0;background:#fff;color:var(--purple);font-weight:800;font-size:17px;line-height:1.25;padding:12px 16px;border-radius:18px;box-shadow:0 4px 0 rgba(150,110,170,.25);position:relative;max-width:230px}
-.coach #coach-line::before{content:"";position:absolute;left:-8px;top:26px;border:8px solid transparent;border-right-color:#fff}
-@media (max-width:520px){.coach canvas,.coach #coach-img{width:92px;height:92px}.coach #coach-line{font-size:14px;padding:9px 12px;max-width:165px}}
+.coach{position:absolute;left:10px;bottom:10px;top:auto;transform:none;display:flex;flex-direction:column-reverse;align-items:flex-start;gap:8px;max-width:96%;z-index:12}
+.coach canvas,.coach #coach-img{width:172px;height:200px;flex:0 0 auto;background:rgba(255,255,255,.72);border-radius:24px;object-fit:cover;object-position:center top;box-shadow:0 8px 0 rgba(150,110,170,.4);animation:bob 3s ease-in-out infinite}
+.coach #coach-line{margin:0 0 0 8px;background:#fff;color:var(--purple);font-weight:800;font-size:18px;line-height:1.25;padding:13px 17px;border-radius:18px;box-shadow:0 4px 0 rgba(150,110,170,.25);position:relative;max-width:240px}
+.coach #coach-line::before{content:"";position:absolute;left:46px;bottom:-9px;border:9px solid transparent;border-top-color:#fff}
+@media (max-width:520px){.coach canvas,.coach #coach-img{width:128px;height:152px}.coach #coach-line{font-size:15px;padding:10px 13px;max-width:180px}}
 .ch-lights{font-size:34px;letter-spacing:8px;color:#fff;text-shadow:0 2px 4px rgba(80,40,120,.4)}
 .ch-lights .on{color:var(--gold)}
 .ch-pic{font-size:96px;filter:drop-shadow(0 6px 10px rgba(80,40,120,.25));animation:bob 2s ease-in-out infinite}
