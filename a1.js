@@ -549,6 +549,8 @@ const DAYS = {
       {template:'trace',skillId:'phon.letter.form',letter:'S',pic:'☀️',prompt:'Trace the letter  S  — sss, like sun!',say:'sss. Trace the S with your finger!',coachLine:'Trace it with your finger! ✏️'},
       {template:'soundMatch',skillId:'phon.letter.sound',pic:'☀️',prompt:'Which letter says  sss…  like  sun?',say:'Which letter says sss, like sun?',options:[{t:'S',say:'sss'},{t:'M',say:'mmm'},{t:'T',say:'tuh'}],answer:'S'},
       {template:'firstSound',skillId:'phon.onset',pic:'🐝',prompt:'What sound does  “bee”  start with?',say:'What sound does bee start with? buh, buh, bee.',options:[{t:'B',say:'buh'},{t:'F',say:'fff'},{t:'N',say:'nnn'}],answer:'B'},
+      {template:'soundMatch',skillId:'phon.letter.sound',pic:'🌙',prompt:'Which letter says  mmm…  like  moon?',say:'Which letter says mmm, like moon?',options:[{t:'M',say:'mmm'},{t:'S',say:'sss'},{t:'T',say:'tuh'}],answer:'M'},
+      {template:'firstSound',skillId:'phon.onset',pic:'🔝',prompt:'What sound does  “top”  start with?',say:'What sound does top start with? tuh, tuh, top.',options:[{t:'T',say:'tuh'},{t:'M',say:'mmm'},{t:'B',say:'buh'}],answer:'T'},
     ],
     tease:["Tomorrow: help read the harbor signs — and find Twinkle a brand-new look!"], teaseId:"tease_d1" },
   2:{ skillLabel:'Sight words',
@@ -556,6 +558,7 @@ const DAYS = {
     activities:[
       {template:'wordPicture',skillId:'read.sightword',pic:'🐱',prompt:'Which word says  “cat”?',say:'Which word says cat?',options:[{t:'cat',say:'cat'},{t:'dog',say:'dog'},{t:'sun',say:'sun'}],answer:'cat'},
       {template:'soundMatch',skillId:'phon.letter.sound',pic:'🐟',prompt:'Which letter says  fff…  like  fish?',say:'Which letter says fff, like fish?',options:[{t:'F',say:'fff'},{t:'L',say:'lll'},{t:'R',say:'rrr'}],answer:'F'},
+      {template:'wordPicture',skillId:'read.sightword',pic:'🐶',prompt:'Which word says  “dog”?',say:'Which word says dog?',options:[{t:'dog',say:'dog'},{t:'cat',say:'cat'},{t:'bus',say:'bus'}],answer:'dog'},
     ],
     tease:["Tomorrow: blend sounds to read a WHOLE word — and Twinkle will EVOLVE!"], teaseId:"tease_d2" },
   3:{ skillLabel:'Blending words',
@@ -563,7 +566,8 @@ const DAYS = {
     story:["Keeper's note","“Dear friend… the harbor shines because of YOU. Read on!”"],
     activities:[
       {template:'blend',skillId:'phon.cvc.blend',pic:'🐱',word:'cat',say:'Tap the sounds in order. c… a… t… cat!',prompt:'Tap the sounds in order to read it!',sounds:[{t:'c',say:'cuh'},{t:'a',say:'aah'},{t:'t',say:'tuh'}]},
-      {template:'blend',skillId:'phon.cvc.blend',pic:'☀️',word:'sun',say:'Now this one. s… u… n… sun!',prompt:'Tap the sounds in order!',sounds:[{t:'s',say:'sss'},{t:'u',say:'uh'},{t:'n',say:'nnn'}]},
+      {template:'blend',skillId:'phon.cvc.blend',pic:'☀️',word:'sun',say:'Tap the sounds in order. s… u… n… sun!',prompt:'Tap the sounds in order to read it!',sounds:[{t:'s',say:'sss'},{t:'u',say:'uh'},{t:'n',say:'nnn'}]},
+      {template:'blend',skillId:'phon.cvc.blend',pic:'🐶',word:'dog',say:'Tap the sounds in order. d… o… g… dog!',prompt:'Tap the sounds in order to read it!',sounds:[{t:'d',say:'duh'},{t:'o',say:'awe'},{t:'g',say:'guh'}]},
     ],
     tease:["You played 3 days in a row! More adventures are coming soon…"], teaseId:"tease_d3" }
 };
@@ -572,7 +576,7 @@ const MAX_DAY = 21; // the daily loop now runs three weeks
 const LETTERBANK=[['S','sss','sun','☀️'],['M','mmm','moon','🌙'],['T','tuh','top','🔝'],['F','fff','fish','🐟'],['B','buh','bee','🐝'],['N','nnn','net','🥅'],['P','puh','pig','🐷'],['D','duh','dog','🐶'],['L','lll','leaf','🍃'],['R','rrr','red','🔴'],['C','kuh','cat','🐱'],['H','huh','hat','🎩'],['G','guh','goat','🐐'],['K','kuh','kite','🪁'],['V','vvv','van','🚐'],['W','wuh','web','🕸️'],['Z','zzz','zip','🤐'],['J','juh','jam','🍓']];
 const SIGHTBANK=[['cat','🐱','dog','sun'],['dog','🐶','cat','bus'],['sun','☀️','net','pig'],['red','🔴','mom','big'],['pig','🐷','bus','hat'],['bus','🚌','red','net'],['hat','🎩','dog','sun'],['mom','👩','big','net'],['big','🔵','pig','bus'],['net','🥅','cat','mom'],['box','📦','fox','dog'],['fox','🦊','box','sun']];
 const PH={a:'aah',e:'eh',i:'ih',o:'awe',u:'uh',b:'buh',c:'cuh',d:'duh',f:'fff',g:'guh',h:'huh',j:'juh',k:'kuh',l:'lll',m:'mmm',n:'nnn',p:'puh',r:'rrr',s:'sss',t:'tuh',v:'vvv',w:'wuh',x:'ks',y:'yuh',z:'zzz'};
-const CVCWORDS=[['cat','🐱'],['sun','☀️'],['dog','🐶'],['pig','🐷'],['hen','🐔'],['bed','🛏️'],['top','🔝'],['bug','🐛'],['map','🗺️'],['fan','🪭'],['net','🥅'],['cup','☕'],['box','📦'],['log','🪵'],['mop','🧹'],['jam','🍓'],['ten','🔟'],['rug','🧶'],['van','🚐'],['web','🕸️'],['zip','🤐']];
+const CVCWORDS=[['cat','🐱'],['sun','☀️'],['dog','🐶'],['pig','🐷'],['hen','🐔'],['bed','🛏️'],['top','🔝'],['bug','🐛'],['map','🗺️'],['fan','🪭'],['net','🥅'],['cup','☕'],['box','📦'],['log','🪵'],['mop','🧹'],['jam','🍓'],['ten','🔟'],['rug','🧶'],['van','🚐'],['web','🕸️'],['zip','🤐'],['rat','🐀'],['mat','🟫'],['sit','🪑'],['hop','🐰'],['fox','🦊'],['bat','🦇'],['pen','🖊️'],['cub','🐻'],['gum','🍬'],['hut','🛖'],['lip','👄'],['nut','🥜']];
 const GENGREET=["You're back — let's keep our reading streak glowing!","Another day, another adventure in Harmony Harbor!","Twinkle missed you! Ready to read together?","The harbor shines brighter every day you read!","Let's find new sounds and words today!"];
 const TRSET=['S','C','O','U','A','M','N','I','L','T'], TRBANK=LETTERBANK.filter(e=>TRSET.includes(e[0]));
 // Spoken-text templates — used by genDay AND the gameplay clip-id map below, so they stay in sync.
@@ -589,14 +593,20 @@ const vBlend=w=>`Tap the sounds in order. ${w.split('').join('… ')}… ${w}!`;
   [...new Set(SIGHTBANK.flatMap(S=>[S[0],S[2],S[3]]))].forEach(w=>{ VO_LINES[w]='word_'+w; });
   CVCWORDS.forEach(W=>{ const w=W[0]; VO_LINES[vBlend(w)]='q_blend_'+w; VO_LINES[w]='word_'+w; w.split('').forEach(ch=>{ const p=PH[ch]||ch; VO_LINES[p]=phId(p); }); });
 })();
-function genDay(day){ const i=day, idx=(b,n)=>b[(i*7+n*5)%b.length], otherL=n=>LETTERBANK[(i*3+n)%LETTERBANK.length];
-  const L=idx(LETTERBANK,1), d1=otherL(4), d2=otherL(9);
-  const acts=[]; // odd days lead with finger-tracing, even days with sound-matching (variety + multimodal)
-  if(i%2===1){ const TL=TRBANK[i%TRBANK.length]; acts.push({template:'trace',skillId:'phon.letter.form',letter:TL[0],pic:TL[3],prompt:`Trace the letter  ${TL[0]}  — ${TL[1]}, like ${TL[2]}!`,say:vTrace(TL),coachLine:'Trace it with your finger! ✏️'}); }
-  else { acts.push({template:'soundMatch',skillId:'phon.letter.sound',pic:L[3],prompt:`Which letter says  ${L[1]}…  like  ${L[2]}?`,say:vSound(L),options:[{t:L[0],say:L[1]},{t:d1[0]===L[0]?d2[0]:d1[0],say:d1[1]},{t:d2[0]===L[0]?otherL(13)[0]:d2[0],say:d2[1]}],answer:L[0]}); }
-  if(i%2===0){ const S=idx(SIGHTBANK,2); acts.push({template:'wordPicture',skillId:'read.sightword',pic:S[1],prompt:`Which word says  “${S[0]}”?`,say:vWord(S[0]),options:[{t:S[0],say:S[0]},{t:S[2],say:S[2]},{t:S[3],say:S[3]}],answer:S[0]}); }
-  else { const F=idx(LETTERBANK,3),g1=otherL(6),g2=otherL(11); acts.push({template:'firstSound',skillId:'phon.onset',pic:F[3],prompt:`What sound does  “${F[2]}”  start with?`,say:vFirst(F),options:[{t:F[0],say:F[1]},{t:g1[0]===F[0]?g2[0]:g1[0],say:g1[1]},{t:g2[0]===F[0]?otherL(2)[0]:g2[0],say:g2[1]}],answer:F[0]}); }
-  const W=idx(CVCWORDS,4); acts.push({template:'blend',skillId:'phon.cvc.blend',pic:W[1],word:W[0],say:vBlend(W[0]),prompt:'Tap the sounds in order to read it!',sounds:W[0].split('').map(ch=>({t:ch,say:PH[ch]||ch}))});
+// ---- Activity item builders (draw from the clipped banks; renderChoose shuffles options) ----
+function dxLetters(ans,...cands){ const out=[]; for(const c of [...cands,...LETTERBANK]){ if(c[0]!==ans[0] && !out.some(o=>o[0]===c[0])){ out.push(c); if(out.length===2) break; } } return out; }
+function itTrace(TL){ return {template:'trace',skillId:'phon.letter.form',letter:TL[0],pic:TL[3],prompt:`Trace the letter  ${TL[0]}  — ${TL[1]}, like ${TL[2]}!`,say:vTrace(TL),coachLine:'Trace it with your finger! ✏️'}; }
+function itSound(L,a,b){ const d=dxLetters(L,a,b); return {template:'soundMatch',skillId:'phon.letter.sound',pic:L[3],prompt:`Which letter says  ${L[1]}…  like  ${L[2]}?`,say:vSound(L),options:[{t:L[0],say:L[1]},{t:d[0][0],say:d[0][1]},{t:d[1][0],say:d[1][1]}],answer:L[0]}; }
+function itFirst(F,a,b){ const d=dxLetters(F,a,b); return {template:'firstSound',skillId:'phon.onset',pic:F[3],prompt:`What sound does  “${F[2]}”  start with?`,say:vFirst(F),options:[{t:F[0],say:F[1]},{t:d[0][0],say:d[0][1]},{t:d[1][0],say:d[1][1]}],answer:F[0]}; }
+function itWord(S){ return {template:'wordPicture',skillId:'read.sightword',pic:S[1],prompt:`Which word says  “${S[0]}”?`,say:vWord(S[0]),options:[{t:S[0],say:S[0]},{t:S[2],say:S[2]},{t:S[3],say:S[3]}],answer:S[0]}; }
+function itBlend(W){ return {template:'blend',skillId:'phon.cvc.blend',pic:W[1],word:W[0],say:vBlend(W[0]),prompt:'Tap the sounds in order to read it!',sounds:W[0].split('').map(ch=>({t:ch,say:PH[ch]||ch}))}; }
+function genDay(day){ const i=day, LB=LETTERBANK.length, SB=SIGHTBANK.length, CB=CVCWORDS.length;
+  const A=LETTERBANK[(i*7+1)%LB], B=LETTERBANK[(i*5+3)%LB], S1=SIGHTBANK[(i*7+2)%SB];
+  let w1=(i*7+4)%CB, w2=(i*11+1)%CB; if(w2===w1) w2=(w2+1)%CB;            // two distinct blend words
+  const TL=TRBANK[i%TRBANK.length];
+  // 6 questions/day: trace · letter-sound · first-sound · sight-word · two blends
+  const acts=[ itTrace(TL), itSound(A,LETTERBANK[(i*3+4)%LB],LETTERBANK[(i*3+9)%LB]),
+    itFirst(B,LETTERBANK[(i*2+6)%LB],LETTERBANK[(i*2+11)%LB]), itWord(S1), itBlend(CVCWORDS[w1]), itBlend(CVCWORDS[w2]) ];
   const labels=['Letter sounds','Reading words','Blending words']; const gn=coachNameFor(day), GN=gn.charAt(0).toUpperCase()+gn.slice(1);
   return { skillLabel:labels[i%3], greet:[GN,GENGREET[i%GENGREET.length],"Let's read! ▶"], greetId:'greet_g'+(i%GENGREET.length), activities:acts,
     tease:[ day>=MAX_DAY ? "Three whole weeks of reading — you're a true Star Hunter! 🌟" : "Come back tomorrow for more sounds, words, and sparkles!" ], teaseId: day>=MAX_DAY?'tease_wk3':'tease_more' }; }
@@ -998,9 +1008,13 @@ function tick(now){ const dt=Math.min((now-lastT)/1000,.05); lastT=now; const t=
     const blink=(t%3.4<0.1)?0.15:1, e1=twinkle.children[6], e2=twinkle.children[7]; if(e1) e1.scale.y=blink; if(e2) e2.scale.y=blink;
     if(twTailStar) twTailStar.material.emissiveIntensity=(cheering?1.6:.8)+Math.sin(t*6)*.3; }
   rumi.position.y=Math.sin(t*1.6)*.04; if(rumiBraid){ rumiBraid.rotation.x=Math.sin(t*1.4)*0.06; rumiBraid.rotation.z=0.35+Math.sin(t*1.1)*0.04; } // braid secondary motion
-  if(rumiMixer && rumiActions.wave){ const np=performance.now(); // Rumi greets the player — more eagerly when the hero is close by
-    if(np>rumiNextWave && np>=rumiWaveUntil && rumiCurrent==='idle'){ playRumi('wave'); rumiWaveUntil=np+1500; const near=Math.hypot(rumi.position.x-avatar.position.x,rumi.position.z-avatar.position.z)<5; rumiNextWave=np+(near?5000:11000)+Math.random()*4000; }
-    if(np>=rumiWaveUntil && rumiCurrent==='wave') playRumi('idle'); }
+  if(rumiMixer){ const np=performance.now(); // the guide stays lively: waves when you're near, breaks into a little dance now and then
+    if(np>rumiNextWave && np>=rumiWaveUntil && rumiCurrent==='idle'){
+      const near=Math.hypot(rumi.position.x-avatar.position.x,rumi.position.z-avatar.position.z)<5;
+      if(rumiActions.dance && Math.random()<(near?0.35:0.55)){ playRumi('dance'); rumiWaveUntil=np+4200; } // a dance break
+      else if(rumiActions.wave){ playRumi('wave'); rumiWaveUntil=np+1500; }                               // a friendly wave
+      rumiNextWave=np+(near?5000:9000)+Math.random()*5000; }
+    if(np>=rumiWaveUntil && rumiCurrent!=='idle') playRumi('idle'); }
   if(reached===false && controlEnabled && Math.hypot(gloomling.position.x-avatar.position.x,gloomling.position.z-avatar.position.z)<2.0){ reachSpot(); }
   if(blooming&&bloom<1){ bloom=Math.min(1,bloom+dt*.6); skyMat.color.copy(new THREE.Color('#8a86a0')).lerp(new THREE.Color('#ffffff'),bloom); scene.fog.color.copy(FOG_GRAY).lerp(FOG_BRIGHT,bloom);
     hemi.intensity=.45+.35*bloom; water.material.color.copy(new THREE.Color('#7fb6bf')).lerp(new THREE.Color('#3fc8d2'),bloom); water.material.emissiveIntensity=0.1*bloom; dock.material.color.copy(new THREE.Color('#e7c9a6')).lerp(new THREE.Color('#ffe3b0'),bloom);

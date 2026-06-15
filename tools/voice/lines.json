@@ -882,6 +882,144 @@
       "batch": "blend"
     },
     {
+      "id": "q_blend_rat",
+      "character": "narrator",
+      "text": "Tap the sounds in order. r… a… t… rat!",
+      "batch": "blend"
+    },
+    {
+      "id": "word_rat",
+      "character": "narrator",
+      "text": "rat",
+      "batch": "blend"
+    },
+    {
+      "id": "q_blend_mat",
+      "character": "narrator",
+      "text": "Tap the sounds in order. m… a… t… mat!",
+      "batch": "blend"
+    },
+    {
+      "id": "word_mat",
+      "character": "narrator",
+      "text": "mat",
+      "batch": "blend"
+    },
+    {
+      "id": "q_blend_sit",
+      "character": "narrator",
+      "text": "Tap the sounds in order. s… i… t… sit!",
+      "batch": "blend"
+    },
+    {
+      "id": "word_sit",
+      "character": "narrator",
+      "text": "sit",
+      "batch": "blend"
+    },
+    {
+      "id": "q_blend_hop",
+      "character": "narrator",
+      "text": "Tap the sounds in order. h… o… p… hop!",
+      "batch": "blend"
+    },
+    {
+      "id": "word_hop",
+      "character": "narrator",
+      "text": "hop",
+      "batch": "blend"
+    },
+    {
+      "id": "q_blend_fox",
+      "character": "narrator",
+      "text": "Tap the sounds in order. f… o… x… fox!",
+      "batch": "blend"
+    },
+    {
+      "id": "q_blend_bat",
+      "character": "narrator",
+      "text": "Tap the sounds in order. b… a… t… bat!",
+      "batch": "blend"
+    },
+    {
+      "id": "word_bat",
+      "character": "narrator",
+      "text": "bat",
+      "batch": "blend"
+    },
+    {
+      "id": "q_blend_pen",
+      "character": "narrator",
+      "text": "Tap the sounds in order. p… e… n… pen!",
+      "batch": "blend"
+    },
+    {
+      "id": "word_pen",
+      "character": "narrator",
+      "text": "pen",
+      "batch": "blend"
+    },
+    {
+      "id": "q_blend_cub",
+      "character": "narrator",
+      "text": "Tap the sounds in order. c… u… b… cub!",
+      "batch": "blend"
+    },
+    {
+      "id": "word_cub",
+      "character": "narrator",
+      "text": "cub",
+      "batch": "blend"
+    },
+    {
+      "id": "q_blend_gum",
+      "character": "narrator",
+      "text": "Tap the sounds in order. g… u… m… gum!",
+      "batch": "blend"
+    },
+    {
+      "id": "word_gum",
+      "character": "narrator",
+      "text": "gum",
+      "batch": "blend"
+    },
+    {
+      "id": "q_blend_hut",
+      "character": "narrator",
+      "text": "Tap the sounds in order. h… u… t… hut!",
+      "batch": "blend"
+    },
+    {
+      "id": "word_hut",
+      "character": "narrator",
+      "text": "hut",
+      "batch": "blend"
+    },
+    {
+      "id": "q_blend_lip",
+      "character": "narrator",
+      "text": "Tap the sounds in order. l… i… p… lip!",
+      "batch": "blend"
+    },
+    {
+      "id": "word_lip",
+      "character": "narrator",
+      "text": "lip",
+      "batch": "blend"
+    },
+    {
+      "id": "q_blend_nut",
+      "character": "narrator",
+      "text": "Tap the sounds in order. n… u… t… nut!",
+      "batch": "blend"
+    },
+    {
+      "id": "word_nut",
+      "character": "narrator",
+      "text": "nut",
+      "batch": "blend"
+    },
+    {
       "id": "chk_intro",
       "character": "narrator",
       "text": "Let's play Twinkle's Star Check! Just try your best — it's only for fun.",

@@ -8,7 +8,7 @@ import { readFile, writeFile } from 'node:fs/promises';
 const LETTERBANK=[['S','sss','sun'],['M','mmm','moon'],['T','tuh','top'],['F','fff','fish'],['B','buh','bee'],['N','nnn','net'],['P','puh','pig'],['D','duh','dog'],['L','lll','leaf'],['R','rrr','red'],['C','kuh','cat'],['H','huh','hat'],['G','guh','goat'],['K','kuh','kite'],['V','vvv','van'],['W','wuh','web'],['Z','zzz','zip'],['J','juh','jam']];
 const SIGHTBANK=[['cat','🐱','dog','sun'],['dog','🐶','cat','bus'],['sun','☀️','net','pig'],['red','🔴','mom','big'],['pig','🐷','bus','hat'],['bus','🚌','red','net'],['hat','🎩','dog','sun'],['mom','👩','big','net'],['big','🔵','pig','bus'],['net','🥅','cat','mom'],['box','📦','fox','dog'],['fox','🦊','box','sun']];
 const PH={a:'aah',e:'eh',i:'ih',o:'awe',u:'uh',b:'buh',c:'cuh',d:'duh',f:'fff',g:'guh',h:'huh',j:'juh',k:'kuh',l:'lll',m:'mmm',n:'nnn',p:'puh',r:'rrr',s:'sss',t:'tuh',v:'vvv',w:'wuh',x:'ks',y:'yuh',z:'zzz'};
-const CVCWORDS=['cat','sun','dog','pig','hen','bed','top','bug','map','fan','net','cup','box','log','mop','jam','ten','rug','van','web','zip'];
+const CVCWORDS=['cat','sun','dog','pig','hen','bed','top','bug','map','fan','net','cup','box','log','mop','jam','ten','rug','van','web','zip','rat','mat','sit','hop','fox','bat','pen','cub','gum','hut','lip','nut'];
 const TRSET=['S','C','O','U','A','M','N','I','L','T'], TRBANK=LETTERBANK.filter(e=>TRSET.includes(e[0]));
 const vSound=L=>`Which letter says ${L[1]}, like ${L[2]}?`;
 const vTrace=L=>`${L[1]}. Trace the ${L[0]} with your finger!`;
