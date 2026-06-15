@@ -1092,6 +1092,114 @@
       "batch": "rhyme"
     },
     {
+      "id": "q_case_s",
+      "character": "narrator",
+      "text": "Find the little letter that says sss!",
+      "batch": "case"
+    },
+    {
+      "id": "q_case_m",
+      "character": "narrator",
+      "text": "Find the little letter that says mmm!",
+      "batch": "case"
+    },
+    {
+      "id": "q_case_t",
+      "character": "narrator",
+      "text": "Find the little letter that says tuh!",
+      "batch": "case"
+    },
+    {
+      "id": "q_case_f",
+      "character": "narrator",
+      "text": "Find the little letter that says fff!",
+      "batch": "case"
+    },
+    {
+      "id": "q_case_b",
+      "character": "narrator",
+      "text": "Find the little letter that says buh!",
+      "batch": "case"
+    },
+    {
+      "id": "q_case_n",
+      "character": "narrator",
+      "text": "Find the little letter that says nnn!",
+      "batch": "case"
+    },
+    {
+      "id": "q_case_p",
+      "character": "narrator",
+      "text": "Find the little letter that says puh!",
+      "batch": "case"
+    },
+    {
+      "id": "q_case_d",
+      "character": "narrator",
+      "text": "Find the little letter that says duh!",
+      "batch": "case"
+    },
+    {
+      "id": "q_case_l",
+      "character": "narrator",
+      "text": "Find the little letter that says lll!",
+      "batch": "case"
+    },
+    {
+      "id": "q_case_r",
+      "character": "narrator",
+      "text": "Find the little letter that says rrr!",
+      "batch": "case"
+    },
+    {
+      "id": "q_case_c",
+      "character": "narrator",
+      "text": "Find the little letter that says kuh!",
+      "batch": "case"
+    },
+    {
+      "id": "q_case_h",
+      "character": "narrator",
+      "text": "Find the little letter that says huh!",
+      "batch": "case"
+    },
+    {
+      "id": "q_case_g",
+      "character": "narrator",
+      "text": "Find the little letter that says guh!",
+      "batch": "case"
+    },
+    {
+      "id": "q_case_k",
+      "character": "narrator",
+      "text": "Find the little letter that says kuh!",
+      "batch": "case"
+    },
+    {
+      "id": "q_case_v",
+      "character": "narrator",
+      "text": "Find the little letter that says vvv!",
+      "batch": "case"
+    },
+    {
+      "id": "q_case_w",
+      "character": "narrator",
+      "text": "Find the little letter that says wuh!",
+      "batch": "case"
+    },
+    {
+      "id": "q_case_z",
+      "character": "narrator",
+      "text": "Find the little letter that says zzz!",
+      "batch": "case"
+    },
+    {
+      "id": "q_case_j",
+      "character": "narrator",
+      "text": "Find the little letter that says juh!",
+      "batch": "case"
+    },
+    {
       "id": "chk_intro",
       "character": "narrator",
       "text": "Let's play Twinkle's Star Check! Just try your best — it's only for fun.",

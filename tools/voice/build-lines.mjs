@@ -11,6 +11,7 @@ const PH={a:'aah',e:'eh',i:'ih',o:'awe',u:'uh',b:'buh',c:'cuh',d:'duh',f:'fff',g
 const CVCWORDS=['cat','sun','dog','pig','hen','bed','top','bug','map','fan','net','cup','box','log','mop','jam','ten','rug','van','web','zip','rat','mat','sit','hop','fox','bat','pen','cub','gum','hut','lip','nut'];
 const RHYMETARGETS=['cat','bat','dog','pig','hen','top','bug','box','fan','rat','bed','mat'];
 const vRhyme=w=>`What rhymes with ${w}?`;
+const vCase=L=>`Find the little letter that says ${L[1]}!`;
 const TRSET=['S','C','O','U','A','M','N','I','L','T'], TRBANK=LETTERBANK.filter(e=>TRSET.includes(e[0]));
 const vSound=L=>`Which letter says ${L[1]}, like ${L[2]}?`;
 const vTrace=L=>`${L[1]}. Trace the ${L[0]} with your finger!`;
@@ -36,6 +37,9 @@ for(const w of CVCWORDS){ push(blend,'q_blend_'+w,vBlend(w),'blend'); push(blend
 
 const rhyme=[]; // rhyme prompts; the option words reuse existing word_ clips
 for(const w of RHYMETARGETS) push(rhyme,'q_rhyme_'+w,vRhyme(w),'rhyme');
+
+const kase=[]; // uppercase->lowercase prompts (one per letter); option taps reuse phoneme clips
+for(const L of LETTERBANK) push(kase,'q_case_'+L[0].toLowerCase(),vCase(L),'case');
 
 const check=[]; // pig/red questions reuse existing q_word_ clips, so they're omitted here
 push(check,'chk_intro',"Let's play Twinkle's Star Check! Just try your best — it's only for fun.",'check');
@@ -74,7 +78,7 @@ const extra=[
 
 // ---- merge: keep core, replace rebuilt gameplay batches ----
 const doc=JSON.parse(await readFile('tools/voice/lines.json','utf8'));
-const kept=doc.lines.filter(l=>!['letters','words','blend','rhyme','check','extra'].includes(l.batch));
-doc.lines=[...kept,...letters,...words,...blend,...rhyme,...check,...extra];
+const kept=doc.lines.filter(l=>!['letters','words','blend','rhyme','case','check','extra'].includes(l.batch));
+doc.lines=[...kept,...letters,...words,...blend,...rhyme,...kase,...check,...extra];
 await writeFile('tools/voice/lines.json', JSON.stringify(doc,null,2)+'\n');
-console.log(`lines.json: ${kept.length} kept + ${letters.length} letters + ${words.length} words + ${blend.length} blend + ${rhyme.length} rhyme + ${check.length} check + ${extra.length} extra = ${doc.lines.length} total`);
+console.log(`lines.json: ${kept.length} kept + ${letters.length} letters + ${words.length} words + ${blend.length} blend + ${rhyme.length} rhyme + ${kase.length} case + ${check.length} check + ${extra.length} extra = ${doc.lines.length} total`);
