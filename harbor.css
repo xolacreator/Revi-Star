@@ -67,6 +67,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#bfe3ff;font-family:va
 .coach #coach-line{display:none} /* question shown above the character, so no duplicate bubble */
 @media (max-width:560px){.coach canvas,.coach #coach-img{height:min(31vh,250px)}}
 .ch-lights{font-size:34px;letter-spacing:8px;color:#fff;text-shadow:0 2px 4px rgba(80,40,120,.4)}
+.ch-lights.count{font-size:20px;letter-spacing:1px;font-weight:800}
 .ch-lights .on{color:var(--gold)}
 .ch-pic{font-size:96px;filter:drop-shadow(0 6px 10px rgba(80,40,120,.25));animation:bob 2s ease-in-out infinite}
 .challenge h2{color:var(--purple);font-size:26px;margin:4px 16px}

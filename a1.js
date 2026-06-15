@@ -593,24 +593,32 @@ const vBlend=w=>`Tap the sounds in order. ${w.split('').join('… ')}… ${w}!`;
   [...new Set(SIGHTBANK.flatMap(S=>[S[0],S[2],S[3]]))].forEach(w=>{ VO_LINES[w]='word_'+w; });
   CVCWORDS.forEach(W=>{ const w=W[0]; VO_LINES[vBlend(w)]='q_blend_'+w; VO_LINES[w]='word_'+w; w.split('').forEach(ch=>{ const p=PH[ch]||ch; VO_LINES[p]=phId(p); }); });
 })();
-// ---- Activity item builders (draw from the clipped banks; renderChoose shuffles options) ----
-function dxLetters(ans,...cands){ const out=[]; for(const c of [...cands,...LETTERBANK]){ if(c[0]!==ans[0] && !out.some(o=>o[0]===c[0])){ out.push(c); if(out.length===2) break; } } return out; }
+// ---- Activity item builders + scalable day generator ----
+const QUESTIONS_PER_DAY=21; // tune this to change session length
+function pickN(bank,count,day,salt){ const out=[],seen=new Set(),L=bank.length; let k=0; while(out.length<count && seen.size<L && k<L*4){ const idx=((day*7+salt+k*5)%L+L)%L; if(!seen.has(idx)){ seen.add(idx); out.push(bank[idx]); } k++; } return out; }
+function distractors2(ans,salt){ const d=[],L=LETTERBANK.length; let k=0; while(d.length<2 && k<60){ const c=LETTERBANK[((salt+k*7)%L+L)%L]; if(c[0]!==ans[0] && !d.some(o=>o[0]===c[0])) d.push(c); k++; } return d; }
 function itTrace(TL){ return {template:'trace',skillId:'phon.letter.form',letter:TL[0],pic:TL[3],prompt:`Trace the letter  ${TL[0]}  — ${TL[1]}, like ${TL[2]}!`,say:vTrace(TL),coachLine:'Trace it with your finger! ✏️'}; }
-function itSound(L,a,b){ const d=dxLetters(L,a,b); return {template:'soundMatch',skillId:'phon.letter.sound',pic:L[3],prompt:`Which letter says  ${L[1]}…  like  ${L[2]}?`,say:vSound(L),options:[{t:L[0],say:L[1]},{t:d[0][0],say:d[0][1]},{t:d[1][0],say:d[1][1]}],answer:L[0]}; }
-function itFirst(F,a,b){ const d=dxLetters(F,a,b); return {template:'firstSound',skillId:'phon.onset',pic:F[3],prompt:`What sound does  “${F[2]}”  start with?`,say:vFirst(F),options:[{t:F[0],say:F[1]},{t:d[0][0],say:d[0][1]},{t:d[1][0],say:d[1][1]}],answer:F[0]}; }
+function itSound(L,salt){ const d=distractors2(L,salt); return {template:'soundMatch',skillId:'phon.letter.sound',pic:L[3],prompt:`Which letter says  ${L[1]}…  like  ${L[2]}?`,say:vSound(L),options:[{t:L[0],say:L[1]},{t:d[0][0],say:d[0][1]},{t:d[1][0],say:d[1][1]}],answer:L[0]}; }
+function itFirst(F,salt){ const d=distractors2(F,salt); return {template:'firstSound',skillId:'phon.onset',pic:F[3],prompt:`What sound does  “${F[2]}”  start with?`,say:vFirst(F),options:[{t:F[0],say:F[1]},{t:d[0][0],say:d[0][1]},{t:d[1][0],say:d[1][1]}],answer:F[0]}; }
 function itWord(S){ return {template:'wordPicture',skillId:'read.sightword',pic:S[1],prompt:`Which word says  “${S[0]}”?`,say:vWord(S[0]),options:[{t:S[0],say:S[0]},{t:S[2],say:S[2]},{t:S[3],say:S[3]}],answer:S[0]}; }
 function itBlend(W){ return {template:'blend',skillId:'phon.cvc.blend',pic:W[1],word:W[0],say:vBlend(W[0]),prompt:'Tap the sounds in order to read it!',sounds:W[0].split('').map(ch=>({t:ch,say:PH[ch]||ch}))}; }
-function genDay(day){ const i=day, LB=LETTERBANK.length, SB=SIGHTBANK.length, CB=CVCWORDS.length;
-  const A=LETTERBANK[(i*7+1)%LB], B=LETTERBANK[(i*5+3)%LB], S1=SIGHTBANK[(i*7+2)%SB];
-  let w1=(i*7+4)%CB, w2=(i*11+1)%CB; if(w2===w1) w2=(w2+1)%CB;            // two distinct blend words
-  const TL=TRBANK[i%TRBANK.length];
-  // 6 questions/day: trace · letter-sound · first-sound · sight-word · two blends
-  const acts=[ itTrace(TL), itSound(A,LETTERBANK[(i*3+4)%LB],LETTERBANK[(i*3+9)%LB]),
-    itFirst(B,LETTERBANK[(i*2+6)%LB],LETTERBANK[(i*2+11)%LB]), itWord(S1), itBlend(CVCWORDS[w1]), itBlend(CVCWORDS[w2]) ];
-  const labels=['Letter sounds','Reading words','Blending words']; const gn=coachNameFor(day), GN=gn.charAt(0).toUpperCase()+gn.slice(1);
-  return { skillLabel:labels[i%3], greet:[GN,GENGREET[i%GENGREET.length],"Let's read! ▶"], greetId:'greet_g'+(i%GENGREET.length), activities:acts,
+function genActivities(day,N){ const i=day;
+  const nt=Math.round(N*0.19), ns=Math.round(N*0.24), nf=Math.round(N*0.19), nw=Math.round(N*0.19); let nb=N-nt-ns-nf-nw; if(nb<0)nb=0;
+  const traces=pickN(TRBANK,nt,i,11).map(itTrace);
+  const sounds=pickN(LETTERBANK,ns,i,23).map((L,k)=>itSound(L,i*3+k*5+1));
+  const firsts=pickN(LETTERBANK,nf,i,37).map((F,k)=>itFirst(F,i*5+k*7+3));
+  const words=pickN(SIGHTBANK,nw,i,5).map(itWord);
+  const blends=pickN(CVCWORDS,nb,i,17).map(itBlend);
+  const groups=[traces,sounds,firsts,words,blends], acts=[]; let safety=0; // round-robin interleave for variety
+  while(acts.length<N && safety++<400){ let added=false; for(const g of groups){ if(g.length){ acts.push(g.shift()); added=true; if(acts.length>=N) break; } } if(!added) break; }
+  return acts; }
+function genDay(day){ const i=day, gn=coachNameFor(day), GN=gn.charAt(0).toUpperCase()+gn.slice(1), labels=['Letter sounds','Reading words','Blending words'];
+  return { skillLabel:labels[i%3], greet:[GN,GENGREET[i%GENGREET.length],"Let's read! ▶"], greetId:'greet_g'+(i%GENGREET.length), activities:genActivities(day,QUESTIONS_PER_DAY),
     tease:[ day>=MAX_DAY ? "Three whole weeks of reading — you're a true Star Hunter! 🌟" : "Come back tomorrow for more sounds, words, and sparkles!" ], teaseId: day>=MAX_DAY?'tease_wk3':'tease_more' }; }
-function getDay(day){ return DAYS[day] || genDay(day); }
+function getDay(day){ if(DAYS[day]){ const d=DAYS[day]; if(d.activities.length>=QUESTIONS_PER_DAY) return d; // pad authored days with fresh practice
+    const pad=genActivities(day,QUESTIONS_PER_DAY).filter(a=>!d.activities.some(x=>x.say===a.say));
+    return {...d, activities:[...d.activities,...pad].slice(0,QUESTIONS_PER_DAY)}; }
+  return genDay(day); }
 
 
 // Star Check (pre/post) — choose-only, no hints, transfer words (not practiced)
@@ -632,7 +640,10 @@ VO_LINES["Let's play Twinkle's Star Check! Just try your best — it's only for 
 const praises=["You did it!","Wonderful reading!","You're a reading star!","Amazing!","Yay! You read it!"];
 let curList=[], curIdx=0, onListDone=null, dayMistakes=0;
 function runActivities(list,done){ curList=list; curIdx=0; onListDone=done; dayMistakes=0; show('challenge'); renderActivity(); }
-function renderLights(){ const el=$('ch-lights'); el.innerHTML=''; for(let i=0;i<curList.length;i++){ const s=document.createElement('span'); s.className='lite'+(i<curIdx?' on':''); s.textContent=i<curIdx?'●':'○'; el.appendChild(s);} }
+function renderLights(){ const el=$('ch-lights'); const n=curList.length;
+  if(n>8){ const done=Math.min(curIdx,n); el.textContent=`⭐ ${done} / ${n}`; el.classList.add('count'); return; } // compact for long days
+  el.classList.remove('count'); el.innerHTML='';
+  for(let i=0;i<n;i++){ const s=document.createElement('span'); s.className='lite'+(i<curIdx?' on':''); s.textContent=i<curIdx?'●':'○'; el.appendChild(s);} }
 let mistakes=0, blendProgress=0, itemStart=0, itemHints=0, itemModeled=false;
 // ---- On-screen learning coach: a friendly face + line that reacts while the child works ----
 // Real art lives in assets/coach/ (<name>.png + optional <name>-cheer.png / <name>-think.png).
