@@ -444,6 +444,66 @@
       "batch": "words"
     },
     {
+      "id": "q_word_hen",
+      "character": "narrator",
+      "text": "Which word says hen?",
+      "batch": "words"
+    },
+    {
+      "id": "q_word_top",
+      "character": "narrator",
+      "text": "Which word says top?",
+      "batch": "words"
+    },
+    {
+      "id": "q_word_bug",
+      "character": "narrator",
+      "text": "Which word says bug?",
+      "batch": "words"
+    },
+    {
+      "id": "q_word_cup",
+      "character": "narrator",
+      "text": "Which word says cup?",
+      "batch": "words"
+    },
+    {
+      "id": "q_word_bed",
+      "character": "narrator",
+      "text": "Which word says bed?",
+      "batch": "words"
+    },
+    {
+      "id": "q_word_van",
+      "character": "narrator",
+      "text": "Which word says van?",
+      "batch": "words"
+    },
+    {
+      "id": "q_word_jam",
+      "character": "narrator",
+      "text": "Which word says jam?",
+      "batch": "words"
+    },
+    {
+      "id": "q_word_map",
+      "character": "narrator",
+      "text": "Which word says map?",
+      "batch": "words"
+    },
+    {
+      "id": "q_word_fan",
+      "character": "narrator",
+      "text": "Which word says fan?",
+      "batch": "words"
+    },
+    {
+      "id": "q_word_rug",
+      "character": "narrator",
+      "text": "Which word says rug?",
+      "batch": "words"
+    },
+    {
       "id": "word_cat",
       "character": "narrator",
       "text": "cat",
@@ -513,6 +573,66 @@
       "id": "word_fox",
       "character": "narrator",
       "text": "fox",
+      "batch": "words"
+    },
+    {
+      "id": "word_hen",
+      "character": "narrator",
+      "text": "hen",
+      "batch": "words"
+    },
+    {
+      "id": "word_top",
+      "character": "narrator",
+      "text": "top",
+      "batch": "words"
+    },
+    {
+      "id": "word_bug",
+      "character": "narrator",
+      "text": "bug",
+      "batch": "words"
+    },
+    {
+      "id": "word_cup",
+      "character": "narrator",
+      "text": "cup",
+      "batch": "words"
+    },
+    {
+      "id": "word_bed",
+      "character": "narrator",
+      "text": "bed",
+      "batch": "words"
+    },
+    {
+      "id": "word_van",
+      "character": "narrator",
+      "text": "van",
+      "batch": "words"
+    },
+    {
+      "id": "word_jam",
+      "character": "narrator",
+      "text": "jam",
+      "batch": "words"
+    },
+    {
+      "id": "word_map",
+      "character": "narrator",
+      "text": "map",
+      "batch": "words"
+    },
+    {
+      "id": "word_fan",
+      "character": "narrator",
+      "text": "fan",
+      "batch": "words"
+    },
+    {
+      "id": "word_rug",
+      "character": "narrator",
+      "text": "rug",
       "batch": "words"
     },
     {
@@ -684,12 +804,6 @@
       "batch": "blend"
     },
     {
-      "id": "word_hen",
-      "character": "narrator",
-      "text": "hen",
-      "batch": "blend"
-    },
-    {
       "id": "ph_eh",
       "character": "narrator",
       "text": "eh",
@@ -702,21 +816,9 @@
       "batch": "blend"
     },
     {
-      "id": "word_bed",
-      "character": "narrator",
-      "text": "bed",
-      "batch": "blend"
-    },
-    {
       "id": "q_blend_top",
       "character": "narrator",
       "text": "Tap the sounds in order. t… o… p… top!",
-      "batch": "blend"
-    },
-    {
-      "id": "word_top",
-      "character": "narrator",
-      "text": "top",
       "batch": "blend"
     },
     {
@@ -726,33 +828,15 @@
       "batch": "blend"
     },
     {
-      "id": "word_bug",
-      "character": "narrator",
-      "text": "bug",
-      "batch": "blend"
-    },
-    {
       "id": "q_blend_map",
       "character": "narrator",
       "text": "Tap the sounds in order. m… a… p… map!",
       "batch": "blend"
     },
     {
-      "id": "word_map",
-      "character": "narrator",
-      "text": "map",
-      "batch": "blend"
-    },
-    {
       "id": "q_blend_fan",
       "character": "narrator",
       "text": "Tap the sounds in order. f… a… n… fan!",
-      "batch": "blend"
-    },
-    {
-      "id": "word_fan",
-      "character": "narrator",
-      "text": "fan",
       "batch": "blend"
     },
     {
@@ -765,12 +849,6 @@
       "id": "q_blend_cup",
       "character": "narrator",
       "text": "Tap the sounds in order. c… u… p… cup!",
-      "batch": "blend"
-    },
-    {
-      "id": "word_cup",
-      "character": "narrator",
-      "text": "cup",
       "batch": "blend"
     },
     {
@@ -816,12 +894,6 @@
       "batch": "blend"
     },
     {
-      "id": "word_jam",
-      "character": "narrator",
-      "text": "jam",
-      "batch": "blend"
-    },
-    {
       "id": "q_blend_ten",
       "character": "narrator",
       "text": "Tap the sounds in order. t… e… n… ten!",
@@ -840,21 +912,9 @@
       "batch": "blend"
     },
     {
-      "id": "word_rug",
-      "character": "narrator",
-      "text": "rug",
-      "batch": "blend"
-    },
-    {
       "id": "q_blend_van",
       "character": "narrator",
       "text": "Tap the sounds in order. v… a… n… van!",
-      "batch": "blend"
-    },
-    {
-      "id": "word_van",
-      "character": "narrator",
-      "text": "van",
       "batch": "blend"
     },
     {
