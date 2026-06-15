@@ -1260,6 +1260,192 @@
       "batch": "case"
     },
     {
+      "id": "q_last_cat",
+      "character": "narrator",
+      "text": "What sound does cat end with?",
+      "batch": "last"
+    },
+    {
+      "id": "q_last_sun",
+      "character": "narrator",
+      "text": "What sound does sun end with?",
+      "batch": "last"
+    },
+    {
+      "id": "q_last_dog",
+      "character": "narrator",
+      "text": "What sound does dog end with?",
+      "batch": "last"
+    },
+    {
+      "id": "q_last_pig",
+      "character": "narrator",
+      "text": "What sound does pig end with?",
+      "batch": "last"
+    },
+    {
+      "id": "q_last_hen",
+      "character": "narrator",
+      "text": "What sound does hen end with?",
+      "batch": "last"
+    },
+    {
+      "id": "q_last_bed",
+      "character": "narrator",
+      "text": "What sound does bed end with?",
+      "batch": "last"
+    },
+    {
+      "id": "q_last_top",
+      "character": "narrator",
+      "text": "What sound does top end with?",
+      "batch": "last"
+    },
+    {
+      "id": "q_last_bug",
+      "character": "narrator",
+      "text": "What sound does bug end with?",
+      "batch": "last"
+    },
+    {
+      "id": "q_last_map",
+      "character": "narrator",
+      "text": "What sound does map end with?",
+      "batch": "last"
+    },
+    {
+      "id": "q_last_fan",
+      "character": "narrator",
+      "text": "What sound does fan end with?",
+      "batch": "last"
+    },
+    {
+      "id": "q_last_net",
+      "character": "narrator",
+      "text": "What sound does net end with?",
+      "batch": "last"
+    },
+    {
+      "id": "q_last_cup",
+      "character": "narrator",
+      "text": "What sound does cup end with?",
+      "batch": "last"
+    },
+    {
+      "id": "q_last_log",
+      "character": "narrator",
+      "text": "What sound does log end with?",
+      "batch": "last"
+    },
+    {
+      "id": "q_last_mop",
+      "character": "narrator",
+      "text": "What sound does mop end with?",
+      "batch": "last"
+    },
+    {
+      "id": "q_last_jam",
+      "character": "narrator",
+      "text": "What sound does jam end with?",
+      "batch": "last"
+    },
+    {
+      "id": "q_last_ten",
+      "character": "narrator",
+      "text": "What sound does ten end with?",
+      "batch": "last"
+    },
+    {
+      "id": "q_last_rug",
+      "character": "narrator",
+      "text": "What sound does rug end with?",
+      "batch": "last"
+    },
+    {
+      "id": "q_last_van",
+      "character": "narrator",
+      "text": "What sound does van end with?",
+      "batch": "last"
+    },
+    {
+      "id": "q_last_web",
+      "character": "narrator",
+      "text": "What sound does web end with?",
+      "batch": "last"
+    },
+    {
+      "id": "q_last_zip",
+      "character": "narrator",
+      "text": "What sound does zip end with?",
+      "batch": "last"
+    },
+    {
+      "id": "q_last_rat",
+      "character": "narrator",
+      "text": "What sound does rat end with?",
+      "batch": "last"
+    },
+    {
+      "id": "q_last_mat",
+      "character": "narrator",
+      "text": "What sound does mat end with?",
+      "batch": "last"
+    },
+    {
+      "id": "q_last_sit",
+      "character": "narrator",
+      "text": "What sound does sit end with?",
+      "batch": "last"
+    },
+    {
+      "id": "q_last_hop",
+      "character": "narrator",
+      "text": "What sound does hop end with?",
+      "batch": "last"
+    },
+    {
+      "id": "q_last_bat",
+      "character": "narrator",
+      "text": "What sound does bat end with?",
+      "batch": "last"
+    },
+    {
+      "id": "q_last_pen",
+      "character": "narrator",
+      "text": "What sound does pen end with?",
+      "batch": "last"
+    },
+    {
+      "id": "q_last_cub",
+      "character": "narrator",
+      "text": "What sound does cub end with?",
+      "batch": "last"
+    },
+    {
+      "id": "q_last_gum",
+      "character": "narrator",
+      "text": "What sound does gum end with?",
+      "batch": "last"
+    },
+    {
+      "id": "q_last_hut",
+      "character": "narrator",
+      "text": "What sound does hut end with?",
+      "batch": "last"
+    },
+    {
+      "id": "q_last_lip",
+      "character": "narrator",
+      "text": "What sound does lip end with?",
+      "batch": "last"
+    },
+    {
+      "id": "q_last_nut",
+      "character": "narrator",
+      "text": "What sound does nut end with?",
+      "batch": "last"
+    },
+    {
       "id": "chk_intro",
       "character": "narrator",
       "text": "Let's play Twinkle's Star Check! Just try your best — it's only for fun.",

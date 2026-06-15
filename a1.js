@@ -579,6 +579,8 @@ const PH={a:'aah',e:'eh',i:'ih',o:'awe',u:'uh',b:'buh',c:'cuh',d:'duh',f:'fff',g
 const CVCWORDS=[['cat','🐱'],['sun','☀️'],['dog','🐶'],['pig','🐷'],['hen','🐔'],['bed','🛏️'],['top','🔝'],['bug','🐛'],['map','🗺️'],['fan','🪭'],['net','🥅'],['cup','☕'],['box','📦'],['log','🪵'],['mop','🧹'],['jam','🍓'],['ten','🔟'],['rug','🧶'],['van','🚐'],['web','🕸️'],['zip','🤐'],['rat','🐀'],['mat','🟫'],['sit','🪑'],['hop','🐰'],['fox','🦊'],['bat','🦇'],['pen','🖊️'],['cub','🐻'],['gum','🍬'],['hut','🛖'],['lip','👄'],['nut','🥜']];
 // Rhyming (word families): [target,emoji,rhyme-answer,distractor,distractor] — all option words exist in the banks above
 const RHYMEBANK=[['cat','🐱','hat','dog','sun'],['bat','🦇','mat','dog','pig'],['dog','🐶','log','cat','bus'],['pig','🐷','big','cat','net'],['hen','🐔','pen','cat','sun'],['top','🔝','hop','dog','sun'],['bug','🐛','rug','cat','dog'],['box','📦','fox','cat','sun'],['fan','🪭','van','dog','pig'],['rat','🐀','bat','dog','sun'],['bed','🛏️','red','cat','sun'],['mat','🟫','cat','dog','pig']];
+// Ending sounds — words whose final letter is a sound we have (excludes x-endings like box/fox)
+const LASTWORDS=CVCWORDS.filter(W=>'SMTFBNPDLRCHGKVWZJ'.includes(W[0].slice(-1).toUpperCase()));
 const GENGREET=["You're back — let's keep our reading streak glowing!","Another day, another adventure in Harmony Harbor!","Twinkle missed you! Ready to read together?","The harbor shines brighter every day you read!","Let's find new sounds and words today!"];
 const TRSET=['S','C','O','U','A','M','N','I','L','T'], TRBANK=LETTERBANK.filter(e=>TRSET.includes(e[0]));
 // Spoken-text templates — used by genDay AND the gameplay clip-id map below, so they stay in sync.
@@ -589,6 +591,7 @@ const vFirst=L=>`What sound does ${L[2]} start with? ${L[1]}, ${L[1]}, ${L[2]}.`
 const vBlend=w=>`Tap the sounds in order. ${w.split('').join('… ')}… ${w}!`;
 const vRhyme=w=>`What rhymes with ${w}?`;
 const vCase=L=>`Find the little letter that says ${L[1]}!`;
+const vLast=W=>`What sound does ${W[0]} end with?`;
 // Batches "letters" + "words" + "blend" + "rhyme": map prompts/sounds/words to AI clip ids.
 (function(){ const phId=p=>'ph_'+p.replace(/[^a-z]/gi,'');
   LETTERBANK.forEach(L=>{ VO_LINES[L[1]]=phId(L[1]); VO_LINES[vSound(L)]='q_snd_'+L[0].toLowerCase(); VO_LINES[vFirst(L)]='q_first_'+L[2]; });
@@ -598,6 +601,7 @@ const vCase=L=>`Find the little letter that says ${L[1]}!`;
   CVCWORDS.forEach(W=>{ const w=W[0]; VO_LINES[vBlend(w)]='q_blend_'+w; VO_LINES[w]='word_'+w; w.split('').forEach(ch=>{ const p=PH[ch]||ch; VO_LINES[p]=phId(p); }); });
   RHYMEBANK.forEach(R=>{ VO_LINES[vRhyme(R[0])]='q_rhyme_'+R[0]; [R[2],R[3],R[4]].forEach(w=>{ if(!VO_LINES[w]) VO_LINES[w]='word_'+w; }); });
   LETTERBANK.forEach(L=>{ VO_LINES[vCase(L)]='q_case_'+L[0].toLowerCase(); });
+  LASTWORDS.forEach(W=>{ VO_LINES[vLast(W)]='q_last_'+W[0]; });
 })();
 // ---- Activity item builders + scalable day generator ----
 const QUESTIONS_PER_DAY=21; // tune this to change session length
@@ -610,16 +614,19 @@ function itWord(S){ return {template:'wordPicture',skillId:'read.sightword',pic:
 function itBlend(W){ return {template:'blend',skillId:'phon.cvc.blend',pic:W[1],word:W[0],say:vBlend(W[0]),prompt:'Tap the sounds in order to read it!',sounds:W[0].split('').map(ch=>({t:ch,say:PH[ch]||ch}))}; }
 function itRhyme(R){ return {template:'rhyme',skillId:'phon.rhyme',pic:R[1],prompt:`What rhymes with  “${R[0]}”?`,say:vRhyme(R[0]),options:[{t:R[2],say:R[2]},{t:R[3],say:R[3]},{t:R[4],say:R[4]}],answer:R[2]}; }
 function itCase(L,salt){ const low=L[0].toLowerCase(), d=distractors2(L,salt); return {template:'caseMatch',skillId:'read.letter.case',pic:L[0],prompt:`Find the little  ${low}  for  ${L[0]}!`,say:vCase(L),options:[{t:low,say:L[1]},{t:d[0][0].toLowerCase(),say:d[0][1]},{t:d[1][0].toLowerCase(),say:d[1][1]}],answer:low}; }
+function itLast(W,salt){ const last=W[0].slice(-1).toUpperCase(), ans=LETTERBANK.find(e=>e[0]===last)||[last,PH[W[0].slice(-1)]||last], d=distractors2(ans,salt);
+  return {template:'lastSound',skillId:'phon.coda',pic:W[1],prompt:`What sound does  “${W[0]}”  end with?`,say:vLast(W),options:[{t:ans[0],say:ans[1]},{t:d[0][0],say:d[0][1]},{t:d[1][0],say:d[1][1]}],answer:ans[0]}; }
 function genActivities(day,N){ const i=day;
-  const nt=Math.round(N*0.19), ns=Math.round(N*0.19), nf=Math.round(N*0.14), nw=Math.round(N*0.14), nr=Math.round(N*0.14), nc=Math.round(N*0.10); let nb=N-nt-ns-nf-nw-nr-nc; if(nb<0)nb=0;
+  const nt=Math.round(N*0.16), ns=Math.round(N*0.16), nf=Math.round(N*0.12), nl=Math.round(N*0.10), nw=Math.round(N*0.14), nr=Math.round(N*0.12), nc=Math.round(N*0.10); let nb=N-nt-ns-nf-nl-nw-nr-nc; if(nb<0)nb=0;
   const traces=pickN(TRBANK,nt,i,11).map(itTrace);
   const sounds=pickN(LETTERBANK,ns,i,23).map((L,k)=>itSound(L,i*3+k*5+1));
   const firsts=pickN(LETTERBANK,nf,i,37).map((F,k)=>itFirst(F,i*5+k*7+3));
+  const lasts=pickN(LASTWORDS,nl,i,53).map((W,k)=>itLast(W,i*6+k*5+4));
   const words=pickN(SIGHTBANK,nw,i,5).map(itWord);
   const rhymes=pickN(RHYMEBANK,nr,i,29).map(itRhyme);
   const cases=pickN(LETTERBANK,nc,i,43).map((L,k)=>itCase(L,i*4+k*5+2));
   const blends=pickN(CVCWORDS,nb,i,17).map(itBlend);
-  const groups=[traces,sounds,firsts,words,rhymes,cases,blends], acts=[]; let safety=0; // round-robin interleave for variety
+  const groups=[traces,sounds,firsts,lasts,words,rhymes,cases,blends], acts=[]; let safety=0; // round-robin interleave for variety
   while(acts.length<N && safety++<400){ let added=false; for(const g of groups){ if(g.length){ acts.push(g.shift()); added=true; if(acts.length>=N) break; } } if(!added) break; }
   return acts; }
 function genDay(day){ const i=day, gn=coachNameFor(day), GN=gn.charAt(0).toUpperCase()+gn.slice(1), labels=['Letter sounds','Reading words','Blending words'];
