@@ -81,14 +81,18 @@ const selected = lines.filter(l => BATCH === 'all' || (l.batch || 'core') === BA
 console.log(`Batch "${BATCH}": ${selected.length} of ${lines.length} lines`);
 
 const GUIDES = ['rumi', 'mira', 'zoey'];
-const stems = [];
-for (const line of selected) {
-  if (line.rotating) {
-    for (const g of GUIDES) { await tts(`${line.id}__${g}`, line.text, g); stems.push(`${line.id}__${g}`); await sleep(350); }
-  } else {
-    await tts(line.id, line.text, line.character); stems.push(line.id); await sleep(350);
-  }
+const FORCE = !!process.env.VO_FORCE; // set VO_FORCE=1 to re-render existing clips
+const have = new Set((await readdir(OUT)).filter(f => f.endsWith('.mp3')).map(f => f.slice(0, -4)));
+const stems = []; let made = 0, skipped = 0;
+async function maybe(file, text, voiceKey) {
+  if (!FORCE && have.has(file)) { skipped++; stems.push(file); return; } // already generated — skip to save quota
+  await tts(file, text, voiceKey); stems.push(file); made++; await sleep(350);
 }
+for (const line of selected) {
+  if (line.rotating) { for (const g of GUIDES) await maybe(`${line.id}__${g}`, line.text, g); }
+  else await maybe(line.id, line.text, line.character);
+}
+console.log(`Generated ${made} new clip(s), skipped ${skipped} existing.${FORCE ? ' (FORCE on)' : ''}`);
 
 // Manifest = EVERY mp3 currently in the folder (so earlier batches aren't dropped).
 const onDisk = (await readdir(OUT)).filter(f => f.endsWith('.mp3')).map(f => f.slice(0, -4)).sort();
