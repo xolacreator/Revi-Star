@@ -14,6 +14,8 @@ const vRhyme=w=>`What rhymes with ${w}?`;
 const vCase=L=>`Find the little letter that says ${L[1]}!`;
 const vLast=w=>`What sound does ${w} end with?`;
 const LASTWORDS=CVCWORDS.filter(w=>'SMTFBNPDLRCHGKVWZJ'.includes(w.slice(-1).toUpperCase()));
+const vSight=w=>`Tap the word — ${w}.`;
+const SIGHTWORDS=[['the','and','to'],['and','the','it'],['is','in','it'],['to','go','so'],['in','it','is'],['it','in','at'],['you','we','my'],['my','me','we'],['see','we','me'],['we','me','he'],['go','so','up'],['up','at','on'],['at','on','in'],['on','at','up'],['can','me','he'],['he','we','me']];
 const TRSET=['S','C','O','U','A','M','N','I','L','T'], TRBANK=LETTERBANK.filter(e=>TRSET.includes(e[0]));
 const vSound=L=>`Which letter says ${L[1]}, like ${L[2]}?`;
 const vTrace=L=>`${L[1]}. Trace the ${L[0]} with your finger!`;
@@ -45,6 +47,9 @@ for(const L of LETTERBANK) push(kase,'q_case_'+L[0].toLowerCase(),vCase(L),'case
 
 const last=[]; // ending-sound prompts; option taps reuse phoneme clips
 for(const w of LASTWORDS) push(last,'q_last_'+w,vLast(w),'last');
+
+const sight=[]; // high-frequency word recognition: prompt + the function words themselves
+for(const W of SIGHTWORDS){ push(sight,'q_sight_'+W[0],vSight(W[0]),'sight'); for(const w of W) push(sight,'word_'+w,w,'sight'); }
 
 const check=[]; // pig/red questions reuse existing q_word_ clips, so they're omitted here
 push(check,'chk_intro',"Let's play Twinkle's Star Check! Just try your best — it's only for fun.",'check');
@@ -83,7 +88,7 @@ const extra=[
 
 // ---- merge: keep core, replace rebuilt gameplay batches ----
 const doc=JSON.parse(await readFile('tools/voice/lines.json','utf8'));
-const kept=doc.lines.filter(l=>!['letters','words','blend','rhyme','case','last','check','extra'].includes(l.batch));
-doc.lines=[...kept,...letters,...words,...blend,...rhyme,...kase,...last,...check,...extra];
+const kept=doc.lines.filter(l=>!['letters','words','blend','rhyme','case','last','sight','check','extra'].includes(l.batch));
+doc.lines=[...kept,...letters,...words,...blend,...rhyme,...kase,...last,...sight,...check,...extra];
 await writeFile('tools/voice/lines.json', JSON.stringify(doc,null,2)+'\n');
-console.log(`lines.json: ${kept.length} kept + ${letters.length} L + ${words.length} W + ${blend.length} blend + ${rhyme.length} rhyme + ${kase.length} case + ${last.length} last + ${check.length} check + ${extra.length} extra = ${doc.lines.length} total`);
+console.log(`lines.json: ${kept.length} kept + ${letters.length} L + ${words.length} W + ${blend.length} blend + ${rhyme.length} rhyme + ${kase.length} case + ${last.length} last + ${sight.length} sight + ${check.length} check + ${extra.length} extra = ${doc.lines.length} total`);

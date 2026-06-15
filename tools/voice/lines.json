@@ -1782,6 +1782,210 @@
       "batch": "last"
     },
     {
+      "id": "q_sight_the",
+      "character": "narrator",
+      "text": "Tap the word — the.",
+      "batch": "sight"
+    },
+    {
+      "id": "word_the",
+      "character": "narrator",
+      "text": "the",
+      "batch": "sight"
+    },
+    {
+      "id": "word_and",
+      "character": "narrator",
+      "text": "and",
+      "batch": "sight"
+    },
+    {
+      "id": "word_to",
+      "character": "narrator",
+      "text": "to",
+      "batch": "sight"
+    },
+    {
+      "id": "q_sight_and",
+      "character": "narrator",
+      "text": "Tap the word — and.",
+      "batch": "sight"
+    },
+    {
+      "id": "word_it",
+      "character": "narrator",
+      "text": "it",
+      "batch": "sight"
+    },
+    {
+      "id": "q_sight_is",
+      "character": "narrator",
+      "text": "Tap the word — is.",
+      "batch": "sight"
+    },
+    {
+      "id": "word_is",
+      "character": "narrator",
+      "text": "is",
+      "batch": "sight"
+    },
+    {
+      "id": "word_in",
+      "character": "narrator",
+      "text": "in",
+      "batch": "sight"
+    },
+    {
+      "id": "q_sight_to",
+      "character": "narrator",
+      "text": "Tap the word — to.",
+      "batch": "sight"
+    },
+    {
+      "id": "word_go",
+      "character": "narrator",
+      "text": "go",
+      "batch": "sight"
+    },
+    {
+      "id": "word_so",
+      "character": "narrator",
+      "text": "so",
+      "batch": "sight"
+    },
+    {
+      "id": "q_sight_in",
+      "character": "narrator",
+      "text": "Tap the word — in.",
+      "batch": "sight"
+    },
+    {
+      "id": "q_sight_it",
+      "character": "narrator",
+      "text": "Tap the word — it.",
+      "batch": "sight"
+    },
+    {
+      "id": "word_at",
+      "character": "narrator",
+      "text": "at",
+      "batch": "sight"
+    },
+    {
+      "id": "q_sight_you",
+      "character": "narrator",
+      "text": "Tap the word — you.",
+      "batch": "sight"
+    },
+    {
+      "id": "word_you",
+      "character": "narrator",
+      "text": "you",
+      "batch": "sight"
+    },
+    {
+      "id": "word_we",
+      "character": "narrator",
+      "text": "we",
+      "batch": "sight"
+    },
+    {
+      "id": "word_my",
+      "character": "narrator",
+      "text": "my",
+      "batch": "sight"
+    },
+    {
+      "id": "q_sight_my",
+      "character": "narrator",
+      "text": "Tap the word — my.",
+      "batch": "sight"
+    },
+    {
+      "id": "word_me",
+      "character": "narrator",
+      "text": "me",
+      "batch": "sight"
+    },
+    {
+      "id": "q_sight_see",
+      "character": "narrator",
+      "text": "Tap the word — see.",
+      "batch": "sight"
+    },
+    {
+      "id": "word_see",
+      "character": "narrator",
+      "text": "see",
+      "batch": "sight"
+    },
+    {
+      "id": "q_sight_we",
+      "character": "narrator",
+      "text": "Tap the word — we.",
+      "batch": "sight"
+    },
+    {
+      "id": "word_he",
+      "character": "narrator",
+      "text": "he",
+      "batch": "sight"
+    },
+    {
+      "id": "q_sight_go",
+      "character": "narrator",
+      "text": "Tap the word — go.",
+      "batch": "sight"
+    },
+    {
+      "id": "word_up",
+      "character": "narrator",
+      "text": "up",
+      "batch": "sight"
+    },
+    {
+      "id": "q_sight_up",
+      "character": "narrator",
+      "text": "Tap the word — up.",
+      "batch": "sight"
+    },
+    {
+      "id": "word_on",
+      "character": "narrator",
+      "text": "on",
+      "batch": "sight"
+    },
+    {
+      "id": "q_sight_at",
+      "character": "narrator",
+      "text": "Tap the word — at.",
+      "batch": "sight"
+    },
+    {
+      "id": "q_sight_on",
+      "character": "narrator",
+      "text": "Tap the word — on.",
+      "batch": "sight"
+    },
+    {
+      "id": "q_sight_can",
+      "character": "narrator",
+      "text": "Tap the word — can.",
+      "batch": "sight"
+    },
+    {
+      "id": "word_can",
+      "character": "narrator",
+      "text": "can",
+      "batch": "sight"
+    },
+    {
+      "id": "q_sight_he",
+      "character": "narrator",
+      "text": "Tap the word — he.",
+      "batch": "sight"
+    },
+    {
       "id": "chk_intro",
       "character": "narrator",
       "text": "Let's play Twinkle's Star Check! Just try your best — it's only for fun.",
