@@ -621,19 +621,23 @@ function itCase(L,salt){ const low=L[0].toLowerCase(), d=distractors2(L,salt); r
 function itLast(W,salt){ const last=W[0].slice(-1).toUpperCase(), ans=LETTERBANK.find(e=>e[0]===last)||[last,PH[W[0].slice(-1)]||last], d=distractors2(ans,salt);
   return {template:'lastSound',skillId:'phon.coda',pic:W[1],prompt:`What sound does  “${W[0]}”  end with?`,say:vLast(W),options:[{t:ans[0],say:ans[1]},{t:d[0][0],say:d[0][1]},{t:d[1][0],say:d[1][1]}],answer:ans[0]}; }
 function itSight(W){ return {template:'sightRec',skillId:'read.sightword.hf',pic:'📖',prompt:`Tap the word —  ${W[0]}`,say:vSight(W[0]),options:[{t:W[0],say:W[0]},{t:W[1],say:W[1]},{t:W[2],say:W[2]}],answer:W[0]}; }
-function genActivities(day,N){ const i=day;
-  const nt=Math.round(N*0.14), ns=Math.round(N*0.14), nf=Math.round(N*0.10), nl=Math.round(N*0.10), nw=Math.round(N*0.12), nr=Math.round(N*0.10), nc=Math.round(N*0.10), nh=Math.round(N*0.10); let nb=N-nt-ns-nf-nl-nw-nr-nc-nh; if(nb<0)nb=0;
-  const traces=pickN(TRBANK,nt,i,11).map(itTrace);
-  const sounds=pickN(LETTERBANK,ns,i,23).map((L,k)=>itSound(L,i*3+k*5+1));
-  const firsts=pickN(LETTERBANK,nf,i,37).map((F,k)=>itFirst(F,i*5+k*7+3));
-  const lasts=pickN(LASTWORDS,nl,i,53).map((W,k)=>itLast(W,i*6+k*5+4));
-  const words=pickN(SIGHTBANK,nw,i,5).map(itWord);
-  const rhymes=pickN(RHYMEBANK,nr,i,29).map(itRhyme);
-  const cases=pickN(LETTERBANK,nc,i,43).map((L,k)=>itCase(L,i*4+k*5+2));
-  const sights=pickN(SIGHTWORDS,nh,i,61).map(itSight);
-  const blends=pickN(CVCWORDS,nb,i,17).map(itBlend);
+function allocCounts(weights,N){ const ks=Object.keys(weights), raw=ks.map(k=>weights[k]*N), counts=raw.map(x=>Math.floor(x));
+  let rem=N-counts.reduce((a,b)=>a+b,0); const fr=raw.map((x,idx)=>[idx,x-Math.floor(x)]).sort((a,b)=>b[1]-a[1]);
+  for(let j=0;j<rem;j++) counts[fr[j%fr.length][0]]++; const o={}; ks.forEach((k,idx)=>o[k]=counts[idx]); return o; }
+function genActivities(day,N){ const i=day, t=Math.min(1,Math.max(0,(i-1)/16)), L=(a,b)=>a+(b-a)*t; // t: 0 (day1) → 1 (day17+) ramps difficulty
+  const c=allocCounts({trace:L(.22,.06),sound:L(.20,.10),case:L(.14,.06),first:L(.12,.10),word:L(.12,.12),last:L(.06,.12),rhyme:L(.06,.14),sight:L(.04,.14),blend:L(.04,.16)},N);
+  const traces=pickN(TRBANK,c.trace,i,11).map(itTrace);
+  const sounds=pickN(LETTERBANK,c.sound,i,23).map((Lx,k)=>itSound(Lx,i*3+k*5+1));
+  const firsts=pickN(LETTERBANK,c.first,i,37).map((F,k)=>itFirst(F,i*5+k*7+3));
+  const lasts=pickN(LASTWORDS,c.last,i,53).map((W,k)=>itLast(W,i*6+k*5+4));
+  const words=pickN(SIGHTBANK,c.word,i,5).map(itWord);
+  const rhymes=pickN(RHYMEBANK,c.rhyme,i,29).map(itRhyme);
+  const cases=pickN(LETTERBANK,c.case,i,43).map((Lx,k)=>itCase(Lx,i*4+k*5+2));
+  const sights=pickN(SIGHTWORDS,c.sight,i,61).map(itSight);
+  const blends=pickN(CVCWORDS,c.blend,i,17).map(itBlend);
   const groups=[traces,sounds,firsts,lasts,words,rhymes,cases,sights,blends], acts=[]; let safety=0; // round-robin interleave for variety
   while(acts.length<N && safety++<400){ let added=false; for(const g of groups){ if(g.length){ acts.push(g.shift()); added=true; if(acts.length>=N) break; } } if(!added) break; }
+  while(acts.length<N){ acts.push(itSound(LETTERBANK[(i*7+acts.length*3)%LETTERBANK.length], i+acts.length)); } // backfill safety
   return acts; }
 function genDay(day){ const i=day, gn=coachNameFor(day), GN=gn.charAt(0).toUpperCase()+gn.slice(1), labels=['Letter sounds','Reading words','Blending words'];
   return { skillLabel:labels[i%3], greet:[GN,GENGREET[i%GENGREET.length],"Let's read! ▶"], greetId:'greet_g'+(i%GENGREET.length), activities:genActivities(day,QUESTIONS_PER_DAY),
