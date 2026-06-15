@@ -1080,6 +1080,198 @@
       "batch": "blend"
     },
     {
+      "id": "q_blend_wet",
+      "character": "narrator",
+      "text": "Tap the sounds in order. w… e… t… wet!",
+      "batch": "blend"
+    },
+    {
+      "id": "word_wet",
+      "character": "narrator",
+      "text": "wet",
+      "batch": "blend"
+    },
+    {
+      "id": "q_blend_kid",
+      "character": "narrator",
+      "text": "Tap the sounds in order. k… i… d… kid!",
+      "batch": "blend"
+    },
+    {
+      "id": "word_kid",
+      "character": "narrator",
+      "text": "kid",
+      "batch": "blend"
+    },
+    {
+      "id": "q_blend_mud",
+      "character": "narrator",
+      "text": "Tap the sounds in order. m… u… d… mud!",
+      "batch": "blend"
+    },
+    {
+      "id": "word_mud",
+      "character": "narrator",
+      "text": "mud",
+      "batch": "blend"
+    },
+    {
+      "id": "q_blend_jet",
+      "character": "narrator",
+      "text": "Tap the sounds in order. j… e… t… jet!",
+      "batch": "blend"
+    },
+    {
+      "id": "word_jet",
+      "character": "narrator",
+      "text": "jet",
+      "batch": "blend"
+    },
+    {
+      "id": "q_blend_gem",
+      "character": "narrator",
+      "text": "Tap the sounds in order. g… e… m… gem!",
+      "batch": "blend"
+    },
+    {
+      "id": "word_gem",
+      "character": "narrator",
+      "text": "gem",
+      "batch": "blend"
+    },
+    {
+      "id": "q_blend_fin",
+      "character": "narrator",
+      "text": "Tap the sounds in order. f… i… n… fin!",
+      "batch": "blend"
+    },
+    {
+      "id": "word_fin",
+      "character": "narrator",
+      "text": "fin",
+      "batch": "blend"
+    },
+    {
+      "id": "q_blend_pup",
+      "character": "narrator",
+      "text": "Tap the sounds in order. p… u… p… pup!",
+      "batch": "blend"
+    },
+    {
+      "id": "word_pup",
+      "character": "narrator",
+      "text": "pup",
+      "batch": "blend"
+    },
+    {
+      "id": "q_blend_tag",
+      "character": "narrator",
+      "text": "Tap the sounds in order. t… a… g… tag!",
+      "batch": "blend"
+    },
+    {
+      "id": "word_tag",
+      "character": "narrator",
+      "text": "tag",
+      "batch": "blend"
+    },
+    {
+      "id": "q_blend_win",
+      "character": "narrator",
+      "text": "Tap the sounds in order. w… i… n… win!",
+      "batch": "blend"
+    },
+    {
+      "id": "word_win",
+      "character": "narrator",
+      "text": "win",
+      "batch": "blend"
+    },
+    {
+      "id": "q_blend_dig",
+      "character": "narrator",
+      "text": "Tap the sounds in order. d… i… g… dig!",
+      "batch": "blend"
+    },
+    {
+      "id": "word_dig",
+      "character": "narrator",
+      "text": "dig",
+      "batch": "blend"
+    },
+    {
+      "id": "q_blend_lid",
+      "character": "narrator",
+      "text": "Tap the sounds in order. l… i… d… lid!",
+      "batch": "blend"
+    },
+    {
+      "id": "word_lid",
+      "character": "narrator",
+      "text": "lid",
+      "batch": "blend"
+    },
+    {
+      "id": "q_blend_pot",
+      "character": "narrator",
+      "text": "Tap the sounds in order. p… o… t… pot!",
+      "batch": "blend"
+    },
+    {
+      "id": "word_pot",
+      "character": "narrator",
+      "text": "pot",
+      "batch": "blend"
+    },
+    {
+      "id": "q_blend_dot",
+      "character": "narrator",
+      "text": "Tap the sounds in order. d… o… t… dot!",
+      "batch": "blend"
+    },
+    {
+      "id": "word_dot",
+      "character": "narrator",
+      "text": "dot",
+      "batch": "blend"
+    },
+    {
+      "id": "q_blend_fit",
+      "character": "narrator",
+      "text": "Tap the sounds in order. f… i… t… fit!",
+      "batch": "blend"
+    },
+    {
+      "id": "word_fit",
+      "character": "narrator",
+      "text": "fit",
+      "batch": "blend"
+    },
+    {
+      "id": "q_blend_rib",
+      "character": "narrator",
+      "text": "Tap the sounds in order. r… i… b… rib!",
+      "batch": "blend"
+    },
+    {
+      "id": "word_rib",
+      "character": "narrator",
+      "text": "rib",
+      "batch": "blend"
+    },
+    {
+      "id": "q_blend_bin",
+      "character": "narrator",
+      "text": "Tap the sounds in order. b… i… n… bin!",
+      "batch": "blend"
+    },
+    {
+      "id": "word_bin",
+      "character": "narrator",
+      "text": "bin",
+      "batch": "blend"
+    },
+    {
       "id": "q_rhyme_cat",
       "character": "narrator",
       "text": "What rhymes with cat?",
@@ -1149,6 +1341,54 @@
       "id": "q_rhyme_mat",
       "character": "narrator",
       "text": "What rhymes with mat?",
+      "batch": "rhyme"
+    },
+    {
+      "id": "q_rhyme_hop",
+      "character": "narrator",
+      "text": "What rhymes with hop?",
+      "batch": "rhyme"
+    },
+    {
+      "id": "q_rhyme_hut",
+      "character": "narrator",
+      "text": "What rhymes with hut?",
+      "batch": "rhyme"
+    },
+    {
+      "id": "q_rhyme_pen",
+      "character": "narrator",
+      "text": "What rhymes with pen?",
+      "batch": "rhyme"
+    },
+    {
+      "id": "q_rhyme_cup",
+      "character": "narrator",
+      "text": "What rhymes with cup?",
+      "batch": "rhyme"
+    },
+    {
+      "id": "q_rhyme_sit",
+      "character": "narrator",
+      "text": "What rhymes with sit?",
+      "batch": "rhyme"
+    },
+    {
+      "id": "q_rhyme_net",
+      "character": "narrator",
+      "text": "What rhymes with net?",
+      "batch": "rhyme"
+    },
+    {
+      "id": "q_rhyme_win",
+      "character": "narrator",
+      "text": "What rhymes with win?",
+      "batch": "rhyme"
+    },
+    {
+      "id": "q_rhyme_pot",
+      "character": "narrator",
+      "text": "What rhymes with pot?",
       "batch": "rhyme"
     },
     {
@@ -1443,6 +1683,102 @@
       "id": "q_last_nut",
       "character": "narrator",
       "text": "What sound does nut end with?",
+      "batch": "last"
+    },
+    {
+      "id": "q_last_wet",
+      "character": "narrator",
+      "text": "What sound does wet end with?",
+      "batch": "last"
+    },
+    {
+      "id": "q_last_kid",
+      "character": "narrator",
+      "text": "What sound does kid end with?",
+      "batch": "last"
+    },
+    {
+      "id": "q_last_mud",
+      "character": "narrator",
+      "text": "What sound does mud end with?",
+      "batch": "last"
+    },
+    {
+      "id": "q_last_jet",
+      "character": "narrator",
+      "text": "What sound does jet end with?",
+      "batch": "last"
+    },
+    {
+      "id": "q_last_gem",
+      "character": "narrator",
+      "text": "What sound does gem end with?",
+      "batch": "last"
+    },
+    {
+      "id": "q_last_fin",
+      "character": "narrator",
+      "text": "What sound does fin end with?",
+      "batch": "last"
+    },
+    {
+      "id": "q_last_pup",
+      "character": "narrator",
+      "text": "What sound does pup end with?",
+      "batch": "last"
+    },
+    {
+      "id": "q_last_tag",
+      "character": "narrator",
+      "text": "What sound does tag end with?",
+      "batch": "last"
+    },
+    {
+      "id": "q_last_win",
+      "character": "narrator",
+      "text": "What sound does win end with?",
+      "batch": "last"
+    },
+    {
+      "id": "q_last_dig",
+      "character": "narrator",
+      "text": "What sound does dig end with?",
+      "batch": "last"
+    },
+    {
+      "id": "q_last_lid",
+      "character": "narrator",
+      "text": "What sound does lid end with?",
+      "batch": "last"
+    },
+    {
+      "id": "q_last_pot",
+      "character": "narrator",
+      "text": "What sound does pot end with?",
+      "batch": "last"
+    },
+    {
+      "id": "q_last_dot",
+      "character": "narrator",
+      "text": "What sound does dot end with?",
+      "batch": "last"
+    },
+    {
+      "id": "q_last_fit",
+      "character": "narrator",
+      "text": "What sound does fit end with?",
+      "batch": "last"
+    },
+    {
+      "id": "q_last_rib",
+      "character": "narrator",
+      "text": "What sound does rib end with?",
+      "batch": "last"
+    },
+    {
+      "id": "q_last_bin",
+      "character": "narrator",
+      "text": "What sound does bin end with?",
       "batch": "last"
     },
     {
