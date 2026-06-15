@@ -1020,6 +1020,78 @@
       "batch": "blend"
     },
     {
+      "id": "q_rhyme_cat",
+      "character": "narrator",
+      "text": "What rhymes with cat?",
+      "batch": "rhyme"
+    },
+    {
+      "id": "q_rhyme_bat",
+      "character": "narrator",
+      "text": "What rhymes with bat?",
+      "batch": "rhyme"
+    },
+    {
+      "id": "q_rhyme_dog",
+      "character": "narrator",
+      "text": "What rhymes with dog?",
+      "batch": "rhyme"
+    },
+    {
+      "id": "q_rhyme_pig",
+      "character": "narrator",
+      "text": "What rhymes with pig?",
+      "batch": "rhyme"
+    },
+    {
+      "id": "q_rhyme_hen",
+      "character": "narrator",
+      "text": "What rhymes with hen?",
+      "batch": "rhyme"
+    },
+    {
+      "id": "q_rhyme_top",
+      "character": "narrator",
+      "text": "What rhymes with top?",
+      "batch": "rhyme"
+    },
+    {
+      "id": "q_rhyme_bug",
+      "character": "narrator",
+      "text": "What rhymes with bug?",
+      "batch": "rhyme"
+    },
+    {
+      "id": "q_rhyme_box",
+      "character": "narrator",
+      "text": "What rhymes with box?",
+      "batch": "rhyme"
+    },
+    {
+      "id": "q_rhyme_fan",
+      "character": "narrator",
+      "text": "What rhymes with fan?",
+      "batch": "rhyme"
+    },
+    {
+      "id": "q_rhyme_rat",
+      "character": "narrator",
+      "text": "What rhymes with rat?",
+      "batch": "rhyme"
+    },
+    {
+      "id": "q_rhyme_bed",
+      "character": "narrator",
+      "text": "What rhymes with bed?",
+      "batch": "rhyme"
+    },
+    {
+      "id": "q_rhyme_mat",
+      "character": "narrator",
+      "text": "What rhymes with mat?",
+      "batch": "rhyme"
+    },
+    {
       "id": "chk_intro",
       "character": "narrator",
       "text": "Let's play Twinkle's Star Check! Just try your best — it's only for fun.",

@@ -577,6 +577,8 @@ const LETTERBANK=[['S','sss','sun','☀️'],['M','mmm','moon','🌙'],['T','tuh
 const SIGHTBANK=[['cat','🐱','dog','sun'],['dog','🐶','cat','bus'],['sun','☀️','net','pig'],['red','🔴','mom','big'],['pig','🐷','bus','hat'],['bus','🚌','red','net'],['hat','🎩','dog','sun'],['mom','👩','big','net'],['big','🔵','pig','bus'],['net','🥅','cat','mom'],['box','📦','fox','dog'],['fox','🦊','box','sun']];
 const PH={a:'aah',e:'eh',i:'ih',o:'awe',u:'uh',b:'buh',c:'cuh',d:'duh',f:'fff',g:'guh',h:'huh',j:'juh',k:'kuh',l:'lll',m:'mmm',n:'nnn',p:'puh',r:'rrr',s:'sss',t:'tuh',v:'vvv',w:'wuh',x:'ks',y:'yuh',z:'zzz'};
 const CVCWORDS=[['cat','🐱'],['sun','☀️'],['dog','🐶'],['pig','🐷'],['hen','🐔'],['bed','🛏️'],['top','🔝'],['bug','🐛'],['map','🗺️'],['fan','🪭'],['net','🥅'],['cup','☕'],['box','📦'],['log','🪵'],['mop','🧹'],['jam','🍓'],['ten','🔟'],['rug','🧶'],['van','🚐'],['web','🕸️'],['zip','🤐'],['rat','🐀'],['mat','🟫'],['sit','🪑'],['hop','🐰'],['fox','🦊'],['bat','🦇'],['pen','🖊️'],['cub','🐻'],['gum','🍬'],['hut','🛖'],['lip','👄'],['nut','🥜']];
+// Rhyming (word families): [target,emoji,rhyme-answer,distractor,distractor] — all option words exist in the banks above
+const RHYMEBANK=[['cat','🐱','hat','dog','sun'],['bat','🦇','mat','dog','pig'],['dog','🐶','log','cat','bus'],['pig','🐷','big','cat','net'],['hen','🐔','pen','cat','sun'],['top','🔝','hop','dog','sun'],['bug','🐛','rug','cat','dog'],['box','📦','fox','cat','sun'],['fan','🪭','van','dog','pig'],['rat','🐀','bat','dog','sun'],['bed','🛏️','red','cat','sun'],['mat','🟫','cat','dog','pig']];
 const GENGREET=["You're back — let's keep our reading streak glowing!","Another day, another adventure in Harmony Harbor!","Twinkle missed you! Ready to read together?","The harbor shines brighter every day you read!","Let's find new sounds and words today!"];
 const TRSET=['S','C','O','U','A','M','N','I','L','T'], TRBANK=LETTERBANK.filter(e=>TRSET.includes(e[0]));
 // Spoken-text templates — used by genDay AND the gameplay clip-id map below, so they stay in sync.
@@ -585,13 +587,15 @@ const vTrace=L=>`${L[1]}. Trace the ${L[0]} with your finger!`;
 const vWord=w=>`Which word says ${w}?`;
 const vFirst=L=>`What sound does ${L[2]} start with? ${L[1]}, ${L[1]}, ${L[2]}.`;
 const vBlend=w=>`Tap the sounds in order. ${w.split('').join('… ')}… ${w}!`;
-// Batches "letters" + "words" + "blend": map prompts/sounds/words to AI clip ids (auto-used over TTS).
+const vRhyme=w=>`What rhymes with ${w}?`;
+// Batches "letters" + "words" + "blend" + "rhyme": map prompts/sounds/words to AI clip ids.
 (function(){ const phId=p=>'ph_'+p.replace(/[^a-z]/gi,'');
   LETTERBANK.forEach(L=>{ VO_LINES[L[1]]=phId(L[1]); VO_LINES[vSound(L)]='q_snd_'+L[0].toLowerCase(); VO_LINES[vFirst(L)]='q_first_'+L[2]; });
   TRBANK.forEach(L=>{ VO_LINES[vTrace(L)]='q_trace_'+L[0].toLowerCase(); });
   SIGHTBANK.forEach(S=>{ VO_LINES[vWord(S[0])]='q_word_'+S[0]; });
   [...new Set(SIGHTBANK.flatMap(S=>[S[0],S[2],S[3]]))].forEach(w=>{ VO_LINES[w]='word_'+w; });
   CVCWORDS.forEach(W=>{ const w=W[0]; VO_LINES[vBlend(w)]='q_blend_'+w; VO_LINES[w]='word_'+w; w.split('').forEach(ch=>{ const p=PH[ch]||ch; VO_LINES[p]=phId(p); }); });
+  RHYMEBANK.forEach(R=>{ VO_LINES[vRhyme(R[0])]='q_rhyme_'+R[0]; [R[2],R[3],R[4]].forEach(w=>{ if(!VO_LINES[w]) VO_LINES[w]='word_'+w; }); });
 })();
 // ---- Activity item builders + scalable day generator ----
 const QUESTIONS_PER_DAY=21; // tune this to change session length
@@ -602,14 +606,16 @@ function itSound(L,salt){ const d=distractors2(L,salt); return {template:'soundM
 function itFirst(F,salt){ const d=distractors2(F,salt); return {template:'firstSound',skillId:'phon.onset',pic:F[3],prompt:`What sound does  “${F[2]}”  start with?`,say:vFirst(F),options:[{t:F[0],say:F[1]},{t:d[0][0],say:d[0][1]},{t:d[1][0],say:d[1][1]}],answer:F[0]}; }
 function itWord(S){ return {template:'wordPicture',skillId:'read.sightword',pic:S[1],prompt:`Which word says  “${S[0]}”?`,say:vWord(S[0]),options:[{t:S[0],say:S[0]},{t:S[2],say:S[2]},{t:S[3],say:S[3]}],answer:S[0]}; }
 function itBlend(W){ return {template:'blend',skillId:'phon.cvc.blend',pic:W[1],word:W[0],say:vBlend(W[0]),prompt:'Tap the sounds in order to read it!',sounds:W[0].split('').map(ch=>({t:ch,say:PH[ch]||ch}))}; }
+function itRhyme(R){ return {template:'rhyme',skillId:'phon.rhyme',pic:R[1],prompt:`What rhymes with  “${R[0]}”?`,say:vRhyme(R[0]),options:[{t:R[2],say:R[2]},{t:R[3],say:R[3]},{t:R[4],say:R[4]}],answer:R[2]}; }
 function genActivities(day,N){ const i=day;
-  const nt=Math.round(N*0.19), ns=Math.round(N*0.24), nf=Math.round(N*0.19), nw=Math.round(N*0.19); let nb=N-nt-ns-nf-nw; if(nb<0)nb=0;
+  const nt=Math.round(N*0.19), ns=Math.round(N*0.22), nf=Math.round(N*0.14), nw=Math.round(N*0.14), nr=Math.round(N*0.14); let nb=N-nt-ns-nf-nw-nr; if(nb<0)nb=0;
   const traces=pickN(TRBANK,nt,i,11).map(itTrace);
   const sounds=pickN(LETTERBANK,ns,i,23).map((L,k)=>itSound(L,i*3+k*5+1));
   const firsts=pickN(LETTERBANK,nf,i,37).map((F,k)=>itFirst(F,i*5+k*7+3));
   const words=pickN(SIGHTBANK,nw,i,5).map(itWord);
+  const rhymes=pickN(RHYMEBANK,nr,i,29).map(itRhyme);
   const blends=pickN(CVCWORDS,nb,i,17).map(itBlend);
-  const groups=[traces,sounds,firsts,words,blends], acts=[]; let safety=0; // round-robin interleave for variety
+  const groups=[traces,sounds,firsts,words,rhymes,blends], acts=[]; let safety=0; // round-robin interleave for variety
   while(acts.length<N && safety++<400){ let added=false; for(const g of groups){ if(g.length){ acts.push(g.shift()); added=true; if(acts.length>=N) break; } } if(!added) break; }
   return acts; }
 function genDay(day){ const i=day, gn=coachNameFor(day), GN=gn.charAt(0).toUpperCase()+gn.slice(1), labels=['Letter sounds','Reading words','Blending words'];
