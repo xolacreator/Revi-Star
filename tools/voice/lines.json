@@ -914,13 +914,13 @@
     {
       "id": "xtra_grew",
       "character": "narrator",
-      "text": "Wow, Revi Star! You grew today! Look how brightly you shine!",
+      "text": "Wow, Revvy Star! You grew today! Look how brightly you shine!",
       "batch": "extra"
     },
     {
       "id": "xtra_lookatyou",
       "character": "narrator",
-      "text": "Look at you, Revi Star!",
+      "text": "Look at you, Revvy Star!",
       "batch": "extra"
     },
     {
@@ -938,13 +938,13 @@
     {
       "id": "xtra_day1",
       "character": "rumi",
-      "text": "Amazing reading, Revi Star! The lighthouse is shining, and the Gloomling became a happy Star Pal. Tap your new friend!",
+      "text": "Amazing reading, Revvy Star! The lighthouse is shining, and the Gloomling became a happy Star Pal. Tap your new friend!",
       "batch": "extra"
     },
     {
       "id": "xtra_day2",
       "character": "rumi",
-      "text": "Wonderful, Revi Star! Look, Twinkle is glowing, almost ready to evolve tomorrow!",
+      "text": "Wonderful, Revvy Star! Look, Twinkle is glowing, almost ready to evolve tomorrow!",
       "batch": "extra"
     },
     {

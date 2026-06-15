@@ -42,12 +42,12 @@ push(check,'chk_q6','Which letter says tuh?','check');
 // "extra" batch: narration that was previously on the device voice (now clipped so nothing is silent).
 const R='rumi', N='narrator';
 const extra=[
-  ['xtra_grew', N, 'Wow, Revi Star! You grew today! Look how brightly you shine!'],
-  ['xtra_lookatyou', N, 'Look at you, Revi Star!'],
+  ['xtra_grew', N, 'Wow, Revvy Star! You grew today! Look how brightly you shine!'],
+  ['xtra_lookatyou', N, 'Look at you, Revvy Star!'],
   ['xtra_thisone', N, "This one! Let's tap it together!"],
   ['xtra_startry', N, "Great trying! You're a reading star!"],
-  ['xtra_day1', R, 'Amazing reading, Revi Star! The lighthouse is shining, and the Gloomling became a happy Star Pal. Tap your new friend!'],
-  ['xtra_day2', R, 'Wonderful, Revi Star! Look, Twinkle is glowing, almost ready to evolve tomorrow!'],
+  ['xtra_day1', R, 'Amazing reading, Revvy Star! The lighthouse is shining, and the Gloomling became a happy Star Pal. Tap your new friend!'],
+  ['xtra_day2', R, 'Wonderful, Revvy Star! Look, Twinkle is glowing, almost ready to evolve tomorrow!'],
   ['explore_new', N, "Let's find today's adventure!"],
   ['explore_first', N, 'Follow the sparkles!'],
   ['tip_0', N, 'Tap the ground, or hold and drag, to walk with me!'],
