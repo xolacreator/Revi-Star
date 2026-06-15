@@ -5,8 +5,9 @@
 > Built on the Harmony Harbor base. Live: `https://xolacreator.github.io/revi-star/` · Files: `index.html` + `a1.js` + `a1.css`.
 
 ## What's in the build
-- **Avatar creation** (skin / hair / color) — the child's own Star Hunter, which grows alongside Rumi.
-- **Data-driven activity system** (the content-pipeline seed): templates `soundMatch · firstSound · wordPicture · blend · trace` (finger-tracing: see + hear + trace + say), fresh items per day, **no repeats**.
+- **Brief Rumi-voiced tutorial** on first launch (replaced avatar creation); the hero defaults to **Revi Star**.
+- **Learning engine — 8 skill types, 21 questions/day** (tunable `QUESTIONS_PER_DAY`): `trace` (finger-tracing) · `soundMatch` (letter sounds) · `firstSound` (onset) · `lastSound` (coda/ending) · `wordPicture` (sight words) · `rhyme` (word families) · `caseMatch` (upper→lowercase) · `blend` (CVC reading). Items are drawn from content banks — **18 letters · 22 sight words · 49 CVC words · 20 rhyme families** — with offset indexing so questions vary day to day, interleaved for variety.
+- **Real character voices** for every line (ElevenLabs clips via the `tools/voice` pipeline + GitHub Action); device TTS is fully disabled.
 - **3 distinct days**, each 5–10 min:
   - **Day 1** — Letter sounds · meet Rumi · find Twinkle · **Rumi → Rising Star** transformation.
   - **Day 2** — Sight words (new template) · **avatar earns a hat** · **Twinkle evolution hint** · new reading objective.
