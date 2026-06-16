@@ -58,16 +58,7 @@ async function tts(file, text, voiceKey) {
     headers: { 'xi-api-key': KEY, 'content-type': 'application/json', accept: 'audio/mpeg' },
     body: JSON.stringify({ text, model_id: casting.model, voice_settings: settingsFor(voiceKey) }),
   });
-  if (r.status === 402) {
-    const body = await r.text();
-    console.error('\n❌ ElevenLabs rejected this voice on your plan (HTTP 402).');
-    console.error('   ' + body);
-    console.error('\nMost likely: these are Voice Library voices, which a FREE plan can only use on the');
-    console.error('website — not via the API. Options:');
-    console.error('  • Upgrade to ElevenLabs Starter (~$5/mo) — also gives you a commercial license to ship. Then re-run.');
-    console.error('  • Or re-cast using ElevenLabs default "premade" voices (free via API).');
-    process.exit(1);
-  }
+  if (r.status === 402 || r.status === 429) { throw new Error(`QUOTA ${r.status}: ${(await r.text()).slice(0,300)}`); }
   if (!r.ok) throw new Error(`${file}: ${r.status} ${await r.text()}`);
   const buf = Buffer.from(await r.arrayBuffer());
   await writeFile(path.join(OUT, file + '.mp3'), buf);
@@ -88,15 +79,23 @@ async function maybe(file, text, voiceKey) {
   if (!FORCE && have.has(file)) { skipped++; stems.push(file); return; } // already generated — skip to save quota
   await tts(file, text, voiceKey); stems.push(file); made++; await sleep(350);
 }
-for (const line of selected) {
-  if (line.rotating) { for (const g of GUIDES) await maybe(`${line.id}__${g}`, line.text, g); }
-  else await maybe(line.id, line.text, line.character);
-}
+let stopped = null;
+try {
+  for (const line of selected) {
+    if (line.rotating) { for (const g of GUIDES) await maybe(`${line.id}__${g}`, line.text, g); }
+    else await maybe(line.id, line.text, line.character);
+  }
+} catch (e) { stopped = e; }
 console.log(`Generated ${made} new clip(s), skipped ${skipped} existing.${FORCE ? ' (FORCE on)' : ''}`);
-
-// Manifest = EVERY mp3 currently in the folder (so earlier batches aren't dropped).
+if (stopped) {
+  console.error('\n⚠️ Stopped early: ' + stopped.message);
+  if (/QUOTA|quota|402|429|credit|limit/i.test(stopped.message))
+    console.error('Looks like the ElevenLabs monthly quota was hit. The clips made so far ARE saved & committed — just re-run later (it resumes via skip-existing), or upgrade the plan to finish in one go.');
+}
+// Always update the manifest from disk so committed clips are usable, even on a partial run.
 const onDisk = (await readdir(OUT)).filter(f => f.endsWith('.mp3')).map(f => f.slice(0, -4)).sort();
 await writeFile(path.join(OUT, 'manifest.json'), JSON.stringify(onDisk, null, 0) + '\n');
-console.log(`\n✅ Generated ${stems.length} clip(s) this run. Manifest now lists ${onDisk.length} total.`);
+console.log(`\n✅ ${made} new clip(s) this run. Manifest now lists ${onDisk.length} total.${stopped ? ' (partial — re-run to continue)' : ''}`);
+process.exit(0); // exit 0 so progress is committed even when we stop early
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
