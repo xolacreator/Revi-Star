@@ -626,15 +626,19 @@ function allocCounts(weights,N){ const ks=Object.keys(weights), raw=ks.map(k=>we
   for(let j=0;j<rem;j++) counts[fr[j%fr.length][0]]++; const o={}; ks.forEach((k,idx)=>o[k]=counts[idx]); return o; }
 function genActivities(day,N){ const i=day, t=Math.min(1,Math.max(0,(i-1)/16)), L=(a,b)=>a+(b-a)*t; // t: 0 (day1) → 1 (day17+) ramps difficulty
   const c=allocCounts({trace:L(.22,.06),sound:L(.20,.10),case:L(.14,.06),first:L(.12,.10),word:L(.12,.12),last:L(.06,.12),rhyme:L(.06,.14),sight:L(.04,.14),blend:L(.04,.16)},N);
-  const traces=pickN(TRBANK,c.trace,i,11).map(itTrace);
-  const sounds=pickN(LETTERBANK,c.sound,i,23).map((Lx,k)=>itSound(Lx,i*3+k*5+1));
-  const firsts=pickN(LETTERBANK,c.first,i,37).map((F,k)=>itFirst(F,i*5+k*7+3));
-  const lasts=pickN(LASTWORDS,c.last,i,53).map((W,k)=>itLast(W,i*6+k*5+4));
-  const words=pickN(SIGHTBANK,c.word,i,5).map(itWord);
-  const rhymes=pickN(RHYMEBANK,c.rhyme,i,29).map(itRhyme);
-  const cases=pickN(LETTERBANK,c.case,i,43).map((Lx,k)=>itCase(Lx,i*4+k*5+2));
-  const sights=pickN(SIGHTWORDS,c.sight,i,61).map(itSight);
-  const blends=pickN(CVCWORDS,c.blend,i,17).map(itBlend);
+  // Only serve questions whose prompt is already voiced (so the game is fully voiced with whatever clips exist).
+  // As more clips get generated, more skill types appear automatically. ?allskills=1 disables the filter.
+  const filterOn = Object.keys(VO_HAVE).length>=10 && QS.get('allskills')!=='1';
+  const V = arr => filterOn ? arr.filter(a=>{ const id=clipIdFor(a.say); return id && VO_HAVE[id]; }) : arr;
+  const traces=V(pickN(TRBANK,c.trace,i,11).map(itTrace));
+  const sounds=V(pickN(LETTERBANK,c.sound,i,23).map((Lx,k)=>itSound(Lx,i*3+k*5+1)));
+  const firsts=V(pickN(LETTERBANK,c.first,i,37).map((F,k)=>itFirst(F,i*5+k*7+3)));
+  const lasts=V(pickN(LASTWORDS,c.last,i,53).map((W,k)=>itLast(W,i*6+k*5+4)));
+  const words=V(pickN(SIGHTBANK,c.word,i,5).map(itWord));
+  const rhymes=V(pickN(RHYMEBANK,c.rhyme,i,29).map(itRhyme));
+  const cases=V(pickN(LETTERBANK,c.case,i,43).map((Lx,k)=>itCase(Lx,i*4+k*5+2)));
+  const sights=V(pickN(SIGHTWORDS,c.sight,i,61).map(itSight));
+  const blends=V(pickN(CVCWORDS,c.blend,i,17).map(itBlend));
   const groups=[traces,sounds,firsts,lasts,words,rhymes,cases,sights,blends], acts=[]; let safety=0; // round-robin interleave for variety
   while(acts.length<N && safety++<400){ let added=false; for(const g of groups){ if(g.length){ acts.push(g.shift()); added=true; if(acts.length>=N) break; } } if(!added) break; }
   while(acts.length<N){ acts.push(itSound(LETTERBANK[(i*7+acts.length*3)%LETTERBANK.length], i+acts.length)); } // backfill safety
