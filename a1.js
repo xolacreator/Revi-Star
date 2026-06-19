@@ -475,6 +475,9 @@ const endDrag=()=>{ dragging=false; };
 renderer.domElement.addEventListener('pointerup',endDrag);
 renderer.domElement.addEventListener('pointercancel',endDrag);
 renderer.domElement.addEventListener('pointerleave',endDrag);
+// suppress the long-press "copy / select all" callout while steering the character
+renderer.domElement.addEventListener('contextmenu',e=>e.preventDefault());
+renderer.domElement.style.webkitUserSelect='none'; renderer.domElement.style.userSelect='none'; renderer.domElement.style.webkitTouchCallout='none';
 
 // bursts / confetti / bloom
 const bursts=[];
@@ -778,9 +781,12 @@ function correct(a,btn){ btn.classList.remove('glowhint'); btn.classList.add('co
   save();
   [...$('ch-options').querySelectorAll('.opt')].forEach(b=>b.onclick=null);
   const p=praises[(Math.random()*praises.length)|0]; coach('cheer',p);
-  setTimeout(()=>{ curIdx++; renderLights();
-    if(curIdx<curList.length){ if(audioOn) say(p,{then:renderActivity,char:coachChar}); else renderActivity(); }
-    else { hide('challenge'); if(audioOn) say(p,{then:onListDone,char:coachChar}); else onListDone(); } }, 700);
+  let advanced=false;
+  const adv=()=>{ if(advanced) return; advanced=true; curIdx++; renderLights(); // advance once praise ends OR the cap fires
+    if(curIdx<curList.length) renderActivity();
+    else { hide('challenge'); onListDone(); } };
+  if(audioOn) say(p,{char:coachChar,then:adv}); else setTimeout(adv,450);
+  setTimeout(adv,1700); // safety cap — never let a stuck audio clip freeze the game
 }
 
 // =====================================================================
