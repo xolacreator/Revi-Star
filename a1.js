@@ -486,6 +486,17 @@ function burst(pos,color='#FFE9A8',n=24){ for(let i=0;i<n;i++){ const s=new THRE
 function confetti(){ const cols=['#FFC83D','#FF8FCF','#8FD0FF','#7EF0C0','#B69CFF'];
   for(let i=0;i<60;i++){ const d=document.createElement('div'); d.className='confetti'; d.style.left=Math.random()*100+'vw'; d.style.background=cols[i%5];
     d.style.animation=`fall ${1.6+Math.random()*1.4}s ${Math.random()*.6}s ease-in forwards`; document.body.appendChild(d); setTimeout(()=>d.remove(),3600);} }
+// PASS 7: DOM sparkle burst from a screen element (the 3D burst is hidden behind the overlay during learning)
+const SPARKS=['✨','⭐','🌟','💫'];
+function sparkleAt(el,n=10){ if(!el)return; const r=el.getBoundingClientRect(); const cx=r.left+r.width/2, cy=r.top+r.height/2;
+  for(let i=0;i<n;i++){ const s=document.createElement('div'); s.className='fx-spark'; s.textContent=SPARKS[i%SPARKS.length];
+    const a=(Math.PI*2*i)/n+Math.random()*0.5, dist=46+Math.random()*54;
+    s.style.left=cx+'px'; s.style.top=cy+'px';
+    s.style.setProperty('--dx',Math.cos(a)*dist+'px'); s.style.setProperty('--dy',(Math.sin(a)*dist-30)+'px');
+    s.style.setProperty('--rot',((Math.random()*120-60)|0)+'deg');
+    s.style.fontSize=(16+Math.random()*14)+'px';
+    document.body.appendChild(s); setTimeout(()=>s.remove(),760); } }
+function coachHop(){ const el=$('coach-img')&&!$('coach-img').classList.contains('hidden')?$('coach-img'):$('coach-face'); if(!el)return; el.classList.remove('cheer'); void el.offsetWidth; el.classList.add('cheer'); setTimeout(()=>el.classList.remove('cheer'),640); }
 let bloom=0, blooming=false; function startBloom(){ blooming=true; }
 function relightLighthouse(){ lhMat.color.set('#f3ead8'); lhRoof.material.color.set('#e23e6b'); lhLightMat.emissive.set('#FFD24D'); lhLightMat.emissiveIntensity=1.2; burst(lighthouse.position,'#FFD24D',40); }
 
@@ -770,10 +781,11 @@ function hintActivity(a){ itemHints++; log('hint_used',{skillId:a.skillId}); coa
   const btns=[...$('ch-options').querySelectorAll('.opt')];
   const w=btns.find(b=>b.textContent!==a.answer&&!b.classList.contains('dim')); if(w) w.classList.add('dim');
   const r=btns.find(b=>b.textContent===a.answer); if(r){ r.classList.add('glowhint'); setTimeout(()=>r.classList.remove('glowhint'),1600);} if(audioOn) say(a.say,{char:coachChar}); }
-function wrong(a,btn){ mistakes++; dayMistakes++; itemHints++; btn.classList.add('dim'); coach('think',"Almost! Let's try again."); if(audioOn) say("Almost! Listen again.",{char:coachChar});
+function wrong(a,btn){ mistakes++; dayMistakes++; itemHints++; btn.classList.add('dim'); btn.classList.remove('wrongshake'); void btn.offsetWidth; btn.classList.add('wrongshake'); coach('think',"Almost! Let's try again."); if(audioOn) say("Almost! Listen again.",{char:coachChar});
   if(mistakes>=2){ itemModeled=true; const r=[...$('ch-options').querySelectorAll('.opt')].find(b=>b.textContent===a.answer);
     if(r){ r.classList.add('glowhint'); if(audioOn) say(`This one says ${a.answer}. Tap it with me!`,{id:'xtra_thisone'}); r.onclick=()=>{ if(audioOn) say(a.answer,{rate:.8,char:coachChar}); correct(a,r);}; } } }
 function correct(a,btn){ btn.classList.remove('glowhint'); btn.classList.add('correct'); chime('good'); burst(lighthouse.position,'#FFE9A8',10); twCheerUntil=performance.now()+900; heroEmote('cheer',900); // Twinkle + hero cheer learning success
+  sparkleAt(btn,12); coachHop(); // PASS 7: on-screen celebration at the answer + happy coach hop
   if(delight.reward===null){ delight.reward=Math.round(performance.now()-launchT); log('first_reward',{ms:delight.reward}); }
   const firstTry=(mistakes===0&&itemHints===0);
   state.history.push({day:state.day,skillId:a.skillId,correct:true,hints:itemHints,modeled:itemModeled,firstTry,ms:Math.round(performance.now()-itemStart)});
