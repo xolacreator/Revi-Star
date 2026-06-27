@@ -497,6 +497,7 @@ function sparkleAt(el,n=10){ if(!el)return; const r=el.getBoundingClientRect(); 
     s.style.fontSize=(16+Math.random()*14)+'px';
     document.body.appendChild(s); setTimeout(()=>s.remove(),760); } }
 function coachHop(){ const el=$('coach-img')&&!$('coach-img').classList.contains('hidden')?$('coach-img'):$('coach-face'); if(!el)return; el.classList.remove('cheer'); void el.offsetWidth; el.classList.add('cheer'); setTimeout(()=>el.classList.remove('cheer'),640); }
+function reEnter(el){ if(!el)return; el.classList.remove('enter'); void el.offsetWidth; el.classList.add('enter'); setTimeout(()=>el.classList.remove('enter'),560); }
 let bloom=0, blooming=false; function startBloom(){ blooming=true; }
 function relightLighthouse(){ lhMat.color.set('#f3ead8'); lhRoof.material.color.set('#e23e6b'); lhLightMat.emissive.set('#FFD24D'); lhLightMat.emissiveIntensity=1.2; burst(lighthouse.position,'#FFD24D',40); }
 
@@ -722,6 +723,7 @@ setCoachChar('rumi'); // week-1 default; startDay() switches the guide per week
 function renderActivity(){ const a=curList[curIdx]; mistakes=0; itemHints=0; itemModeled=false; itemStart=performance.now();
   coach('smile', a.coachLine || a.prompt);
   $('ch-pic').textContent=a.pic; $('ch-prompt').textContent=a.prompt; $('ch-options').innerHTML=''; renderLights();
+  reEnter($('ch-pic')); reEnter($('ch-prompt')); // PASS 6: animate the subject + question in on each item
   if(audioOn) say(a.say,{char:coachChar});
   $('ch-hear').onclick=()=>{ if(audioOn) say(a.say,{char:coachChar}); };
   $('ch-hint').onclick=()=>hintActivity(a);
