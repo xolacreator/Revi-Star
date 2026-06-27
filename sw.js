@@ -1,6 +1,6 @@
 // Doodle Stars service worker — offline app shell caching.
 // Bump CACHE when any shell file changes so clients pull fresh copies.
-const CACHE = 'little-legends-a1-v81';
+const CACHE = 'little-legends-a1-v82';
 const SHELL = [
   './',
   './index.html',
@@ -39,15 +39,16 @@ self.addEventListener('activate', (e) => {
 });
 
 // Strategy:
-//  - HTML / JS (navigations + app code): NETWORK-FIRST, so new deploys show up
-//    immediately; fall back to cache only when offline.
+//  - HTML / JS / CSS (navigations + app code + styles): NETWORK-FIRST, so new deploys
+//    show up immediately; fall back to cache only when offline. CSS must be here too —
+//    otherwise a fresh index.html keeps pulling stale styles and the app "looks the same".
 //  - Everything else (vendored Three.js, images, fonts): CACHE-FIRST for speed.
 self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET') return;
   const url = new URL(e.request.url);
   const isAppCode = e.request.mode === 'navigate' ||
     url.pathname.endsWith('/assets/vo/manifest.json') || // always fresh so new VO clips appear
-    /\.(html|js|webmanifest)$/.test(url.pathname) && !url.pathname.includes('/vendor/');
+    /\.(html|js|css|webmanifest)$/.test(url.pathname) && !url.pathname.includes('/vendor/');
 
   if (isAppCode) {
     e.respondWith(
