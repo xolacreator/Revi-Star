@@ -14,8 +14,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;700;800;900&family=Baloo+2:wght@500;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="harbor.css?v=82">
-  <link rel="stylesheet" href="a1.css?v=82">
+  <link rel="stylesheet" href="harbor.css?v=83">
+  <link rel="stylesheet" href="a1.css?v=83">
 </head>
 <body>
   <div id="scene-root"></div>
@@ -43,22 +43,26 @@
   <!-- Speech bubble -->
   <div id="bubble" class="bubble hidden"><span id="bubble-name"></span><p id="bubble-text"></p><button id="bubble-next" class="bubble-next">Tap ▶</button></div>
 
-  <!-- Intro -->
+  <!-- Intro — Concert Stage (design flow 1b) -->
   <div id="intro" class="overlay intro">
-    <img id="intro-art" class="intro-art" src="assets/title.png" alt="Reventure"
-         onload="document.getElementById('intro').classList.add('has-art')" onerror="this.remove()">
-    <div class="intro-star">⭐</div>
-    <h1>Reventure</h1>
-    <p>A magical reading adventure</p>
-    <div class="legends-label">✨ Meet the Legends ✨</div>
-    <div id="legends" class="legends">
-      <div class="legend" style="--i:0"><div class="lc"><img src="assets/coach/rumi.png" alt="Rumi"></div><b>Rumi</b><small>Reading</small></div>
-      <div class="legend" style="--i:1"><div class="lc"><img src="assets/coach/mira.png" alt="Mira"></div><b>Mira</b><small>Logic</small></div>
-      <div class="legend" style="--i:2"><div class="lc"><img src="assets/coach/zoey.png" alt="Zoey"></div><b>Zoey</b><small>Music</small></div>
+    <div class="cone cone-l"></div>
+    <div class="cone cone-r"></div>
+    <div class="cone cone-c"></div>
+    <div class="marquee">★ TONIGHT ONLY ★</div>
+    <div class="hero-card">
+      <img src="assets/coach/rumi.png" alt="Rumi">
+      <div class="hero-scrim"></div>
+      <div class="hero-name">RUMI</div>
+    </div>
+    <div class="wordmark">Reventure</div>
+    <div class="show-sub">THE READING SHOW</div>
+    <div class="mini-legends">
+      <div class="ml ml-mira"><img src="assets/coach/mira.png" alt="Mira"></div>
+      <div class="ml ml-zoey"><img src="assets/coach/zoey.png" alt="Zoey"></div>
     </div>
     <div id="legend-tip" class="legend-tip"></div>
-    <button id="start-btn" class="big-btn">Tap to Start ✨</button>
-    <small>Best with sound on 🔊</small>
+    <button id="start-btn" class="big-btn stage-btn">Take the Stage 🎤</button>
+    <small class="intro-note">Best with sound on 🔊</small>
   </div>
 
   <!-- (Avatar creation removed — replaced by a brief Rumi-voiced tutorial.) -->
@@ -148,7 +152,7 @@
   </div>
 
   <noscript><p style="color:#fff;padding:20px">Please enable JavaScript to play.</p></noscript>
-  <script type="module" src="a1.js?v=82"></script>
+  <script type="module" src="a1.js?v=83"></script>
   <script>
     if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(()=>{}));
   </script>
