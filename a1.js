@@ -438,6 +438,8 @@ const twinkle=new THREE.Group(); let twTailStar=null, twCape=null;
   twTailStar=new THREE.Mesh(new THREE.OctahedronGeometry(.18),new THREE.MeshStandardMaterial({color:'#FFD24D',emissive:'#FFC83D',emissiveIntensity:.8})); twTailStar.position.set(-.78,.75,-.45);
   const eye=x=>{const m=new THREE.Mesh(new THREE.SphereGeometry(.07,10,10),new THREE.MeshBasicMaterial({color:'#241B3A'}));m.position.set(x,1.15,.36);return m;};
   twinkle.add(body,head,ear(-.18),ear(.18),tail,twTailStar,eye(-.14),eye(.14)); addOutline(body,'#5a3aa0',0.018); addOutline(head,'#5a3aa0',0.018); addGlow(twTailStar,{color:'#FFD24D',size:0.72,opacity:0.8}); }
+const TW_SCALE=0.6; // keep the Star Pal small so it never blocks the characters
+twinkle.scale.setScalar(TW_SCALE);
 twinkle.position.copy(gloomling.position); twinkle.visible=false; scene.add(twinkle);
 let twinkleFollows=false;
 
@@ -883,7 +885,7 @@ function rumiTransform(stage,label,emoji,then){ state.rumiStage=Math.max(state.r
 function twinkleEvolve(then){ log('twinkle_evolve',{form:2}); state.twinkleForm=2;
   $('tf-emoji').textContent='🦊'; $('tf-title').textContent='TWINKLE is evolving!'; $('tf-sub').textContent='✨ GLIMMERFOX ✨';
   show('transform'); if(audioOn) say("Twinkle is evolving into Glimmerfox!");
-  let s=0; const grow=()=>{ s+=.05; twinkle.scale.setScalar(1+Math.sin(s*Math.PI)*0.25); if(s<1) requestAnimationFrame(grow); else twinkle.scale.setScalar(1.12); };
+  let s=0; const grow=()=>{ s+=.05; twinkle.scale.setScalar(TW_SCALE*(1+Math.sin(s*Math.PI)*0.25)); if(s<1) requestAnimationFrame(grow); else twinkle.scale.setScalar(TW_SCALE*1.12); };
   grow();
   if(!twCape){ twCape=new THREE.Mesh(new THREE.ConeGeometry(.4,.7,10,1,true),new THREE.MeshStandardMaterial({color:'#FFD24D',emissive:'#FFC83D',emissiveIntensity:.5,side:THREE.DoubleSide})); twCape.position.set(0,.6,-.35); twinkle.add(twCape);}
   twTailStar.material.emissiveIntensity=1.6; burst(twinkle.position,'#FFD24D',40);
@@ -1063,7 +1065,9 @@ function tick(now){ const dt=Math.min((now-lastT)/1000,.05); lastT=now; const t=
   if(gloomling.visible) gloomling.position.y=Math.sin(t*2)*.1;
   if(twinkle.visible){ const np=performance.now(), cheering=np<twCheerUntil, spinning=np<twSpinUntil;
     let baseY=Math.sin(t*3)*.12; if(cheering) baseY=Math.abs(Math.sin(t*12))*0.5; // excited hops
-    if(twinkleFollows){ const behind=new THREE.Vector3(Math.sin(avatar.rotation.y)*-1.6,0,Math.cos(avatar.rotation.y)*-1.6); const goal=avatar.position.clone().add(behind); twinkle.position.lerp(new THREE.Vector3(goal.x,twinkle.position.y,goal.z),1-Math.exp(-dt*4)); twinkle.position.y=1.4+baseY; }
+    if(twinkleFollows){ const yaw=avatar.rotation.y; // float to the avatar's side + slightly behind, OFF the camera axis so it never blocks the characters
+      const off=new THREE.Vector3(Math.cos(yaw)*1.7-Math.sin(yaw)*0.5,0,-Math.sin(yaw)*1.7-Math.cos(yaw)*0.5); const goal=avatar.position.clone().add(off);
+      twinkle.position.lerp(new THREE.Vector3(goal.x,twinkle.position.y,goal.z),1-Math.exp(-dt*4)); twinkle.position.y=1.6+baseY; }
     else twinkle.position.y=baseY;
     if(spinning) twinkle.rotation.y+=dt*10; // happy spin
     else { const yaw=Math.atan2(avatar.position.x-twinkle.position.x,avatar.position.z-twinkle.position.z); twinkle.rotation.y+=(yaw-twinkle.rotation.y)*Math.min(1,dt*3); } // curious look toward you
