@@ -160,7 +160,7 @@ const scene=new THREE.Scene();
 const FOG_GRAY=new THREE.Color('#b9b3c6'), FOG_BRIGHT=new THREE.Color('#cdefff');
 scene.background=FOG_GRAY.clone(); scene.fog=new THREE.Fog(FOG_GRAY.clone(),22,60);
 const camera=new THREE.PerspectiveCamera(56, innerWidth/innerHeight,0.1,200);
-const CAM_OFF=new THREE.Vector3(0,7.5,10);
+const CAM_OFF=new THREE.Vector3(0,5.9,11.2); // lower, more cinematic angle: shows the skyline + town, not just ground
 // ---- Stylized 3-point lighting (warm KEY / cool-blue FILL / purple RIM) — HUNTRIX stage look ----
 const hemi=new THREE.HemisphereLight('#eaf2ff','#b6a9d8',0.45); scene.add(hemi); // soft ambient keeps characters readable
 const sun=new THREE.DirectionalLight('#fff0d0',1.0); sun.position.set(8,16,6); sun.castShadow=true; // KEY (warm)
@@ -224,18 +224,76 @@ const water=new THREE.Mesh(new THREE.CircleGeometry(WORLD_R,64), new THREE.MeshS
 water.rotation.x=-Math.PI/2; water.receiveShadow=true; scene.add(water);
 const dock=new THREE.Mesh(new THREE.CircleGeometry(9,48), new THREE.MeshStandardMaterial({color:'#e7c9a6',roughness:1,map:dockTex()}));
 dock.rotation.x=-Math.PI/2; dock.position.y=0.02; dock.receiveShadow=true; scene.add(dock);
-// lighthouse
-const lhMat=new THREE.MeshStandardMaterial({color:'#c9c4d2',roughness:.9});
-const lhTower=new THREE.Mesh(new THREE.CylinderGeometry(1,1.5,5,20),lhMat); lhTower.position.y=2.5; lhTower.castShadow=true;
-const lhRoof=new THREE.Mesh(new THREE.ConeGeometry(1.5,1.4,20), new THREE.MeshStandardMaterial({color:'#9a93a8',roughness:.9})); lhRoof.position.y=5.7;
+// ---- Lighthouse: a real landmark (striped tower, stone base, gallery, glass lantern, starred roof) ----
+// Materials keep the gloom→bloom story: dim/desaturated now, recolored by relightLighthouse().
+const lhMat=new THREE.MeshStandardMaterial({color:'#c9c4d2',roughness:.9});      // body bands
+const lhStripeMat=new THREE.MeshStandardMaterial({color:'#8f849e',roughness:.9}); // accent bands (dim → coral)
 const lhLightMat=new THREE.MeshStandardMaterial({color:'#fff6d8',emissive:'#000',emissiveIntensity:0});
-const lhLight=new THREE.Mesh(new THREE.CylinderGeometry(1.05,1.05,.9,20),lhLightMat); lhLight.position.y=4.85;
-const lighthouse=new THREE.Group(); lighthouse.add(lhTower,lhRoof,lhLight); lighthouse.position.set(0,0,-6); scene.add(lighthouse);
-function house(x,z,col){ const g=new THREE.Group();
+const lighthouse=new THREE.Group();
+{ const BANDS=5,H=0.92,Y0=0.42; // tapered, alternating stripe bands
+  for(let i=0;i<BANDS;i++){ const w=(BANDS-1-i)*0.09;
+    const seg=new THREE.Mesh(new THREE.CylinderGeometry(1.0+w,1.1+w,H,20),(i%2?lhStripeMat:lhMat));
+    seg.position.y=Y0+H/2+i*H; if(i===0){seg.castShadow=true;} lighthouse.add(seg); }
+  const base=new THREE.Mesh(new THREE.CylinderGeometry(1.8,2.05,0.45,22),new THREE.MeshToonMaterial({color:'#9d94ae',gradientMap:TOON_RAMP})); base.position.y=0.22; lighthouse.add(base); addOutline(base,'#3a2f52',0.02);
+  const door=new THREE.Mesh(new THREE.BoxGeometry(0.6,0.95,0.12),new THREE.MeshToonMaterial({color:'#4c3d66',gradientMap:TOON_RAMP})); door.position.set(0,0.9,1.42); lighthouse.add(door);
+  const win=y=>{ const w=new THREE.Mesh(new THREE.BoxGeometry(0.3,0.42,0.1),lhLightMat); w.position.set(0,y,1.28-((y-1)*0.075)); lighthouse.add(w); }; win(2.2); win(3.6); // little windows that glow at relight
+  const deck=new THREE.Mesh(new THREE.CylinderGeometry(1.45,1.45,0.16,20),new THREE.MeshToonMaterial({color:'#7c7290',gradientMap:TOON_RAMP})); deck.position.y=Y0+BANDS*H+0.08; lighthouse.add(deck);
+  const rail=new THREE.Mesh(new THREE.TorusGeometry(1.32,0.05,8,24),new THREE.MeshToonMaterial({color:'#5f5578',gradientMap:TOON_RAMP})); rail.rotation.x=Math.PI/2; rail.position.y=deck.position.y+0.42; lighthouse.add(rail);
+  var lhLight=new THREE.Mesh(new THREE.CylinderGeometry(0.82,0.82,0.85,16),lhLightMat); lhLight.position.y=deck.position.y+0.55; lighthouse.add(lhLight);
+  var lhRoof=new THREE.Mesh(new THREE.ConeGeometry(1.15,1.15,20),new THREE.MeshStandardMaterial({color:'#9a93a8',roughness:.9})); lhRoof.position.y=lhLight.position.y+1.0; lighthouse.add(lhRoof);
+  var lhStar=new THREE.Mesh(new THREE.OctahedronGeometry(0.24),new THREE.MeshStandardMaterial({color:'#cfc6dd',emissive:'#000',emissiveIntensity:0})); lhStar.position.y=lhRoof.position.y+0.85; lighthouse.add(lhStar);
+  for(let i=0;i<5;i++){ const a=i/5*Math.PI*2+0.4; const rock=new THREE.Mesh(new THREE.DodecahedronGeometry(0.28+Math.random()*0.2),new THREE.MeshToonMaterial({color:'#8d84a2',gradientMap:TOON_RAMP}));
+    rock.position.set(Math.cos(a)*2.15,0.16,Math.sin(a)*2.15); rock.rotation.set(Math.random(),Math.random(),0); lighthouse.add(rock); } }
+lighthouse.position.set(0,0,-6); scene.add(lighthouse);
+// Halo position tracks the (taller) lantern via lhLight world y — set after group placement below.
+
+// ---- Houses with life: doors, warm windows, chimneys, color trim ----
+const winMat=new THREE.MeshStandardMaterial({color:'#ffe1a0',emissive:'#ffb84d',emissiveIntensity:.55,roughness:.6});
+function house(x,z,col,roofCol){ const g=new THREE.Group();
   const b=new THREE.Mesh(new THREE.BoxGeometry(2,1.8,2),new THREE.MeshStandardMaterial({color:col,roughness:.95})); b.position.y=.9; b.castShadow=true;
-  const r=new THREE.Mesh(new THREE.ConeGeometry(1.6,1.1,4),new THREE.MeshStandardMaterial({color:'#fff',roughness:.8})); r.position.y=2.35; r.rotation.y=Math.PI/4;
-  g.add(b,r); g.position.set(x,0,z); scene.add(g); }
-[['#f4b98a',-7,-2],['#9ad2d8',7,-2],['#f3a6c4',-6,3],['#cdb8f0',6,3]].forEach(h=>house(h[1],h[2],h[0]));
+  const r=new THREE.Mesh(new THREE.ConeGeometry(1.7,1.15,4),new THREE.MeshStandardMaterial({color:roofCol||'#fff',roughness:.8})); r.position.y=2.42; r.rotation.y=Math.PI/4;
+  const d=new THREE.Mesh(new THREE.BoxGeometry(0.5,0.85,0.08),new THREE.MeshToonMaterial({color:'#6a5480',gradientMap:TOON_RAMP})); d.position.set(0,0.45,1.02);
+  const w1=new THREE.Mesh(new THREE.BoxGeometry(0.42,0.42,0.08),winMat); w1.position.set(-0.55,1.15,1.02);
+  const w2=w1.clone(); w2.position.x=0.55;
+  const ch=new THREE.Mesh(new THREE.BoxGeometry(0.3,0.7,0.3),new THREE.MeshToonMaterial({color:'#b9aecb',gradientMap:TOON_RAMP})); ch.position.set(0.6,2.55,-0.4);
+  g.add(b,r,d,w1,w2,ch); g.position.set(x,0,z); g.lookAt(0,0,0); g.position.y=0; scene.add(g); return g; }
+[['#f4b98a',-7,-2,'#e26d5a'],['#9ad2d8',7,-2,'#4f8fae'],['#f3a6c4',-6,3,'#d1567f'],['#cdb8f0',6,3,'#7e5be0']].forEach(h=>house(h[1],h[2],h[0],h[3]));
+
+// ---- Plaza dressing: lamp posts, festival bunting, benches, planters, crates, trees ----
+const lampMat=new THREE.MeshStandardMaterial({color:'#ffe9b0',emissive:'#ffcf70',emissiveIntensity:.9,roughness:.5});
+const poleMat=new THREE.MeshToonMaterial({color:'#3f3560',gradientMap:TOON_RAMP});
+const LAMP_POS=[[6.4,-5.2],[-6.4,-5.2],[-6.4,5.6],[6.4,5.6]];
+LAMP_POS.forEach(([x,z])=>{ const pole=new THREE.Mesh(new THREE.CylinderGeometry(0.07,0.1,2.6,8),poleMat); pole.position.set(x,1.3,z);
+  const cap=new THREE.Mesh(new THREE.SphereGeometry(0.2,10,10),lampMat); cap.position.set(x,2.7,z);
+  addGlow(cap,{color:'#ffd98a',size:1.5,opacity:0.55}); scene.add(pole,cap); });
+// Bunting: one merged triangle-pennant geometry (single draw call), sagging between the lamps.
+{ const cols=[[1,0.78,0.24],[1,0.56,0.81],[0.56,0.82,1],[0.49,0.94,0.75],[0.71,0.61,0.94]]; const pos=[],col=[];
+  for(let s=0;s<LAMP_POS.length;s++){ const [ax,az]=LAMP_POS[s], [bx,bz]=LAMP_POS[(s+1)%LAMP_POS.length];
+    for(let i=0;i<9;i++){ const u=(i+0.5)/9, x=ax+(bx-ax)*u, z=az+(bz-az)*u, y=2.62-Math.sin(u*Math.PI)*0.5;
+      const dx=(bz-az),dz=-(bx-ax),L=Math.hypot(dx,dz),nx=dx/L*0.13,nz=dz/L*0.13, c=cols[i%5];
+      pos.push(x-nx*1.3,y,z-nz*1.3, x+nx*1.3,y,z+nz*1.3, x,y-0.34,z); col.push(...c,...c,...c); } }
+  const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3)); g.setAttribute('color',new THREE.Float32BufferAttribute(col,3));
+  scene.add(new THREE.Mesh(g,new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.DoubleSide}))); }
+// Benches (facing the lighthouse) + planters + crates
+const woodMat=new THREE.MeshToonMaterial({color:'#a8795a',gradientMap:TOON_RAMP});
+[[-3.4,0.9],[3.4,0.9]].forEach(([x,z])=>{ const g=new THREE.Group();
+  const seat=new THREE.Mesh(new THREE.BoxGeometry(1.5,0.12,0.5),woodMat); seat.position.y=0.42;
+  const back=new THREE.Mesh(new THREE.BoxGeometry(1.5,0.4,0.09),woodMat); back.position.set(0,0.72,-0.22);
+  const legs=new THREE.Mesh(new THREE.BoxGeometry(1.3,0.4,0.4),poleMat); legs.position.y=0.2;
+  g.add(seat,back,legs); g.position.set(x,0,z); g.lookAt(0,0,-6); scene.add(g); });
+[[0,7.6],[-7.4,1.2],[7.4,1.2]].forEach(([x,z],pi)=>{ const g=new THREE.Group();
+  const pot=new THREE.Mesh(new THREE.CylinderGeometry(0.42,0.34,0.4,10),new THREE.MeshToonMaterial({color:'#c98d68',gradientMap:TOON_RAMP})); pot.position.y=0.2;
+  const PCOL=['#ff8fcf','#ffd24d','#8fd0ff','#7ef0c0','#b69cff'];
+  g.add(pot); for(let i=0;i<3;i++){ const f=new THREE.Mesh(new THREE.SphereGeometry(0.14,8,8),new THREE.MeshToonMaterial({color:PCOL[(pi+i)%5],gradientMap:TOON_RAMP})); f.position.set((i-1)*0.2,0.52,(i%2)*0.12-0.06); g.add(f); }
+  g.position.set(x,0,z); scene.add(g); });
+[[7.9,-3.6,0.3],[7.4,-4.3,-0.2]].forEach(([x,z,ry])=>{ const c=new THREE.Mesh(new THREE.BoxGeometry(0.7,0.7,0.7),woodMat); c.position.set(x,0.35,z); c.rotation.y=ry; c.castShadow=true; scene.add(c); });
+// Stylized toon trees (green, mint, and one pink blossom) with a gentle sway
+const trees=[];
+[[-8.2,-4.6,'#5fae6e'],[8.3,-4.2,'#5fae6e'],[-8.5,2.2,'#7ec6a0'],[8.5,2.6,'#7ec6a0'],[-4.4,7.4,'#e995c4'],[4.4,7.4,'#5fae6e']].forEach(([x,z,c],i)=>{
+  const g=new THREE.Group(); const trunk=new THREE.Mesh(new THREE.CylinderGeometry(0.13,0.2,1.1,8),new THREE.MeshToonMaterial({color:'#8a5f43',gradientMap:TOON_RAMP})); trunk.position.y=0.55;
+  const f1=new THREE.Mesh(new THREE.SphereGeometry(0.85,12,12),new THREE.MeshToonMaterial({color:c,gradientMap:TOON_RAMP})); f1.position.y=1.55; f1.castShadow=true; f1.scale.y=0.9;
+  const f2=new THREE.Mesh(new THREE.SphereGeometry(0.55,10,10),new THREE.MeshToonMaterial({color:c,gradientMap:TOON_RAMP})); f2.position.y=2.25; f2.scale.y=0.85;
+  addOutline(f1,'#2a4a34',0.02); g.add(trunk,f1,f2); g.position.set(x,0,z); scene.add(g); trees.push({g,ph:i*1.3}); });
 // sparkles
 const sparkles=[];
 function makeSparkle(x,z){ const m=new THREE.Mesh(new THREE.OctahedronGeometry(.32),new THREE.MeshStandardMaterial({color:'#FFD24D',emissive:'#FFC83D',emissiveIntensity:.7})); m.position.set(x,1.2,z); addGlow(m,{color:'#FFD24D',size:0.85,opacity:0.6}); scene.add(m); sparkles.push({m,magnet:false,pop:0,seed:Math.random()*6}); }
@@ -263,13 +321,13 @@ function paintBackdrop(){ const W=2048,H=1024,cv=document.createElement('canvas'
     for(let wy=by+8; wy<horizon-4; wy+=11) for(let wx=bx+5; wx<bx+bw-5; wx+=11) if(Math.random()<0.5){ x.fillStyle=wc[(Math.random()*4)|0]; x.globalAlpha=0.9; x.fillRect(wx,wy,3,5); }
     x.globalAlpha=1; bx+=bw+5; }
   const t=new THREE.CanvasTexture(cv); t.colorSpace=THREE.SRGBColorSpace; return t; }
-const skyMat=new THREE.MeshBasicMaterial({map:paintBackdrop(),side:THREE.BackSide,fog:false,depthWrite:false}); skyMat.color.set('#8a86a0'); // dim until harmony returns
+const skyMat=new THREE.MeshBasicMaterial({map:paintBackdrop(),side:THREE.BackSide,fog:false,depthWrite:false}); skyMat.color.set('#9d97b6'); // dim until harmony returns
 const bgURL=QS.get('bg'); if(bgURL){ try{ new THREE.TextureLoader().load(bgURL,tx=>{ tx.colorSpace=THREE.SRGBColorSpace; skyMat.map=tx; skyMat.needsUpdate=true; }); }catch(e){} } // swap in a custom 2D image
 scene.add(new THREE.Mesh(skyGeo,skyMat)); scene.background=null;
 const clouds=[]; for(let i=0;i<5;i++){ const c=new THREE.Mesh(new THREE.SphereGeometry(2.2+Math.random()*1.5,10,8),new THREE.MeshBasicMaterial({color:'#ffffff',transparent:true,opacity:0.5,fog:false})); c.scale.y=0.45; c.position.set(-30+Math.random()*60,16+Math.random()*8,-18-Math.random()*30); clouds.push(c); scene.add(c); }
-let ambient=null; { const N=90,p=new Float32Array(N*3); for(let i=0;i<N;i++){ const a=Math.random()*Math.PI*2,r=2+Math.random()*18; p[i*3]=Math.cos(a)*r; p[i*3+1]=0.5+Math.random()*10; p[i*3+2]=Math.sin(a)*r; } const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.Float32BufferAttribute(p,3)); ambient=new THREE.Points(g,new THREE.PointsMaterial({color:'#FFE9A8',size:0.18,transparent:true,opacity:0,depthWrite:false})); scene.add(ambient); }
+let ambient=null; { const N=90,p=new Float32Array(N*3); for(let i=0;i<N;i++){ const a=Math.random()*Math.PI*2,r=2+Math.random()*18; p[i*3]=Math.cos(a)*r; p[i*3+1]=0.5+Math.random()*10; p[i*3+2]=Math.sin(a)*r; } const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.Float32BufferAttribute(p,3)); ambient=new THREE.Points(g,new THREE.PointsMaterial({color:'#FFE9A8',size:0.3,map:GLOW_TEX,transparent:true,opacity:0,depthWrite:false,blending:THREE.AdditiveBlending})); scene.add(ambient); } // soft round motes, not squares
 function radialTex(){ const cv=document.createElement('canvas'); cv.width=cv.height=64; const x=cv.getContext('2d'); const g=x.createRadialGradient(32,32,0,32,32,32); g.addColorStop(0,'rgba(255,240,180,1)'); g.addColorStop(1,'rgba(255,240,180,0)'); x.fillStyle=g; x.fillRect(0,0,64,64); return new THREE.CanvasTexture(cv); }
-const lhHalo=new THREE.Sprite(new THREE.SpriteMaterial({map:radialTex(),color:'#FFE9A8',transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false})); lhHalo.scale.set(5,5,1); lhHalo.position.set(0,4.85,-6); scene.add(lhHalo);
+const lhHalo=new THREE.Sprite(new THREE.SpriteMaterial({map:radialTex(),color:'#FFE9A8',transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false})); lhHalo.scale.set(5,5,1); lhHalo.position.set(0,lhLight.position.y,-6); scene.add(lhHalo);
 const flowers=[], FCOL=['#ff8fcf','#ffd24d','#8fd0ff','#7ef0c0','#b69cff']; for(let i=0;i<12;i++){ const a=(i/12)*Math.PI*2,r=5+Math.random()*3; const f=new THREE.Mesh(new THREE.SphereGeometry(0.22,8,8),new THREE.MeshToonMaterial({color:FCOL[i%5],gradientMap:TOON_RAMP})); f.position.set(Math.cos(a)*r,0.2,Math.sin(a)*r); f.scale.setScalar(0); flowers.push(f); scene.add(f); }
 water.material.emissive=new THREE.Color('#2faab0'); water.material.emissiveIntensity=0;
 // ---------------- Ambient life: butterflies, birds, footstep flowers, water ripples ----------------
@@ -501,7 +559,10 @@ function sparkleAt(el,n=10){ if(!el)return; const r=el.getBoundingClientRect(); 
 function coachHop(){ const el=$('coach-img')&&!$('coach-img').classList.contains('hidden')?$('coach-img'):$('coach-face'); if(!el)return; el.classList.remove('cheer'); void el.offsetWidth; el.classList.add('cheer'); setTimeout(()=>el.classList.remove('cheer'),640); }
 function reEnter(el){ if(!el)return; el.classList.remove('enter'); void el.offsetWidth; el.classList.add('enter'); setTimeout(()=>el.classList.remove('enter'),560); }
 let bloom=0, blooming=false; function startBloom(){ blooming=true; }
-function relightLighthouse(){ lhMat.color.set('#f3ead8'); lhRoof.material.color.set('#e23e6b'); lhLightMat.emissive.set('#FFD24D'); lhLightMat.emissiveIntensity=1.2; burst(lighthouse.position,'#FFD24D',40); }
+function relightLighthouse(){ lhMat.color.set('#f7f0e2'); lhStripeMat.color.set('#e2566b'); lhRoof.material.color.set('#e23e6b');
+  lhLightMat.emissive.set('#FFD24D'); lhLightMat.emissiveIntensity=1.2;
+  lhStar.material.color.set('#ffd24d'); lhStar.material.emissive.set('#FFC83D'); lhStar.material.emissiveIntensity=1.0;
+  burst(lighthouse.position,'#FFD24D',40); }
 
 // ---------------- VFX 2.0: magic particles, rings, spotlight, flash, cinematic cam, Twinkle reactions ----------------
 const magic=[];
@@ -1082,7 +1143,7 @@ function tick(now){ const dt=Math.min((now-lastT)/1000,.05); lastT=now; const t=
       rumiNextWave=np+(near?5000:9000)+Math.random()*5000; }
     if(np>=rumiWaveUntil && rumiCurrent!=='idle') playRumi('idle'); }
   if(reached===false && controlEnabled && Math.hypot(gloomling.position.x-avatar.position.x,gloomling.position.z-avatar.position.z)<2.0){ reachSpot(); }
-  if(blooming&&bloom<1){ bloom=Math.min(1,bloom+dt*.6); skyMat.color.copy(new THREE.Color('#8a86a0')).lerp(new THREE.Color('#ffffff'),bloom); scene.fog.color.copy(FOG_GRAY).lerp(FOG_BRIGHT,bloom);
+  if(blooming&&bloom<1){ bloom=Math.min(1,bloom+dt*.6); skyMat.color.copy(new THREE.Color('#9d97b6')).lerp(new THREE.Color('#ffffff'),bloom); scene.fog.color.copy(FOG_GRAY).lerp(FOG_BRIGHT,bloom);
     hemi.intensity=.45+.35*bloom; water.material.color.copy(new THREE.Color('#7fb6bf')).lerp(new THREE.Color('#3fc8d2'),bloom); water.material.emissiveIntensity=0.1*bloom; dock.material.color.copy(new THREE.Color('#e7c9a6')).lerp(new THREE.Color('#ffe3b0'),bloom);
     flowers.forEach((f,i)=>f.scale.setScalar(Math.max(0,Math.min(1,bloom*1.3-i*0.02))*(0.85+0.3*Math.sin(i)))); }
   for(let i=bursts.length-1;i>=0;i--){ const b=bursts[i]; b.life-=dt*1.4; b.m.position.addScaledVector(b.v,dt); b.v.y-=dt*4; if(b.life<=0){ scene.remove(b.m); bursts.splice(i,1);} }
@@ -1093,6 +1154,8 @@ function tick(now){ const dt=Math.min((now-lastT)/1000,.05); lastT=now; const t=
   spot.material.opacity+=((spotOn?0.5:0)-spot.material.opacity)*Math.min(1,dt*6); if(spot.material.opacity>0.01){ spot.position.x=avatar.position.x; spot.position.z=avatar.position.z; spot.rotation.z+=dt*0.6; }
   // environment ambience: drifting clouds, twinkling motes, lighthouse halo
   for(const c of clouds){ c.position.x+=dt*0.6; if(c.position.x>34) c.position.x=-34; }
+  for(const tr of trees) tr.g.rotation.z=Math.sin(t*0.8+tr.ph)*0.018; // gentle wind sway
+  lampMat.emissiveIntensity=0.85+0.15*Math.sin(t*2.1); // soft lamp breathing
   if(water.material.map){ water.material.map.rotation+=dt*0.02; water.material.map.offset.y=Math.sin(t*0.3)*0.01; } // gently shimmering water
   for(const b of butterflies){ b.s.position.set(b.cx+Math.cos(t*b.sp+b.ph)*b.rx, b.h+Math.sin(t*b.sp*2.3+b.ph)*0.25, b.cz+Math.sin(t*b.sp*0.8+b.ph)*b.rz); b.s.material.opacity=0.45+0.35*Math.sin(t*7+b.ph); } // drift + wing flutter
   for(const b of birds){ b.g.position.x+=dt*b.sp; if(b.g.position.x>36){ b.g.position.x=-36; b.g.position.z=-12-Math.random()*24; b.g.position.y=12+Math.random()*8; } const fl=Math.sin(t*8+b.ph)*0.5; b.wl.rotation.z=0.35+fl; b.wr.rotation.z=-0.35-fl; }
