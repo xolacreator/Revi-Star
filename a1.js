@@ -23,6 +23,7 @@ let state = load() || {
   history:[],            // {day,skillId,correct,hints,modeled,firstTry,ms}
   launchCount:0, voicePref:null, tutorialDone:false, musicOff:false
 };
+if(!state.shop) state.shop={owned:[],trail:null}; // Star Shop: purchases persist across days
 let events = (()=>{ try{ return JSON.parse(localStorage.getItem(EKEY))||[]; }catch(e){ return []; } })();
 let launchT = 0, delight={interaction:null,reward:null,smile:null,excited:null};
 function log(ev,data={}){ events.push({t:Date.now(), rel: launchT?Math.round((performance.now()-launchT)):null, ev, day:state.day, ...data});
@@ -148,7 +149,8 @@ function birdChirp(){ if(!actx) return; try{ const now=actx.currentTime, base=14
   [0,0.13].forEach((off,i)=>{ const o=actx.createOscillator(),g=actx.createGain(); o.type='sine'; o.frequency.setValueAtTime(base*(i?1.18:1),now+off); o.frequency.exponentialRampToValueAtTime(base*(i?1.45:1.28),now+off+0.07); o.connect(g); g.connect(actx.destination);
     g.gain.setValueAtTime(0.0001,now+off); g.gain.exponentialRampToValueAtTime(0.045,now+off+0.02); g.gain.exponentialRampToValueAtTime(0.0001,now+off+0.16); o.start(now+off); o.stop(now+off+0.2); }); }catch(e){} }
 let avatarPop=0; function avatarReact(){ avatarPop=1; }
-function collectStar(pos){ burst(pos,'#FFD24D',14); collectChime(); haptic(12); twCheerUntil=performance.now()+450; heroEmote('cheer',700); // Twinkle + hero celebrate collections
+function earnStars(n){ state.avatar.stars+=n; const el=$('star-num'); if(el) el.textContent=state.avatar.stars; save(); } // shop currency: earned by reading + exploring
+function collectStar(pos){ burst(pos,'#FFD24D',14); collectChime(); haptic(12); earnStars(1); twCheerUntil=performance.now()+450; heroEmote('cheer',700); // Twinkle + hero celebrate collections
   if(delight.reward===null){ delight.reward=Math.round(performance.now()-launchT); log('first_reward',{ms:delight.reward}); } }
 
 // ---------------- Renderer / scene ----------------
@@ -257,7 +259,16 @@ function house(x,z,col,roofCol){ const g=new THREE.Group();
   const w2=w1.clone(); w2.position.x=0.55;
   const ch=new THREE.Mesh(new THREE.BoxGeometry(0.3,0.7,0.3),new THREE.MeshToonMaterial({color:'#b9aecb',gradientMap:TOON_RAMP})); ch.position.set(0.6,2.55,-0.4);
   g.add(b,r,d,w1,w2,ch); g.position.set(x,0,z); g.lookAt(0,0,0); g.position.y=0; scene.add(g); return g; }
-[['#f4b98a',-7,-2,'#e26d5a'],['#9ad2d8',7,-2,'#4f8fae'],['#f3a6c4',-6,3,'#d1567f'],['#cdb8f0',6,3,'#7e5be0']].forEach(h=>house(h[1],h[2],h[0],h[3]));
+const houses=[['#f4b98a',-7,-2,'#e26d5a'],['#9ad2d8',7,-2,'#4f8fae'],['#f3a6c4',-6,3,'#d1567f'],['#cdb8f0',6,3,'#7e5be0']].map(h=>house(h[1],h[2],h[0],h[3]));
+// ---- The Star Shop: the lavender house is enterable — spend reading stars on fun ----
+const shopHouse=houses[3];
+{ const cv=document.createElement('canvas'); cv.width=256; cv.height=80; const x=cv.getContext('2d');
+  x.fillStyle='#2B2233'; x.fillRect(0,6,256,68); x.fillRect(6,0,244,80); // rounded-ish plate without roundRect (older Safari safety)
+  x.fillStyle='#FFC83D'; x.font='800 44px system-ui,sans-serif'; x.textAlign='center'; x.textBaseline='middle'; x.fillText('⭐ SHOP',128,42);
+  const tex=new THREE.CanvasTexture(cv); tex.colorSpace=THREE.SRGBColorSpace;
+  const sign=new THREE.Mesh(new THREE.PlaneGeometry(1.5,0.47),new THREE.MeshBasicMaterial({map:tex,transparent:true})); sign.position.set(0,1.62,1.06); shopHouse.add(sign);
+  const roofStar=new THREE.Mesh(new THREE.OctahedronGeometry(0.3),new THREE.MeshStandardMaterial({color:'#FFD24D',emissive:'#FFC83D',emissiveIntensity:.9})); roofStar.position.set(0,3.25,0); shopHouse.add(roofStar); addGlow(roofStar,{color:'#FFD24D',size:1.6,opacity:0.7});
+  addGlow(shopHouse,{color:'#FFE08A',size:1.3,opacity:0.5,pos:[0,0.7,1.15]}); } // welcoming door glow
 
 // ---- Plaza dressing: lamp posts, festival bunting, benches, planters, crates, trees ----
 const tapProps=[]; // World Life: props that pop + sparkle when a child taps them {g,col,pop}
@@ -541,6 +552,52 @@ function tapGround(cx,cy,juice=true){ if(!controlEnabled)return false; ndc.x=(cx
 // Tap OR hold-and-drag: a quick tap walks the hero to a spot; holding and dragging
 // makes the hero continuously follow your finger across the ground (kid-friendly steering).
 let dragging=false, dragTrailT=0;
+// ---------------- STAR SHOP: tap the shop → walk to the door → it opens. Stars buy fun. ----------------
+const SHOP_ITEMS=[
+  {id:'fireworks',emoji:'🎆',name:'Firework Show',price:3,instant:true},
+  {id:'trail_gold',emoji:'⭐',name:'Gold Sparkle Trail',price:8,trail:'#FFC83D'},
+  {id:'trail_pink',emoji:'💗',name:'Pink Sparkle Trail',price:8,trail:'#FF8FCF'},
+  {id:'trail_sky',emoji:'💙',name:'Sky Sparkle Trail',price:8,trail:'#8FD0FF'},
+  {id:'balloons',emoji:'🎈',name:'Party Balloons',price:10},
+  {id:'bow',emoji:'🎀',name:"Twinkle's Bow",price:12},
+];
+let shopPending=false;
+function shopDoorPoint(){ const p=shopHouse.position.clone(); const dir=p.clone().negate().setY(0).normalize(); return p.add(dir.multiplyScalar(2.0)); }
+function enterShopWalk(){ if(!controlEnabled) return; const d=shopDoorPoint(); target.copy(d); target.y=0; setMarker(d); shopPending=true;
+  burst(new THREE.Vector3(shopHouse.position.x,1.4,shopHouse.position.z),'#FFD24D',8); haptic(8); }
+function openShop(){ shopPending=false; controlEnabled=false; setMarker(null); renderShop(); show('shop'); chime('good'); log('shop_open',{stars:state.avatar.stars}); }
+function closeShop(){ hide('shop'); controlEnabled=true; }
+function spendStars(n,btn){ if(state.avatar.stars<n){ if(btn){ btn.classList.remove('deny'); void btn.offsetWidth; btn.classList.add('deny'); }
+    const tip=$('shop-tip'); if(tip) tip.textContent='Read and collect to earn more ⭐!'; return false; }
+  state.avatar.stars-=n; earnStars(0); const ss=$('shop-stars'); if(ss) ss.textContent=state.avatar.stars; return true; }
+function applyTrail(color){ state.avatar.color=color; applyAvatar(); }
+let balloonsBuilt=false, twBow=null;
+function buildBalloons(){ if(balloonsBuilt) return; balloonsBuilt=true;
+  [[6.4,-5.2],[-6.4,5.6]].forEach(([x,z])=>{ ['#ff4fa6','#ffd24d','#4fd8ff'].forEach((c,i)=>{
+    const b=new THREE.Mesh(new THREE.SphereGeometry(0.22,10,10),new THREE.MeshToonMaterial({color:c,gradientMap:TOON_RAMP})); b.scale.y=1.15; b.position.set(x+(i-1)*0.26,3.05+(i%2)*0.2,z); scene.add(b);
+    const s=new THREE.Mesh(new THREE.CylinderGeometry(0.008,0.008,0.5,4),new THREE.MeshBasicMaterial({color:'#fff'})); s.position.set(b.position.x,2.78,z); scene.add(s); }); }); }
+function buildTwinkleBow(){ if(twBow) return; twBow=new THREE.Group(); const m=new THREE.MeshToonMaterial({color:'#ff5fa8',gradientMap:TOON_RAMP});
+  const l=new THREE.Mesh(new THREE.SphereGeometry(0.12,8,8),m); l.scale.set(1,0.7,0.6); l.position.x=-0.11;
+  const r=l.clone(); r.position.x=0.11; const k=new THREE.Mesh(new THREE.SphereGeometry(0.07,8,8),m);
+  twBow.add(l,r,k); twBow.position.set(0,1.58,0.1); twinkle.add(twBow); }
+function fireworksShow(){ confetti(); for(let i=0;i<5;i++){ setTimeout(()=>{ collectChime();
+  magicBurst(new THREE.Vector3((Math.random()-0.5)*14,6+Math.random()*4,-2-Math.random()*6),40,['#ff4fa6','#ffd24d','#4fd8ff','#7ef0c0'][(Math.random()*4)|0]); },i*450); } }
+function applyShopOwned(){ if(state.shop.owned.includes('balloons')) buildBalloons(); if(state.shop.owned.includes('bow')) buildTwinkleBow(); } // rebuild purchases on load
+function renderShop(){ const ss=$('shop-stars'); if(ss) ss.textContent=state.avatar.stars; const tip=$('shop-tip'); if(tip) tip.textContent='';
+  const host=$('shop-items'); if(!host) return; host.innerHTML='';
+  SHOP_ITEMS.forEach(it=>{ const owned=state.shop.owned.includes(it.id), eq=it.trail&&state.shop.trail===it.id;
+    const row=document.createElement('div'); row.className='shop-item';
+    const label=it.instant?`${it.price} ⭐`:owned?(it.trail?(eq?'On! ✓':'Wear'):'Yours ✓'):`${it.price} ⭐`;
+    row.innerHTML=`<div class="si-ico">${it.emoji}</div><b>${it.name}</b>`;
+    const b=document.createElement('button'); b.className='si-buy'+(owned&&!it.instant?' owned':'')+(eq?' eq':''); b.textContent=label;
+    b.onclick=()=>{ const has=state.shop.owned.includes(it.id);
+      if(it.instant){ if(spendStars(it.price,b)){ fireworksShow(); log('shop_buy',{id:it.id}); } return; }
+      if(has){ if(it.trail){ state.shop.trail=it.id; applyTrail(it.trail); save(); renderShop(); } return; }
+      if(spendStars(it.price,b)){ state.shop.owned.push(it.id);
+        if(it.trail){ state.shop.trail=it.id; applyTrail(it.trail); }
+        if(it.id==='balloons') buildBalloons(); if(it.id==='bow') buildTwinkleBow();
+        save(); chime('good'); confetti(); renderShop(); log('shop_buy',{id:it.id}); } };
+    row.appendChild(b); host.appendChild(row); }); }
 // Tapping Rumi in the world → she waves and offers a friendly tip (interactive guide).
 const RUMI_TIPS=["Tap the ground to explore — or hold and drag to walk with me!","Look for the glowing star and listen for its sound!","You're doing amazing. Sound it out nice and slow.","Tap Twinkle to say hello!","Every sound you learn makes you shine brighter!"];
 let rumiTipT=0;
@@ -552,7 +609,9 @@ renderer.domElement.addEventListener('pointerdown',e=>{ tapRing(e.clientX,e.clie
   ndc.x=(e.clientX/innerWidth)*2-1; ndc.y=-(e.clientY/innerHeight)*2+1; ray.setFromCamera(ndc,camera);
   if(rumi.visible && ray.intersectObject(rumi,true).length){ rumiTip(); return; } // tap Rumi → tip
   for(const n of npcs){ if(ray.intersectObject(n.g,true).length){ npcGreet(n); return; } } // tap an idol → wave + hello
+  if(ray.intersectObject(shopHouse,true).length){ enterShopWalk(); return; } // tap the Star Shop → walk over + enter
   for(const p of tapProps){ if(ray.intersectObject(p.g,true).length){ propDelight(p); break; } } // tap a prop → pop + sparkle (still walks)
+  shopPending=false; // walking somewhere else cancels a pending shop visit
   dragging=true; tapGround(e.clientX,e.clientY); });
 function propDelight(p){ p.pop=1; const w=new THREE.Vector3(); p.g.getWorldPosition(w); w.y+=0.9;
   burst(w,p.col,8); chirp(); haptic(8); }
@@ -877,7 +936,7 @@ function wrong(a,btn){ mistakes++; dayMistakes++; itemHints++; btn.classList.add
   if(mistakes>=2){ itemModeled=true; const r=[...$('ch-options').querySelectorAll('.opt')].find(b=>b.textContent===a.answer);
     if(r){ r.classList.add('glowhint'); if(audioOn) say(`This one says ${a.answer}. Tap it with me!`,{id:'xtra_thisone'}); r.onclick=()=>{ if(audioOn) say(a.answer,{rate:.8,char:coachChar}); correct(a,r);}; } } }
 function correct(a,btn){ btn.classList.remove('glowhint'); btn.classList.add('correct'); chime('good'); burst(lighthouse.position,'#FFE9A8',10); twCheerUntil=performance.now()+900; heroEmote('cheer',900); // Twinkle + hero cheer learning success
-  sparkleAt(btn,12); coachHop(); // PASS 7: on-screen celebration at the answer + happy coach hop
+  sparkleAt(btn,12); coachHop(); earnStars(1); // every correct answer earns a shop star — reading powers the fun
   if(delight.reward===null){ delight.reward=Math.round(performance.now()-launchT); log('first_reward',{ms:delight.reward}); }
   const firstTry=(mistakes===0&&itemHints===0);
   state.history.push({day:state.day,skillId:a.skillId,correct:true,hints:itemHints,modeled:itemModeled,firstTry,ms:Math.round(performance.now()-itemStart)});
@@ -1067,6 +1126,7 @@ function decideDay(){ const forced=QS.get('day'); if(forced){ return Math.max(1,
 function boot(){
   loadVOManifest(); maybeLoadHero(); maybeLoadRumi();
   setTimeout(loadAmbientIdols,2500); // ambient idols load after the essentials so startup stays fast
+  applyShopOwned(); const scb=$('shop-close'); if(scb) scb.onclick=closeShop; // Star Shop: rebuild purchases + wire close
   updateMusicBtn(); const mb=$('music-btn'); if(mb) mb.onclick=toggleMusic;
   const hb=$('hear-btn'); if(hb) hb.onclick=()=>{ if(lastSay) say(lastSay.t,{id:lastSay.id,char:lastSay.char}); }; // 🔊 = hear it again
   if(QS.get('observe')==='1'){ show('observer'); $('mark-smile').onclick=()=>recordExcitement('smile'); $('mark-excited').onclick=()=>recordExcitement('excited'); }
@@ -1174,6 +1234,7 @@ function tick(now){ const dt=Math.min((now-lastT)/1000,.05); lastT=now; const t=
       rumiNextWave=np+(near?5000:9000)+Math.random()*5000; }
     if(np>=rumiWaveUntil && rumiCurrent!=='idle') playRumi('idle'); }
   if(reached===false && controlEnabled && Math.hypot(gloomling.position.x-avatar.position.x,gloomling.position.z-avatar.position.z)<2.0){ reachSpot(); }
+  if(shopPending && controlEnabled){ const d=shopDoorPoint(); if(Math.hypot(avatar.position.x-d.x,avatar.position.z-d.z)<1.2) openShop(); }
   if(blooming&&bloom<1){ bloom=Math.min(1,bloom+dt*.6); skyMat.color.copy(new THREE.Color('#9d97b6')).lerp(new THREE.Color('#ffffff'),bloom); scene.fog.color.copy(FOG_GRAY).lerp(FOG_BRIGHT,bloom);
     hemi.intensity=.45+.35*bloom; water.material.color.copy(new THREE.Color('#7fb6bf')).lerp(new THREE.Color('#3fc8d2'),bloom); water.material.emissiveIntensity=0.1*bloom; dock.material.color.copy(new THREE.Color('#e7c9a6')).lerp(new THREE.Color('#ffe3b0'),bloom);
     flowers.forEach((f,i)=>f.scale.setScalar(Math.max(0,Math.min(1,bloom*1.3-i*0.02))*(0.85+0.3*Math.sin(i)))); }

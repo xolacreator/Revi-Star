@@ -6,6 +6,9 @@ Living document. Ranked by **player impact vs. effort**. Updated every productio
 - Claude Design flow 1b→2b→3c→4a built into the game (Concert title/challenge, Storybook transform, Aurora reward) — v83
 - Star Pal shrunk + moved off camera axis — v84
 - **Environment Pass 1** — real lighthouse (striped tower, stone base, gallery, glass lantern, star finial, rocks), houses with doors/lit windows/chimneys, lamp posts w/ glow + festival bunting (single merged draw call), benches, planters, crates, 6 swaying toon trees, round ambient motes (were squares), brighter pre-bloom sky, lower cinematic camera — v85
+- **Cohesion Pass** — Star Check on the concert stage; transform shows character portrait — v86
+- **World Life Pass** — Mira/Zoey ambient NPCs (idle/dance/wave, watch the hero, voiced tap-greetings); all props tappable with pop+sparkle — v87
+- **Star Shop v1 (first enterable building)** — lavender house converted: sign, roof star, door glow; tap → walk to door → concert shop UI opens; stars earned per correct answer + sparkle collect; items: fireworks (repeatable), 3 sparkle trails (equip), plaza balloons, Twinkle's bow (persistent world changes) — v88
 
 ## 🔴 High priority (do next)
 | Item | Impact | Effort | Notes |
