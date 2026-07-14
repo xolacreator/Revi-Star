@@ -191,16 +191,26 @@ h1,h2,h3{font-family:var(--font-display);font-weight:700;letter-spacing:.2px}
 .challenge .ch-pic{filter:drop-shadow(0 0 16px rgba(255,210,90,.6))}
 .challenge h2{color:#fff;text-shadow:0 0 12px rgba(143,120,255,.8)}
 .coach canvas,.coach #coach-img{border:1px solid rgba(255,255,255,.16);background:#241B3A;box-shadow:0 0 34px rgba(255,143,207,.45),0 14px 30px rgba(0,0,0,.5)}
-/* neon answer pads — cycle mint / sky / pink */
-.challenge .opt{border:1.5px solid rgba(126,240,192,.8);background:rgba(126,240,192,.14);color:#EAFFF6;box-shadow:0 0 20px rgba(126,240,192,.4),0 8px 18px rgba(0,0,0,.4)}
-.challenge .opt:nth-child(3n+2){border-color:rgba(143,208,255,.8);background:rgba(143,208,255,.14);color:#EAF6FF;box-shadow:0 0 20px rgba(143,208,255,.4),0 8px 18px rgba(0,0,0,.4)}
-.challenge .opt:nth-child(3n){border-color:rgba(255,143,207,.8);background:rgba(255,143,207,.14);color:#FFEAF6;box-shadow:0 0 20px rgba(255,143,207,.4),0 8px 18px rgba(0,0,0,.4)}
-.challenge .opt.correct{border-color:#7EF0C0;background:rgba(126,240,192,.92);color:#0c3b2b;box-shadow:0 0 34px rgba(126,240,192,.9)}
-.challenge .opt.dim{opacity:.35}
+/* neon answer pads — cycle mint / sky / pink (shared by challenge + star check) */
+.challenge .opt,.starcheck .opt{border:1.5px solid rgba(126,240,192,.8);background:rgba(126,240,192,.14);color:#EAFFF6;box-shadow:0 0 20px rgba(126,240,192,.4),0 8px 18px rgba(0,0,0,.4)}
+.challenge .opt:nth-child(3n+2),.starcheck .opt:nth-child(3n+2){border-color:rgba(143,208,255,.8);background:rgba(143,208,255,.14);color:#EAF6FF;box-shadow:0 0 20px rgba(143,208,255,.4),0 8px 18px rgba(0,0,0,.4)}
+.challenge .opt:nth-child(3n),.starcheck .opt:nth-child(3n){border-color:rgba(255,143,207,.8);background:rgba(255,143,207,.14);color:#FFEAF6;box-shadow:0 0 20px rgba(255,143,207,.4),0 8px 18px rgba(0,0,0,.4)}
+.challenge .opt.correct,.starcheck .opt.correct{border-color:#7EF0C0;background:rgba(126,240,192,.92);color:#0c3b2b;box-shadow:0 0 34px rgba(126,240,192,.9)}
+.challenge .opt.dim,.starcheck .opt.dim{opacity:.35}
 .challenge .pill{border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.08);color:#E9E2FF;backdrop-filter:none;-webkit-backdrop-filter:none}
+
+/* ---- Star Check on the same concert stage ---- */
+.starcheck{background:radial-gradient(90% 60% at 50% 2%,#332A5C,#150F2C 60%,#080512 100%)}
+.starcheck::before{content:"";position:absolute;top:56px;left:50%;transform:translateX(-50%);width:200px;height:340px;background:linear-gradient(180deg,rgba(255,210,120,.28),transparent 70%);filter:blur(20px);pointer-events:none;z-index:0}
+.starcheck>*{position:relative;z-index:1}
+.starcheck h2{color:#fff;font-family:var(--font-display);text-shadow:0 0 12px rgba(255,143,207,.7)}
+.starcheck p{color:#B9A9FF;font-weight:800}
+.starcheck h3{color:#fff;background:none;padding:0;font-family:var(--font-display);font-size:24px;text-shadow:0 0 12px rgba(143,120,255,.8)}
+.starcheck .ch-pic{filter:drop-shadow(0 0 16px rgba(255,210,90,.6))}
 
 /* ---- Storybook Transform ---- */
 .transform{background:linear-gradient(180deg,#FFEFD6,#FFD9E8);overflow:hidden}
+.tf-img{width:158px;height:158px;border-radius:50%;object-fit:cover;object-position:50% 14%;border:5px solid #fff;box-shadow:0 6px 0 rgba(180,120,40,.35),0 0 0 3px #2B2233;background:#241B3A;z-index:2;animation:pop .5s cubic-bezier(.34,1.56,.64,1),bob2 3s .5s ease-in-out infinite}
 .transform .tf-rays{width:180vmax;height:180vmax;background:repeating-conic-gradient(from 0deg,#FFE1A6 0 12deg,transparent 12deg 24deg);opacity:.7;animation:spin 26s linear infinite}
 .transform .tf-star{filter:drop-shadow(0 5px 0 rgba(180,120,40,.28))}
 .transform h1{color:#6A4BC4;background:#fff;border:3px solid #2B2233;border-radius:16px;padding:8px 22px;box-shadow:0 5px 0 #2B2233;transform:rotate(-2deg);font-family:var(--font);font-weight:800;font-size:24px;text-shadow:none}

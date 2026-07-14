@@ -593,7 +593,7 @@ function heroName(){ return (state.avatar.name&&state.avatar.name.trim())?state.
 let creationMode=false, focusAvatarUntil=0;
 // The headline daily moment: the CHILD's avatar grows (Rumi/Twinkle are supporting cast).
 function avatarTransform(accessoryFn,label,then){
-  $('tf-emoji').textContent='🌟'; $('tf-title').textContent=`${heroName()} grew today!`; $('tf-sub').textContent='✨ '+label+' ✨';
+  tfPortrait(null); $('tf-emoji').textContent='🌟'; $('tf-title').textContent=`${heroName()} grew today!`; $('tf-sub').textContent='✨ '+label+' ✨';
   heroPerforming=true; if(heroLoaded) playHero(heroActions.dance?'dance':'idle');
   // 1) anticipation: spotlight rises, world dims, camera pushes in, Twinkle gets excited
   const dimFrom=hemi.intensity; hemi.intensity=dimFrom*0.5; spotOn=1; cineUntil=performance.now()+3650; twinkleSpin(3300);
@@ -935,7 +935,10 @@ function enableTwinkleTap(){ controlEnabled=false; setHint('Tap Twinkle to befri
       speak('Twinkle',"*happy twinkle!* 🦊💛","Aww! ▶",()=>rumiTransform(2,'RISING STAR','🌟',()=>avatarTransform(addStar,'Star Hunter Trainee',rewardDay))); } };
   renderer.domElement.addEventListener('pointerdown',tap);
 }
+function tfPortrait(src){ const im=$('tf-img'),em=$('tf-emoji'); if(!im||!em) return; // storybook circular portrait when we have art, emoji otherwise
+  if(src){ im.src=src; im.classList.remove('hidden'); em.classList.add('hidden'); } else { im.classList.add('hidden'); em.classList.remove('hidden'); } }
 function rumiTransform(stage,label,emoji,then){ state.rumiStage=Math.max(state.rumiStage,stage); log('rumi_evolve',{stage});
+  tfPortrait('assets/coach/rumi-cheer.png');
   $('tf-emoji').textContent=emoji; $('tf-title').textContent='RUMI is transforming!'; $('tf-sub').textContent='✨ '+label+' ✨';
   setTimeout(()=>{ show('transform'); if(audioOn) say("You filled the harbor with harmony! Watch — Rumi is becoming a Rising Star!");
     rumiJacket.emissive.set('#FFC83D'); rumiJacket.emissiveIntensity=.6;
@@ -944,7 +947,7 @@ function rumiTransform(stage,label,emoji,then){ state.rumiStage=Math.max(state.r
   setTimeout(()=>{ hide('transform'); save(); then(); },3400);
 }
 function twinkleEvolve(then){ log('twinkle_evolve',{form:2}); state.twinkleForm=2;
-  $('tf-emoji').textContent='🦊'; $('tf-title').textContent='TWINKLE is evolving!'; $('tf-sub').textContent='✨ GLIMMERFOX ✨';
+  tfPortrait(null); $('tf-emoji').textContent='🦊'; $('tf-title').textContent='TWINKLE is evolving!'; $('tf-sub').textContent='✨ GLIMMERFOX ✨';
   show('transform'); if(audioOn) say("Twinkle is evolving into Glimmerfox!");
   let s=0; const grow=()=>{ s+=.05; twinkle.scale.setScalar(TW_SCALE*(1+Math.sin(s*Math.PI)*0.25)); if(s<1) requestAnimationFrame(grow); else twinkle.scale.setScalar(TW_SCALE*1.12); };
   grow();
