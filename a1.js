@@ -260,12 +260,13 @@ function house(x,z,col,roofCol){ const g=new THREE.Group();
 [['#f4b98a',-7,-2,'#e26d5a'],['#9ad2d8',7,-2,'#4f8fae'],['#f3a6c4',-6,3,'#d1567f'],['#cdb8f0',6,3,'#7e5be0']].forEach(h=>house(h[1],h[2],h[0],h[3]));
 
 // ---- Plaza dressing: lamp posts, festival bunting, benches, planters, crates, trees ----
+const tapProps=[]; // World Life: props that pop + sparkle when a child taps them {g,col,pop}
 const lampMat=new THREE.MeshStandardMaterial({color:'#ffe9b0',emissive:'#ffcf70',emissiveIntensity:.9,roughness:.5});
 const poleMat=new THREE.MeshToonMaterial({color:'#3f3560',gradientMap:TOON_RAMP});
 const LAMP_POS=[[6.4,-5.2],[-6.4,-5.2],[-6.4,5.6],[6.4,5.6]];
 LAMP_POS.forEach(([x,z])=>{ const pole=new THREE.Mesh(new THREE.CylinderGeometry(0.07,0.1,2.6,8),poleMat); pole.position.set(x,1.3,z);
   const cap=new THREE.Mesh(new THREE.SphereGeometry(0.2,10,10),lampMat); cap.position.set(x,2.7,z);
-  addGlow(cap,{color:'#ffd98a',size:1.5,opacity:0.55}); scene.add(pole,cap); });
+  addGlow(cap,{color:'#ffd98a',size:1.5,opacity:0.55}); scene.add(pole,cap); tapProps.push({g:cap,col:'#ffd98a',pop:0}); });
 // Bunting: one merged triangle-pennant geometry (single draw call), sagging between the lamps.
 { const cols=[[1,0.78,0.24],[1,0.56,0.81],[0.56,0.82,1],[0.49,0.94,0.75],[0.71,0.61,0.94]]; const pos=[],col=[];
   for(let s=0;s<LAMP_POS.length;s++){ const [ax,az]=LAMP_POS[s], [bx,bz]=LAMP_POS[(s+1)%LAMP_POS.length];
@@ -280,20 +281,20 @@ const woodMat=new THREE.MeshToonMaterial({color:'#a8795a',gradientMap:TOON_RAMP}
   const seat=new THREE.Mesh(new THREE.BoxGeometry(1.5,0.12,0.5),woodMat); seat.position.y=0.42;
   const back=new THREE.Mesh(new THREE.BoxGeometry(1.5,0.4,0.09),woodMat); back.position.set(0,0.72,-0.22);
   const legs=new THREE.Mesh(new THREE.BoxGeometry(1.3,0.4,0.4),poleMat); legs.position.y=0.2;
-  g.add(seat,back,legs); g.position.set(x,0,z); g.lookAt(0,0,-6); scene.add(g); });
+  g.add(seat,back,legs); g.position.set(x,0,z); g.lookAt(0,0,-6); scene.add(g); tapProps.push({g,col:'#e8b98a',pop:0}); });
 [[0,7.6],[-7.4,1.2],[7.4,1.2]].forEach(([x,z],pi)=>{ const g=new THREE.Group();
   const pot=new THREE.Mesh(new THREE.CylinderGeometry(0.42,0.34,0.4,10),new THREE.MeshToonMaterial({color:'#c98d68',gradientMap:TOON_RAMP})); pot.position.y=0.2;
   const PCOL=['#ff8fcf','#ffd24d','#8fd0ff','#7ef0c0','#b69cff'];
   g.add(pot); for(let i=0;i<3;i++){ const f=new THREE.Mesh(new THREE.SphereGeometry(0.14,8,8),new THREE.MeshToonMaterial({color:PCOL[(pi+i)%5],gradientMap:TOON_RAMP})); f.position.set((i-1)*0.2,0.52,(i%2)*0.12-0.06); g.add(f); }
-  g.position.set(x,0,z); scene.add(g); });
-[[7.9,-3.6,0.3],[7.4,-4.3,-0.2]].forEach(([x,z,ry])=>{ const c=new THREE.Mesh(new THREE.BoxGeometry(0.7,0.7,0.7),woodMat); c.position.set(x,0.35,z); c.rotation.y=ry; c.castShadow=true; scene.add(c); });
+  g.position.set(x,0,z); scene.add(g); tapProps.push({g,col:'#ff8fcf',pop:0}); });
+[[7.9,-3.6,0.3],[7.4,-4.3,-0.2]].forEach(([x,z,ry])=>{ const c=new THREE.Mesh(new THREE.BoxGeometry(0.7,0.7,0.7),woodMat); c.position.set(x,0.35,z); c.rotation.y=ry; c.castShadow=true; scene.add(c); tapProps.push({g:c,col:'#e8b98a',pop:0}); });
 // Stylized toon trees (green, mint, and one pink blossom) with a gentle sway
 const trees=[];
 [[-8.2,-4.6,'#5fae6e'],[8.3,-4.2,'#5fae6e'],[-8.5,2.2,'#7ec6a0'],[8.5,2.6,'#7ec6a0'],[-4.4,7.4,'#e995c4'],[4.4,7.4,'#5fae6e']].forEach(([x,z,c],i)=>{
   const g=new THREE.Group(); const trunk=new THREE.Mesh(new THREE.CylinderGeometry(0.13,0.2,1.1,8),new THREE.MeshToonMaterial({color:'#8a5f43',gradientMap:TOON_RAMP})); trunk.position.y=0.55;
   const f1=new THREE.Mesh(new THREE.SphereGeometry(0.85,12,12),new THREE.MeshToonMaterial({color:c,gradientMap:TOON_RAMP})); f1.position.y=1.55; f1.castShadow=true; f1.scale.y=0.9;
   const f2=new THREE.Mesh(new THREE.SphereGeometry(0.55,10,10),new THREE.MeshToonMaterial({color:c,gradientMap:TOON_RAMP})); f2.position.y=2.25; f2.scale.y=0.85;
-  addOutline(f1,'#2a4a34',0.02); g.add(trunk,f1,f2); g.position.set(x,0,z); scene.add(g); trees.push({g,ph:i*1.3}); });
+  addOutline(f1,'#2a4a34',0.02); g.add(trunk,f1,f2); g.position.set(x,0,z); scene.add(g); trees.push({g,ph:i*1.3}); tapProps.push({g,col:c,pop:0}); });
 // sparkles
 const sparkles=[];
 function makeSparkle(x,z){ const m=new THREE.Mesh(new THREE.OctahedronGeometry(.32),new THREE.MeshStandardMaterial({color:'#FFD24D',emissive:'#FFC83D',emissiveIntensity:.7})); m.position.set(x,1.2,z); addGlow(m,{color:'#FFD24D',size:0.85,opacity:0.6}); scene.add(m); sparkles.push({m,magnet:false,pop:0,seed:Math.random()*6}); }
@@ -356,7 +357,7 @@ const crystals=[];
 function makeCrystal(x,z,col,h){ const g=new THREE.Group();
   const c=new THREE.Mesh(new THREE.ConeGeometry(0.35,h,6),new THREE.MeshToonMaterial({color:col,gradientMap:TOON_RAMP,emissive:new THREE.Color(col),emissiveIntensity:0.5})); c.position.y=h/2; c.castShadow=true;
   const tip=new THREE.Mesh(new THREE.OctahedronGeometry(0.24),new THREE.MeshToonMaterial({color:col,gradientMap:TOON_RAMP,emissive:new THREE.Color(col),emissiveIntensity:0.6})); tip.position.y=h+0.1;
-  g.add(c,tip); addGlow(g,{color:col,size:1.6,opacity:0.5,pos:[0,h*0.7,0]}); g.position.set(x,0,z); g.rotation.y=Math.random()*6; scene.add(g); crystals.push({g,seed:Math.random()*6}); }
+  g.add(c,tip); addGlow(g,{color:col,size:1.6,opacity:0.5,pos:[0,h*0.7,0]}); g.position.set(x,0,z); g.rotation.y=Math.random()*6; scene.add(g); crystals.push({g,seed:Math.random()*6}); tapProps.push({g,col,pop:0}); }
 [[-9,-5],[9,-5],[-11,1],[11,2],[-6,6],[6,7]].forEach((p,i)=>makeCrystal(p[0],p[1],CRYSTAL_COLS[i%CRYSTAL_COLS.length],1.1+Math.random()*0.9));
 const glyphs=[];
 function makeGlyph(x,z,col,r){ const g=new THREE.Group();
@@ -482,6 +483,28 @@ let rumiCape=null,rumiCrown=null;
   rumi.add(j,core,head,hair,braid,bstar,staff,mic); rumiBraid=braid; addOutline(j,'#3a2a1a',0.02); addOutline(head,'#3a2a1a',0.02); addGlow(mic,{color:'#FFE08A',size:1.15,opacity:0.85}); addGlow(bstar,{color:'#FFD24D',size:0.5,opacity:0.7}); addFace(head,{iris:'#e0a83a',size:0.82,z:0.46}); }
 rumi.position.set(-2.2,0,3); rumi.rotation.y=.4; scene.add(rumi);
 
+// ---- World Life: the other two legends hang out near their houses (idle, dance, wave, greet) ----
+const npcs=[]; // {g,mixer,actions,name,current,waveUntil,nextAct,homeYaw}
+const NPC_SPOTS={rumi:[-3.4,5.0,0.5], mira:[-5.2,3.6,0.7], zoey:[5.2,3.6,-0.7]};
+function playNpc(n,key){ if(!n.mixer||!n.actions[key]||n.current===key) return; const next=n.actions[key];
+  Object.values(n.actions).forEach(a=>{ if(a!==next) a.fadeOut(0.3); }); next.reset().fadeIn(0.3).play(); n.current=key; }
+async function loadAmbientIdols(){ if(QS.get('hero3d')==='0') return;
+  const d=decideDay(); const guide=coachNameFor(d>0?d:1); // the week's guide already stands in the guide slot
+  for(const name of ['rumi','mira','zoey']){ if(name===guide) continue; const [x,z,ry]=NPC_SPOTS[name];
+    const url=`assets/${name}/${name}.glb`;
+    try{ const r=await fetch(url,{method:'HEAD'}); if(!r||!r.ok) continue; }catch(e){ continue; }
+    await new Promise(res=>{ new GLTFLoader().load(url,gltf=>{ try{
+      const g=new THREE.Group(); g.position.set(x,0,z); g.rotation.y=ry; scene.add(g);
+      const m=mountCharacter(g,gltf.scene,gltf.animations,{tag:name,buckets:null});
+      if(m.actions.wave){ m.actions.wave.setLoop(THREE.LoopOnce,1); }
+      npcs.push({g,mixer:m.mixer,actions:m.actions,name,current:'idle',waveUntil:0,nextAct:performance.now()+5000+Math.random()*6000,homeYaw:ry});
+    }catch(e){} res(); },undefined,()=>res()); }); } }
+let npcGreetT=0;
+function npcGreet(n){ const np=performance.now(); if(np<npcGreetT) return; npcGreetT=np+1400;
+  if(n.actions.wave){ playNpc(n,'wave'); n.waveUntil=np+1600; }
+  const p=n.g.position; burst(new THREE.Vector3(p.x,1.9,p.z),'#FFE08A',10); haptic(10);
+  if(audioOn) say(praises[(Math.random()*praises.length)|0],{char:n.name}); } // voiced via each idol's own clips
+
 // Gloomling + Twinkle
 const gloomling=new THREE.Group();
 { const b=new THREE.Mesh(new THREE.SphereGeometry(.7,18,18),new THREE.MeshToonMaterial({color:'#8b8598',gradientMap:TOON_RAMP})); b.position.y=.8; b.castShadow=true;
@@ -528,7 +551,11 @@ function rumiTip(){ const np=performance.now(); if(np<rumiTipT) return; rumiTipT
 renderer.domElement.addEventListener('pointerdown',e=>{ tapRing(e.clientX,e.clientY); haptic(8); if(!controlEnabled) return;
   ndc.x=(e.clientX/innerWidth)*2-1; ndc.y=-(e.clientY/innerHeight)*2+1; ray.setFromCamera(ndc,camera);
   if(rumi.visible && ray.intersectObject(rumi,true).length){ rumiTip(); return; } // tap Rumi → tip
+  for(const n of npcs){ if(ray.intersectObject(n.g,true).length){ npcGreet(n); return; } } // tap an idol → wave + hello
+  for(const p of tapProps){ if(ray.intersectObject(p.g,true).length){ propDelight(p); break; } } // tap a prop → pop + sparkle (still walks)
   dragging=true; tapGround(e.clientX,e.clientY); });
+function propDelight(p){ p.pop=1; const w=new THREE.Vector3(); p.g.getWorldPosition(w); w.y+=0.9;
+  burst(w,p.col,8); chirp(); haptic(8); }
 renderer.domElement.addEventListener('pointermove',e=>{ if(!dragging||!controlEnabled) return;
   if(tapGround(e.clientX,e.clientY,false)){ dragTrailT-=1; if(dragTrailT<=0){ dragTrailT=4; tapRing(e.clientX,e.clientY); } } }); // light dotted feedback as the finger drags
 const endDrag=()=>{ dragging=false; };
@@ -1039,6 +1066,7 @@ function decideDay(){ const forced=QS.get('day'); if(forced){ return Math.max(1,
 }
 function boot(){
   loadVOManifest(); maybeLoadHero(); maybeLoadRumi();
+  setTimeout(loadAmbientIdols,2500); // ambient idols load after the essentials so startup stays fast
   updateMusicBtn(); const mb=$('music-btn'); if(mb) mb.onclick=toggleMusic;
   const hb=$('hear-btn'); if(hb) hb.onclick=()=>{ if(lastSay) say(lastSay.t,{id:lastSay.id,char:lastSay.char}); }; // 🔊 = hear it again
   if(QS.get('observe')==='1'){ show('observer'); $('mark-smile').onclick=()=>recordExcitement('smile'); $('mark-excited').onclick=()=>recordExcitement('excited'); }
@@ -1159,6 +1187,13 @@ function tick(now){ const dt=Math.min((now-lastT)/1000,.05); lastT=now; const t=
   for(const c of clouds){ c.position.x+=dt*0.6; if(c.position.x>34) c.position.x=-34; }
   for(const tr of trees) tr.g.rotation.z=Math.sin(t*0.8+tr.ph)*0.018; // gentle wind sway
   lampMat.emissiveIntensity=0.85+0.15*Math.sin(t*2.1); // soft lamp breathing
+  for(const p of tapProps){ if(p.pop>0){ p.pop=Math.max(0,p.pop-dt*2.6); const s=1+0.16*Math.sin((1-p.pop)*Math.PI); p.g.scale.setScalar(s); } } // tapped-prop squash pop
+  for(const n of npcs){ if(n.mixer) n.mixer.update(dt); const np2=performance.now(); // ambient idols: never perfectly still
+    if(np2>n.nextAct){ const pick=(n.actions.dance&&Math.random()<0.4)?'dance':(n.actions.wave?'wave':null);
+      if(pick){ playNpc(n,pick); n.waveUntil=np2+(pick==='dance'?4200:1600); } n.nextAct=np2+8000+Math.random()*7000; }
+    if(np2>=n.waveUntil && n.current!=='idle') playNpc(n,'idle');
+    const dx=avatar.position.x-n.g.position.x, dz=avatar.position.z-n.g.position.z; // turn to watch the hero when close
+    const want=Math.hypot(dx,dz)<5 ? Math.atan2(dx,dz) : n.homeYaw; let dy=want-n.g.rotation.y; while(dy>Math.PI)dy-=Math.PI*2; while(dy<-Math.PI)dy+=Math.PI*2; n.g.rotation.y+=dy*Math.min(1,dt*2); }
   if(water.material.map){ water.material.map.rotation+=dt*0.02; water.material.map.offset.y=Math.sin(t*0.3)*0.01; } // gently shimmering water
   for(const b of butterflies){ b.s.position.set(b.cx+Math.cos(t*b.sp+b.ph)*b.rx, b.h+Math.sin(t*b.sp*2.3+b.ph)*0.25, b.cz+Math.sin(t*b.sp*0.8+b.ph)*b.rz); b.s.material.opacity=0.45+0.35*Math.sin(t*7+b.ph); } // drift + wing flutter
   for(const b of birds){ b.g.position.x+=dt*b.sp; if(b.g.position.x>36){ b.g.position.x=-36; b.g.position.z=-12-Math.random()*24; b.g.position.y=12+Math.random()*8; } const fl=Math.sin(t*8+b.ph)*0.5; b.wl.rotation.z=0.35+fl; b.wr.rotation.z=-0.35-fl; }
