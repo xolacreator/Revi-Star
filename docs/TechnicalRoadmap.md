@@ -1,65 +1,64 @@
 # Technical Roadmap — Technical Director Audit
-_2026-07-14 · live build v88_
+_Rev. 2 · 2026-07-15 · evidence: byte-level payload audit, object census,
+call-site review of build v88_
+
+## Payload audit (measured)
+| Finding | Size | Action |
+|---|---|---|
+| **icon-512.png** | **656KB** (!) | T7: recompress → ~40KB (quick win, ships in every install + iOS splash) |
+| icon-192 + apple-touch | 184KB | T7: recompress → ~30KB |
+| **assets/title.png** | **1.6MB, DEAD** — referenced only by a CSS comment since the concert intro (v83) | T8: delete + strip stale `.intro-art` CSS block |
+| Legacy prototypes in SW SHELL (9 files) | 88KB + 2 extra HTML entry points reachable in prod | T3: archive to /legacy, drop from SHELL |
+| SHELL total | ~2.0MB (→ ~1.2MB after T3/T7/T8) | |
+| assets/ on-demand | 31MB total: VO 6.3MB (175 clips, fetched lazily ✅), GLBs 4.6MB (lazy ✅), coach PNGs ~2.5MB | acceptable; VO grows to ~13MB at full script — fine, per-clip fetch |
+| vendor three.js | 904KB | pinned, cached-first ✅ |
 
 ## Architecture
-- **`a1.js` is a ~1,450-line single ES module** containing state, audio, voice,
-  3D world, characters, learning engine, shop, UI wiring, and the tick loop.
-  It has been remarkably editable, but every pass raises collision risk and
-  the file now exceeds what a future session can safely hold in view at once.
-  **Recommendation (T1):** split into `src/` modules — `state.js`, `audio.js`,
-  `world.js`, `characters.js`(new namespace), `learning.js`, `shop.js`,
-  `ui.js`, `main.js` — with explicit imports, no behavior change, verified by
-  the harness. Do this BEFORE interiors/lesson-shapes land. One dedicated pass.
-- Three character-mount call sites (hero, guide, ambient idols) share
-  `mountCharacter` — good. Unify the "slot" concept when splitting (T1).
+- `a1.js`: 1,283 lines, single module, 12 subsystems. Still editable but at
+  the ceiling. **T1: split into src/ modules (state/audio/world/characters/
+  learning/shop/ui/main) before P5 or interiors land.** Behavior-identical
+  refactor, harness-verified, one dedicated pass.
+- Character mounting unified through `mountCharacter` across 3 call sites ✅.
+  Slot concept formalizes during T1.
+- Save migrations inline (`state.shop`) ✅ — **T6: add `state.v` + migrate()
+  ladder** during T1.
 
-## Rendering & performance
-- Estimated ~140–170 draw calls at plaza view (低-poly primitives, 1024 shadow
-  map, no post-processing; bunting correctly merged to 1 call). Materials:
-  ~15 shared + per-prop toon instances. **Fine for modern phones; unverified
-  on hardware.**
-- **T2: on-device profiling flag** — `?fps=1` overlay (rolling FPS + draw-call
-  readout from `renderer.info`) so the founder can screenshot real numbers.
-  One founder session on their iPhone = our first ground truth.
-- Per-frame allocations: `tapGround` creates Vector3s per event (ok), tick
-  allocates in `spawnTrail`/bursts (short-lived, GC-tolerable). No leaks
-  observed across 6-minute headless runs. Watch `stepFx`/`magic` pool sizes.
-- Shadow: single 1024 map, 22u frustum — correct budget. Do not add casters
-  casually; new props default `castShadow=false` unless silhouette-critical.
+## Rendering (static analysis; device numbers pending T2)
+- 39 `scene.add` sites + loop-spawned pools → est. 140–170 draw calls at
+  plaza view. Single 1024 shadow map, 22u frustum. No post FX. Materials
+  ~15 shared + per-prop toon clones.
+- Rules holding: bunting merged (1 call) · new props default castShadow=false
+  · glow via additive sprites not bloom.
+- **T2: `?fps=1` overlay** (rolling FPS + `renderer.info.render.calls`) —
+  the founder screenshots real numbers from their iPhone. Our perf claims are
+  estimates until this exists. Gate heavy atmosphere work (weather) on it.
+- Per-frame allocation review: tick creates short-lived Vector3s in trail/
+  burst paths — GC-tolerable at current rates; pool if profiling shows churn.
 
-## Memory & assets
-- GLBs: hero 1.4MB + guide ~1.4MB + 2 ambient ~1.8MB ≈ 4.6MB GPU-bound rigs —
-  acceptable; do not add more persistent skinned characters without LOD story.
-- VO: 175 mp3s fetched on demand, browser-cached — good.
-- **T3: SW SHELL still precaches 9 legacy prototype files** (`demo-explore.html`,
-  `classic.html`, `game.js`, `world3d.js`, `characters.js`, `assets.js`,
-  `styles.css`, `harbor-slice.html`, `harbor.js`) — dead weight in every
-  install and a confusion hazard. Decide: archive to `/legacy` (keep history)
-  and drop from SHELL. Quick win.
+## Correctness debt (from QA cross-audit)
+- `rumiTransform` hardcodes name/portrait (Q1) — parameterize by guide.
+- `e.isPrimary` guard missing on pointer handlers (multi-touch mash).
+- Marker not cleared when a lesson interrupts shop-walk (cosmetic).
+- Google Fonts not in SW cache → offline loses brand type (Q3): self-host
+  woff2 subsets (~90KB, replaces 3 network fetches — also faster first paint).
 
-## Duplication & smells
-- Version string now lives in 2 places (sw.js CACHE + index.html `?v=`).
-  **T4:** single `APP_V` const injected into both at edit time is overkill for
-  a no-build repo — instead document the two-touch rule at top of sw.js (done
-  informally; make it a comment checklist).
-- Color literals repeated across world code (`#FFD24D` etc.) — acceptable in
-  canvas-drawn textures; consolidate palette consts during T1.
-- `tf-emoji`/`tfPortrait` pattern fine; `coachArt`/`VO_HAVE` globals fine for
-  scale; `window` QS flags (`?hero3d`, `?bg`, `?allskills`) — document in one
-  README block (T5, trivial).
-
-## Save/state integrity
-- Migrations handled inline (`state.shop` v88) — keep the pattern: every new
-  field ships with `if(!state.x) state.x=default`.
-- **T6:** add `state.v` schema version + a tiny `migrate()` ladder when T1
-  lands (cheap insurance before economy grows).
+## Duplication & hygiene
+- Version bump touches sw.js + index.html `?v=` — documented two-touch rule;
+  acceptable for a no-build repo.
+- Palette literals repeated across canvas textures — consolidate to consts
+  during T1, not before.
+- QS debug flags (`?hero3d=0 ?bg= ?allskills=1 ?observe=1 ?fps=1(planned)
+  ?hero= ?heroNode= ?heroIndex= ?heroRotY=`) — T5: document in README block.
 
 ## Debt ledger (priority order)
-| ID | Item | Effort | Risk if ignored |
+| ID | Item | Effort | Status |
 |---|---|---|---|
-| T3 | Trim legacy files from SW SHELL | S | install bloat, confusion |
-| T2 | ?fps=1 profiling overlay + founder session | S | shipping blind on perf |
-| T1 | Modularize a1.js | L | pass collisions, context overflow |
-| T6 | Save schema version | S | painful migrations later |
-| T5 | Document QS debug flags | S | lost tribal knowledge |
-| — | Playwright full-day scripted run (with QA) | M | regressions in day flow |
+| T7 | Recompress icons (656KB→~40KB) | S | NEW — fold into P3 |
+| T8 | Delete dead title.png + stale CSS | S | NEW — fold into P3 |
+| T3 | SHELL legacy trim | S | → P3 |
+| T2 | ?fps=1 overlay + founder profiling session | S | → P3 |
+| T6 | Save schema version | S | → P3 (or T1) |
+| Q-fixes | isPrimary, transform param, marker clear, reduced-motion | S | → P3 |
+| T1 | Modularize a1.js | L | before P5/interiors |
+| T5 | Document QS flags | S | anytime |
+| — | Self-host fonts (offline brand + first paint) | S | with P3 or P4 |
