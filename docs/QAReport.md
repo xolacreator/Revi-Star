@@ -1,49 +1,50 @@
 # QA Report — QA Director Findings
-_2026-07-14 · build v88 · methods: headless Playwright harness (load + start +
-5.5s world run + overlay renders), code-path review, edge-case analysis.
-On-device iOS verification: **pending founder session** (top ask)._
+_Rev. 2 · 2026-07-15 · build v88 · methods: load/overlay harness, measured
+Day-1 playthrough, 6.5-minute idle soak, scripted full-day run v1, parent-gate
++ sim-tool exercise, code-path review. On-device iOS: **still pending founder
+session** (top ask, unchanged)._
 
-## Automated results (this session)
-- Load → title → "Take the Stage" → world + ambient-idol load: **0 pageerrors**.
-- All overlay screens render correctly at 390×844 (title/challenge/star-check/
-  shop/transform/reward screenshots reviewed).
-- `node -c` clean. SW v88 and `?v=88` consistent across sw.js/index.html.
+## Automated results (all runs, this cycle)
+- Boot → title → world (+ambient idols): **0 pageerrors** (repeated ×5 runs).
+- Tutorial → Star Check → walk → first lesson: flow completes; timings in
+  GameplayEvolution rev.2.
+- **6.5-minute idle soak in the live world: 0 errors**, animations stable, no
+  visible leak symptoms (headless).
+- Parent gate accepts 4·2·7 via scripted taps; dashboard opens (event logged).
+- All overlay screens render at 390×844 (screenshot set current).
 
-## Confirmed issues (should fix)
+## New findings
 | ID | Severity | Finding |
 |---|---|---|
-| Q1 | Med | **`rumiTransform` is Rumi-hardcoded** (`RUMI is transforming!` + rumi-cheer.png). In week 2+, guide is Mira/Zoey — path currently only fires day 1–3, but the moment weekly rotation extends transforms, wrong name/art shows. Parameterize by guide. |
-| Q2 | Med | **Star earn during lessons is invisible** — HUD (star counter) sits behind the challenge overlay, so +21 stars/day arrive unseen. Ties to reward-choreography fix; until then children can't connect reading→stars. |
-| Q3 | Low | **Offline PWA loses fonts** — Google Fonts not in SW cache; offline launch falls back to system type (functional, off-brand). Consider self-hosting the 3 families. |
-| Q4 | Low | **Legacy files precached** (9 files) — see TechnicalRoadmap T3; also means `classic.html` is reachable in production. |
-| Q5 | Low | **`prefers-reduced-motion` unhonored** — CSS animations play regardless. Cheap media-query pass for accessibility. |
+| **Q7** | **High (testability)** | **Week-2+ content is unreachable for testing.** "Simulate next day" (`pc-sim`) only clears today's completion gate + reloads — day advances solely by completing days. Nobody (founder or QA) can see Mira-as-guide, week greetings (`greet_*`), or rotation transforms without playing 7 real days. Guide-rotation paths have NEVER executed. Fix: `?day=N` debug flag (parent-gated or QS-only), fold into P3. |
+| Q8 | Med (tooling) | Parent tool label vs behavior: "Simulate next day" actually means "unlock today again" — fine for parents, but testing docs must say so. Also `location.reload()` inside it invalidates any scripted multi-click. |
+| Q9 | Low | `hero_model_loaded` logs junk node names ("RootNode") — harmless, noisy analytics. |
+| Q10 | Info | Full-day scripted run v1 built (`probe-fullday.mjs`): auto-answers star check, options via glow-fallback clicking, trace via scribble sweeps, reward/daygate detection. v1 defect found in its own run (missing ground-tap step blocked lesson entry); fix staged for next cycle. The 6.5-min soak above is its byproduct. |
 
-## Edge cases analyzed (code-path review, no repro possible headless)
-- **Double-purchase race:** `spendStars` checks balance synchronously per tap — safe.
-- **Shop walk interrupted by lesson trigger:** `shopPending` persists but tick
-  gate requires `controlEnabled` — resumes correctly after lesson. OK, but
-  marker stays visible during lesson (cosmetic; clear marker on lesson start).
-- **Day rollover mid-session:** `decideDay` runs at boot only — a session
-  spanning midnight keeps yesterday's day until relaunch. Acceptable; note.
-- **Save from pre-shop era:** `state.shop` migration present — verified line.
-- **Audio unlock:** all audio behind first user gesture (start button) — iOS-safe.
-- **Trail equip when hero GLB failed to load:** applyAvatar guards — blob shows
-  color instead. OK.
-- **Multi-touch mash:** pointerdown handlers don't guard `e.isPrimary` —
-  second simultaneous finger can issue a second walk target / prop pop.
-  Low harm (no broken state), but add `if(!e.isPrimary) return` for cleanliness.
+## Carried findings (rev. 1, all still open)
+Q1 Med — `rumiTransform` hardcoded to Rumi (breaks week 2+; now *provably*
+untested per Q7) · Q2 Med — stars earned in lessons invisible (HUD behind
+overlay) · Q3 Low — offline loses Google Fonts (self-host; see Tech) ·
+Q4 Low — legacy files precached + reachable (`classic.html` etc.; Tech T3) ·
+Q5 Low — `prefers-reduced-motion` unhonored · isPrimary multi-touch guard ·
+marker persists if lesson interrupts shop-walk · midnight-spanning session
+keeps yesterday's day until relaunch (accepted).
 
-## Manual device checklist (founder's next phone session)
-1. Meet Mira & Zoey south of plaza — do they idle/dance/turn? Tap-greet voices?
-2. Tap ⭐ SHOP → hero walks → shop opens? Buy fireworks (needs 3⭐) → sky show?
-3. Buy + equip a trail → color visibly changes while walking?
-4. Balloons/bow visible after purchase AND after app relaunch?
-5. Prop taps: tree/lamp/bench/crystal pop + sparkle + feel responsive?
-6. FPS feel during fireworks + NPC dance simultaneously (worst case).
-7. Long-press anywhere → no copy/select callout (regression check).
-8. Airplane mode relaunch → game loads, plays silently-voiced? (offline check)
+## Edge cases re-verified in code this cycle
+- `pc-sim` reload path: state saved before reload — no corruption risk ✅.
+- Star Check answers register regardless of correctness (assessment) ✅.
+- Double-tap purchase race: still safe (synchronous balance check) ✅.
+
+## Manual device checklist (founder — unchanged, still pending)
+1. Mira & Zoey south of plaza: idle/dance/turn/tap-greet voices.
+2. ⭐ SHOP: walk-to-door entry, fireworks purchase, trail equip visible.
+3. Balloons/bow persist after relaunch.
+4. Prop taps feel responsive; no copy/select long-press callout.
+5. FPS feel during fireworks + NPC dance (worst case) — with `?fps=1` once P3 ships.
+6. Airplane-mode relaunch (offline shell).
 
 ## Release gate status
-No blocking issues for v88. Q1–Q2 scheduled; Q3–Q5 backlog. Next automated
-investment: scripted full-day run (auto-answer 21 items → reward → daygate)
-so lesson-flow regressions surface without device time.
+No new blockers for v88. Q7 changes risk math: **week-2 code is untested and
+unreachable — treat all rotation-dependent features as unverified until
+`?day=N` exists.** Next automated investment: probe-fullday v2 (ground-tap
+step + sim-reload handling), then wire it as the standing regression run.
