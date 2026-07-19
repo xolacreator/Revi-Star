@@ -1,6 +1,30 @@
 # SESSION LOG — production passes
 _One entry per pass/commit, newest first. Format: date · version · commit · pass · outcome._
 
+## 2026-07-16 — High-fidelity build day (founder-approved, four versions shipped)
+- **v92 · `d56f85b` · P2 Sound of the Harbor** — full synthesized SFX palette
+  (streak-climbing star ticks, combo sting, per-family prop sounds, door
+  whoosh, shop bell/fanfare/kind-deny, firework boom, lighthouse horn) +
+  gentle wave/gull ambience that mutes in lessons. Zero download.
+- **v91 · `c4f0273` · P3 Safety & Truth** — icons 841KB→156KB; dead 1.6MB
+  title.png deleted; 9 legacy files → /legacy, SHELL ~2.0→~1.2MB; ?fps=1
+  overlay (**first real number: 70 draw calls**); reduced-motion honored;
+  isPrimary guards; transform parameterized to current guide (Q1 fixed);
+  state.v; QS flags documented. **First-ever week-2 execution verified**
+  (seeded profile + ?day=8: guide rotates, greeting fires, 0 errors — Q7
+  risk closed; ?day flag already existed, was undocumented).
+- **v90 · `ec0803c` · P1 Doors & Choreography** — star-iris transitions on
+  every world↔screen switch; earned stars fly to a filling star-nub bar
+  (rows of 7, replaces '3/21' numerals); mid-set celebration every 7th;
+  tracing gets the whole stage (coach/canvas overlap fixed); marker clear.
+- **v89 · `8525534` · P1a HUD fixes** — parent/music button collision +
+  label wrap (Art rev.2 #1 'reads as broken').
+- Status-report interlude: founder reported 'no updates' — root cause was
+  correct perception: 9 doc-only commits since v88. Lesson: during review
+  phases, say explicitly that nothing player-facing will change.
+- Still parked for founder: Star Check play-first move (M1) — awaiting an
+  explicit yes; VO batch `extra` first when ElevenLabs quota resets.
+
 ## 2026-07-14 (later) — Studio Review Day (documents only, no game code)
 Full nine-director review conducted and written to docs/: LearningEvolution,
 ArtDirectionRoadmap, GameplayEvolution, AudioBible, AtmosphereRoadmap,

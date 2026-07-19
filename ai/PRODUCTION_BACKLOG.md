@@ -6,16 +6,19 @@ ChildDevelopmentNotes.md · TechnicalRoadmap.md · QAReport.md · AnalyticsPlan.
 
 ## ✅ Shipped (see ai/SESSION_LOG.md for details)
 v83 design-flow rebuild · v84 companion fix · v85 environment · v86 cohesion ·
-v87 world life (NPCs + tappables) · v88 Star Shop + economy.
+v87 world life · v88 Star Shop · **v89 HUD fixes · v90 P1 Doors & Choreography ·
+v91 P3 Safety & Truth (week-2 verified, 70 draw calls measured) ·
+v92 P2 Sound of the Harbor** — P1/P2/P3 of the five-pass plan are DONE.
 
 ## 🎯 Planned passes (Lead Dev proposal — approval pending)
 | Pass | Contents | Directors served | Impact | Effort |
 |---|---|---|---|---|
-| **P1 Doors & Choreography** | Door-transition into/out of lessons+shop · earned stars fly to the counter with ticks · star-bar progress (replaces "3/21" numerals) · mid-set celebration every 7th item · clear marker on lesson start | Gameplay 1-3 · Child C2/C3 · QA Q2 · Art 2/4 | ★★★★★ | M |
-| **P2 Sound of the Harbor** | WebAudio SFX palette (prop families, shop bell/fanfare/deny, star ticks, door whoosh, combo sting) · soft water/gull ambience bed | Audio synth items · Child C1-partial | ★★★★ | M |
-| **P3 Safety & Truth** | SW SHELL legacy trim (T3) · ?fps=1 overlay (T2) · prefers-reduced-motion (Q5) · isPrimary guard · parameterize transform guide (Q1) · state schema version (T6) | Tech T2/T3/T6 · QA Q1/Q5 | ★★★ | S |
+| ~~P1 Doors & Choreography~~ | ✅ shipped v89+v90 | | | |
+| ~~P2 Sound of the Harbor~~ | ✅ shipped v92 | | | |
+| ~~P3 Safety & Truth~~ | ✅ shipped v91 | | | |
 | **P4 Living Water & Sky** | 2-layer water shimmer + foam ring · sky star-drift + shooting-star wishes (tap = +1⭐) · harmony-hours 3-state time tint | Art 1/7 · Atmosphere A1/A2 | ★★★★ | M |
 | **P5 Story-Wrapped Lessons** | Mission intro per day (host + location tint) · Sound Catch + Word Builder interaction shapes · mastery-adaptive picker | Learning L1-L3 · Child C3 | ★★★★★ | L · **gated on VO quota** |
+| P6 Living Town | NPC schedules · post-lesson fireflies · interactive-scenery upgrades (Atmosphere §4/§3b/§8) | Atmosphere · Gameplay | ★★★ | M |
 
 ## 🔴 High (unscheduled)
 - **Voice batches the moment ElevenLabs quota resets** (founder action): blocked

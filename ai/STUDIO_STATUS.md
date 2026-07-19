@@ -1,5 +1,5 @@
 # STUDIO STATUS — Harmony Harbor (Reventure)
-_Last updated: 2026-07-14 · Live build: **v88** · Branch: `claude/laughing-volta-zjpVH`_
+_Last updated: 2026-07-16 · Live build: **v92** · Branch: `claude/laughing-volta-zjpVH`_
 _Live URL: https://xolacreator.github.io/revi-star/ (GitHub Pages, auto-deploy on push)_
 
 ## What the product is right now
@@ -26,10 +26,10 @@ questions/day across 9 phonics skill types with difficulty progression.
 |---|---|---|
 | Graphics — UI | 7.5 | Cohesive design system on every screen; missing bespoke icon art |
 | Graphics — world | 6.5 | Real landmark + dressing; water flat, no interiors, primitive-built props |
-| Gameplay | 6.5 | Tap/drag explore + taps everywhere + shop loop; camera static, no quests beyond daily |
+| Gameplay | 7 | Door transitions, visible star rewards, mid-set pacing (v90); camera motion language still pending |
 | Learning | 7 | Strong engine + voice; presentation still Q&A-shaped, needs story context |
-| Audio | 6 | Great VO + gapless music; no SFX design pass, no ambience |
-| Performance | 7 (est.) | Low-poly + merged bunting; ~140 draw calls; **not profiled on real device** |
+| Audio | 7.5 | VO + music + full synth SFX palette + gentle ambience (v92); 4 skill types still quota-blocked |
+| Performance | 7 | **70 draw calls measured** (?fps=1 overlay); install slimmed 2.0→1.2MB; device FPS still pending founder run |
 | UX (age 5–7) | 7 | One-finger everything, voiced prompts; shop deny-state is text (readers only) |
 | Code quality | 5 | Single 1,300-line module; legacy prototype files still shipped |
 

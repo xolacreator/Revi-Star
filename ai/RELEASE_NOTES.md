@@ -47,3 +47,14 @@ water and shooting stars, story missions). Current live build remains **v88**.
 - Every question is spoken by real character voices (175 clips).
 - Fixed: game no longer sticks after a correct answer; no more copy/paste
   pop-up while steering.
+
+## v89–v92 — The game gets doors, sounds, and sparkle (2026-07-16)
+- **Doors!** A star-iris swirls you into lessons and the shop — no more
+  sudden jumps.
+- **Your stars fly.** Every right answer sends stars zooming into a filling
+  star bar (no more numbers to read), with a confetti party every 7 stars.
+- **Everything makes a sound.** Benches knock, lamps ting, trees rustle,
+  crystals chime; the shop rings its doorbell, fireworks boom, and the
+  harbor gently laps and gulls call while you explore.
+- Faster + cleaner: the app is almost half the download it was; the top bar
+  no longer squishes its buttons together.
