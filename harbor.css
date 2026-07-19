@@ -208,6 +208,24 @@ h1,h2,h3{font-family:var(--font-display);font-weight:700;letter-spacing:.2px}
 .starcheck h3{color:#fff;background:none;padding:0;font-family:var(--font-display);font-size:24px;text-shadow:0 0 12px rgba(143,120,255,.8)}
 .starcheck .ch-pic{filter:drop-shadow(0 0 16px rgba(255,210,90,.6))}
 
+/* ---- P1c: star-bar progress + flying earned stars ---- */
+.ch-lights.starbar{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;max-width:186px;letter-spacing:0;font-size:0}
+.challenge.tracing .coach{display:none} /* tracing needs the room — the letter IS the star of this beat */
+.ch-lights .nub{width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.10);border:1.5px solid rgba(255,255,255,.25);position:relative;transition:all .3s}
+.ch-lights .nub.lit{background:radial-gradient(circle at 35% 30%,#FFE693,#FFC53E);border-color:#FFD24D;box-shadow:0 0 10px rgba(255,200,80,.8)}
+.ch-lights .nub.lit::after{content:"★";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:13px;color:#8a5a00}
+.ch-lights .nub.just{animation:nubpop .45s cubic-bezier(.3,1.5,.5,1)}
+@keyframes nubpop{0%{transform:scale(.4)}60%{transform:scale(1.35)}100%{transform:scale(1)}}
+.ch-lights.pulse{animation:barpulse .5s ease}
+@keyframes barpulse{0%,100%{transform:scale(1)}45%{transform:scale(1.08)}}
+.fly-star{position:fixed;z-index:55;pointer-events:none;font-size:22px;filter:drop-shadow(0 0 8px rgba(255,200,80,.9));will-change:transform,opacity}
+
+/* ---- P1b: star-iris door transition between world and screens ---- */
+.wipe{position:fixed;inset:0;z-index:60;pointer-events:none;background:radial-gradient(circle at 50% 55%,#2a1f4d 0%,#150f2c 55%,#080512 100%);clip-path:circle(0% at 50% 55%);transition:clip-path .38s ease-in}
+.wipe.in{clip-path:circle(120% at 50% 55%);transition:clip-path .38s ease-out}
+.wipe::after{content:"⭐";position:absolute;left:50%;top:55%;transform:translate(-50%,-50%) scale(0) rotate(-40deg);font-size:58px;filter:drop-shadow(0 0 18px rgba(255,210,80,.9));transition:transform .34s cubic-bezier(.3,1.4,.5,1)}
+.wipe.in::after{transform:translate(-50%,-50%) scale(1) rotate(0deg)}
+
 /* ---- Star Shop (concert interior) ---- */
 .shop{background:radial-gradient(90% 60% at 50% 2%,#332A5C,#150F2C 60%,#080512 100%);gap:10px}
 .shop h2{color:#fff;font-family:var(--font-display);font-size:30px;margin:0;text-shadow:0 0 16px rgba(255,200,90,.7)}

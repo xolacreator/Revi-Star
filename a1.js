@@ -565,8 +565,8 @@ let shopPending=false;
 function shopDoorPoint(){ const p=shopHouse.position.clone(); const dir=p.clone().negate().setY(0).normalize(); return p.add(dir.multiplyScalar(2.0)); }
 function enterShopWalk(){ if(!controlEnabled) return; const d=shopDoorPoint(); target.copy(d); target.y=0; setMarker(d); shopPending=true;
   burst(new THREE.Vector3(shopHouse.position.x,1.4,shopHouse.position.z),'#FFD24D',8); haptic(8); }
-function openShop(){ shopPending=false; controlEnabled=false; setMarker(null); renderShop(); show('shop'); chime('good'); log('shop_open',{stars:state.avatar.stars}); }
-function closeShop(){ hide('shop'); controlEnabled=true; }
+function openShop(){ shopPending=false; controlEnabled=false; setMarker(null); chime('good'); wipe(()=>{ renderShop(); show('shop'); }); log('shop_open',{stars:state.avatar.stars}); }
+function closeShop(){ wipe(()=>{ hide('shop'); controlEnabled=true; }); }
 function spendStars(n,btn){ if(state.avatar.stars<n){ if(btn){ btn.classList.remove('deny'); void btn.offsetWidth; btn.classList.add('deny'); }
     const tip=$('shop-tip'); if(tip) tip.textContent='Read and collect to earn more ⭐!'; return false; }
   state.avatar.stars-=n; earnStars(0); const ss=$('shop-stars'); if(ss) ss.textContent=state.avatar.stars; return true; }
@@ -644,6 +644,13 @@ function sparkleAt(el,n=10){ if(!el)return; const r=el.getBoundingClientRect(); 
     document.body.appendChild(s); setTimeout(()=>s.remove(),760); } }
 function coachHop(){ const el=$('coach-img')&&!$('coach-img').classList.contains('hidden')?$('coach-img'):$('coach-face'); if(!el)return; el.classList.remove('cheer'); void el.offsetWidth; el.classList.add('cheer'); setTimeout(()=>el.classList.remove('cheer'),640); }
 function reEnter(el){ if(!el)return; el.classList.remove('enter'); void el.offsetWidth; el.classList.add('enter'); setTimeout(()=>el.classList.remove('enter'),560); }
+// P1b: star-iris "door" transition — covers the screen, swaps scenes under cover, reveals.
+let wiping=false;
+function wipe(mid){ if(wiping){ try{mid&&mid();}catch(e){} return; } wiping=true;
+  const d=document.createElement('div'); d.className='wipe'; document.body.appendChild(d);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>d.classList.add('in')));
+  setTimeout(()=>{ try{mid&&mid();}catch(e){} d.classList.remove('in');
+    setTimeout(()=>{ d.remove(); wiping=false; },420); },430); }
 let bloom=0, blooming=false; function startBloom(){ blooming=true; }
 function relightLighthouse(){ lhMat.color.set('#f7f0e2'); lhStripeMat.color.set('#e2566b'); lhRoof.material.color.set('#e23e6b');
   lhLightMat.emissive.set('#FFD24D'); lhLightMat.emissiveIntensity=1.2;
@@ -834,11 +841,28 @@ VO_LINES["Let's play Twinkle's Star Check! Just try your best — it's only for 
 // =====================================================================
 const praises=["You did it!","Wonderful reading!","You're a reading star!","Amazing!","Yay! You read it!"];
 let curList=[], curIdx=0, onListDone=null, dayMistakes=0;
-function runActivities(list,done){ curList=list; curIdx=0; onListDone=done; dayMistakes=0; show('challenge'); renderActivity(); }
-function renderLights(){ const el=$('ch-lights'); const n=curList.length;
-  if(n>8){ const done=Math.min(curIdx,n); el.textContent=`⭐ ${done} / ${n}`; el.classList.add('count'); return; } // compact for long days
-  el.classList.remove('count'); el.innerHTML='';
-  for(let i=0;i<n;i++){ const s=document.createElement('span'); s.className='lite'+(i<curIdx?' on':''); s.textContent=i<curIdx?'●':'○'; el.appendChild(s);} }
+function runActivities(list,done){ curList=list; curIdx=0; onListDone=done; dayMistakes=0; setMarker(null); wipe(()=>{ show('challenge'); renderActivity(); }); }
+function renderLights(){ const el=$('ch-lights'); const n=curList.length; const done=Math.min(curIdx,n);
+  // P1c: pre-numeric progress — a filling bar of star nubs (rows of 7, matching the celebration cadence)
+  el.classList.remove('count'); el.classList.add('starbar'); el.innerHTML='';
+  for(let i=0;i<n;i++){ const s=document.createElement('span'); s.className='nub'+(i<done?' lit':'')+(i===done-1?' just':''); el.appendChild(s); } }
+// P1c: earned stars fly from the tapped answer up to the progress bar
+function flyStars(fromEl,count=3){ const bar=$('ch-lights'); if(!bar) return;
+  let f=fromEl&&fromEl.getBoundingClientRect(); if(!f||!f.width) f={left:innerWidth/2,top:innerHeight*0.55,width:0,height:0}; // trace completions have no button
+  const t=bar.getBoundingClientRect();
+  const tx=t.left+t.width/2, ty=t.top+t.height/2, fx=f.left+f.width/2, fy=f.top+f.height/2;
+  for(let i=0;i<count;i++){ const s=document.createElement('div'); s.className='fly-star'; s.textContent='⭐';
+    s.style.left=fx+'px'; s.style.top=fy+'px';
+    document.body.appendChild(s);
+    const dx=tx-fx+(i-1)*12, dy=ty-fy;
+    s.animate([{transform:'translate(-50%,-50%) scale(.5)',opacity:0},{transform:'translate(-50%,-50%) scale(1.15)',opacity:1,offset:.25},
+      {transform:`translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(.55)`,opacity:1}],
+      {duration:620+i*90,easing:'cubic-bezier(.3,.7,.4,1)',fill:'forwards'});
+    setTimeout(()=>{ s.remove(); if(i===count-1){ const b=$('ch-lights'); if(b){ b.classList.remove('pulse'); void b.offsetWidth; b.classList.add('pulse'); } } },640+i*90); } }
+// P1c: mid-set celebrations every 7th correct — the run gets beats instead of a flatline
+function midSetBeat(){ const done=curIdx; if(done>0 && done%7===0 && done<curList.length){ confetti(); chime('good');
+  const msgs={7:"Seven stars! You're on fire!",14:"Halfway superstar!"}; const m=msgs[done]||"Wow, look at all those stars!";
+  coach('cheer',m); if(audioOn) say(m,{char:coachChar}); return true; } return false; }
 let mistakes=0, blendProgress=0, itemStart=0, itemHints=0, itemModeled=false;
 // ---- On-screen learning coach: a friendly face + line that reacts while the child works ----
 // Real art lives in assets/coach/ (<name>.png + optional <name>-cheer.png / <name>-think.png).
@@ -877,6 +901,7 @@ function renderActivity(){ const a=curList[curIdx]; mistakes=0; itemHints=0; ite
   $('ch-hear').onclick=()=>{ if(audioOn) say(a.say,{char:coachChar}); };
   $('ch-hint').onclick=()=>hintActivity(a);
   log('activity_start',{skillId:a.skillId,template:a.template});
+  $('challenge').classList.toggle('tracing',a.template==='trace'); // give tracing the whole stage
   if(a.template==='blend') renderBlend(a); else if(a.template==='trace') renderTrace(a); else renderChoose(a);
 }
 function shuffle(arr){ for(let i=arr.length-1;i>0;i--){const j=(Math.random()*(i+1))|0;[arr[i],arr[j]]=[arr[j],arr[i]];} return arr; }
@@ -936,7 +961,7 @@ function wrong(a,btn){ mistakes++; dayMistakes++; itemHints++; btn.classList.add
   if(mistakes>=2){ itemModeled=true; const r=[...$('ch-options').querySelectorAll('.opt')].find(b=>b.textContent===a.answer);
     if(r){ r.classList.add('glowhint'); if(audioOn) say(`This one says ${a.answer}. Tap it with me!`,{id:'xtra_thisone'}); r.onclick=()=>{ if(audioOn) say(a.answer,{rate:.8,char:coachChar}); correct(a,r);}; } } }
 function correct(a,btn){ btn.classList.remove('glowhint'); btn.classList.add('correct'); chime('good'); burst(lighthouse.position,'#FFE9A8',10); twCheerUntil=performance.now()+900; heroEmote('cheer',900); // Twinkle + hero cheer learning success
-  sparkleAt(btn,12); coachHop(); earnStars(1); // every correct answer earns a shop star — reading powers the fun
+  sparkleAt(btn,12); coachHop(); earnStars(1); flyStars(btn,3); // stars visibly fly to the progress bar — wealth you can see
   if(delight.reward===null){ delight.reward=Math.round(performance.now()-launchT); log('first_reward',{ms:delight.reward}); }
   const firstTry=(mistakes===0&&itemHints===0);
   state.history.push({day:state.day,skillId:a.skillId,correct:true,hints:itemHints,modeled:itemModeled,firstTry,ms:Math.round(performance.now()-itemStart)});
@@ -946,8 +971,8 @@ function correct(a,btn){ btn.classList.remove('glowhint'); btn.classList.add('co
   const p=praises[(Math.random()*praises.length)|0]; coach('cheer',p);
   let advanced=false;
   const adv=()=>{ if(advanced) return; advanced=true; curIdx++; renderLights(); // advance once praise ends OR the cap fires
-    if(curIdx<curList.length) renderActivity();
-    else { hide('challenge'); onListDone(); } };
+    if(curIdx<curList.length){ if(midSetBeat()) setTimeout(renderActivity,1700); else renderActivity(); }
+    else { wipe(()=>{ hide('challenge'); onListDone(); }); } };
   if(audioOn) say(p,{char:coachChar,then:adv}); else setTimeout(adv,450);
   setTimeout(adv,1700); // safety cap — never let a stuck audio clip freeze the game
 }
@@ -956,7 +981,7 @@ function correct(a,btn){ btn.classList.remove('glowhint'); btn.classList.add('co
 //  STAR CHECK (pre/post)
 // =====================================================================
 let scIdx=0, scScore=0, scDone=null, scTag='pre';
-function runStarCheck(tag,done){ scTag=tag; scIdx=0; scScore=0; scDone=done; show('starcheck');
+function runStarCheck(tag,done){ scTag=tag; scIdx=0; scScore=0; scDone=done; wipe(()=>show('starcheck'));
   $('sc-title').textContent= tag==='pre'?"Twinkle's Star Check ⭐":"Star Check — look how far! ⭐";
   if(audioOn) say("Let's play Twinkle's Star Check! Just try your best — it's only for fun."); setTimeout(renderSC,900); }
 function renderSC(){ const q=STARCHECK[scIdx]; $('sc-pic').textContent=q.pic; $('sc-prompt').textContent=q.prompt; $('sc-options').innerHTML='';
@@ -967,7 +992,7 @@ function renderSC(){ const q=STARCHECK[scIdx]; $('sc-pic').textContent=q.pic; $(
       [...$('sc-options').querySelectorAll('.opt')].forEach(x=>x.onclick=null);
       setTimeout(()=>{ scIdx++; if(scIdx<STARCHECK.length) renderSC(); else finishSC(); },650); };
     $('sc-options').appendChild(b); }); }
-function finishSC(){ hide('starcheck'); state[scTag]=scScore; log('starcheck_done',{phase:scTag,score:scScore,outOf:STARCHECK.length}); save();
+function finishSC(){ wipe(()=>hide('starcheck')); state[scTag]=scScore; log('starcheck_done',{phase:scTag,score:scScore,outOf:STARCHECK.length}); save();
   if(audioOn) say(`You got ${scScore} stars! Great trying!`,{id:'xtra_startry'}); if(scDone) setTimeout(scDone,800); }
 
 // =====================================================================
