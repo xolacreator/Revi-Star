@@ -24,6 +24,9 @@ let state = load() || {
   launchCount:0, voicePref:null, tutorialDone:false, musicOff:false
 };
 if(!state.shop) state.shop={owned:[],trail:null}; // Star Shop: purchases persist across days
+if(!state.v) state.v=1; // save-schema version — bump with a migrate step when the shape changes
+// Debug QS flags: ?day=N jump to day (testing week 2+) · ?fps=1 perf overlay · ?hero3d=0 blob hero
+// ?allskills=1 bypass voiced-only filter · ?observe=1 researcher bar · ?bg=<url> custom sky · ?hero=<url> custom rig
 let events = (()=>{ try{ return JSON.parse(localStorage.getItem(EKEY))||[]; }catch(e){ return []; } })();
 let launchT = 0, delight={interaction:null,reward:null,smile:null,excited:null};
 function log(ev,data={}){ events.push({t:Date.now(), rel: launchT?Math.round((performance.now()-launchT)):null, ev, day:state.day, ...data});
@@ -605,7 +608,7 @@ function rumiTip(){ const np=performance.now(); if(np<rumiTipT) return; rumiTipT
   if(rumiActions.wave){ playRumi('wave'); rumiWaveUntil=np+1500; rumiNextWave=np+8000; }
   burst(new THREE.Vector3(rumi.position.x,1.9,rumi.position.z),'#FFE08A',8);
   if(audioOn){ const ti=(Math.random()*RUMI_TIPS.length)|0; say(RUMI_TIPS[ti],{id:'tip_'+ti}); } }
-renderer.domElement.addEventListener('pointerdown',e=>{ tapRing(e.clientX,e.clientY); haptic(8); if(!controlEnabled) return;
+renderer.domElement.addEventListener('pointerdown',e=>{ if(e.isPrimary===false) return; tapRing(e.clientX,e.clientY); haptic(8); if(!controlEnabled) return;
   ndc.x=(e.clientX/innerWidth)*2-1; ndc.y=-(e.clientY/innerHeight)*2+1; ray.setFromCamera(ndc,camera);
   if(rumi.visible && ray.intersectObject(rumi,true).length){ rumiTip(); return; } // tap Rumi → tip
   for(const n of npcs){ if(ray.intersectObject(n.g,true).length){ npcGreet(n); return; } } // tap an idol → wave + hello
@@ -615,7 +618,7 @@ renderer.domElement.addEventListener('pointerdown',e=>{ tapRing(e.clientX,e.clie
   dragging=true; tapGround(e.clientX,e.clientY); });
 function propDelight(p){ p.pop=1; const w=new THREE.Vector3(); p.g.getWorldPosition(w); w.y+=0.9;
   burst(w,p.col,8); chirp(); haptic(8); }
-renderer.domElement.addEventListener('pointermove',e=>{ if(!dragging||!controlEnabled) return;
+renderer.domElement.addEventListener('pointermove',e=>{ if(e.isPrimary===false||!dragging||!controlEnabled) return;
   if(tapGround(e.clientX,e.clientY,false)){ dragTrailT-=1; if(dragTrailT<=0){ dragTrailT=4; tapRing(e.clientX,e.clientY); } } }); // light dotted feedback as the finger drags
 const endDrag=()=>{ dragging=false; };
 renderer.domElement.addEventListener('pointerup',endDrag);
@@ -1049,8 +1052,8 @@ function enableTwinkleTap(){ controlEnabled=false; setHint('Tap Twinkle to befri
 function tfPortrait(src){ const im=$('tf-img'),em=$('tf-emoji'); if(!im||!em) return; // storybook circular portrait when we have art, emoji otherwise
   if(src){ im.src=src; im.classList.remove('hidden'); em.classList.add('hidden'); } else { im.classList.add('hidden'); em.classList.remove('hidden'); } }
 function rumiTransform(stage,label,emoji,then){ state.rumiStage=Math.max(state.rumiStage,stage); log('rumi_evolve',{stage});
-  tfPortrait('assets/coach/rumi-cheer.png');
-  $('tf-emoji').textContent=emoji; $('tf-title').textContent='RUMI is transforming!'; $('tf-sub').textContent='✨ '+label+' ✨';
+  tfPortrait(`assets/coach/${coachChar}-cheer.png`); // whichever guide is transforming this week (was hardcoded to Rumi)
+  $('tf-emoji').textContent=emoji; $('tf-title').textContent=coachDisplayName().toUpperCase()+' is transforming!'; $('tf-sub').textContent='✨ '+label+' ✨';
   setTimeout(()=>{ show('transform'); if(audioOn) say("You filled the harbor with harmony! Watch — Rumi is becoming a Rising Star!");
     rumiJacket.emissive.set('#FFC83D'); rumiJacket.emissiveIntensity=.6;
     if(!rumiCape){ rumiCape=new THREE.Mesh(new THREE.ConeGeometry(.7,1.2,12,1,true),new THREE.MeshStandardMaterial({color:'#7B4FC4',emissive:'#5a3aa0',emissiveIntensity:.4,side:THREE.DoubleSide})); rumiCape.position.set(0,1,-.3); rumi.add(rumiCape);
@@ -1191,6 +1194,7 @@ function routeDay(){ // restore prior cosmetics/rumi/twinkle visual state
 
 // ---------------- Main loop ----------------
 let lastT=performance.now();
+const FPS_ON=QS.get('fps')==='1'; let fpsEl=null,fpsN=0,fpsT=performance.now(); // ?fps=1 → live fps/draw-call overlay for device profiling
 function tick(now){ const dt=Math.min((now-lastT)/1000,.05); lastT=now; const t=now/1000;
   // ---- movement with personality: accel/decel, smooth turn, banking, idle life ----
   const dx=target.x-avatar.position.x, dz=target.z-avatar.position.z, d=Math.hypot(dx,dz);
@@ -1295,7 +1299,10 @@ function tick(now){ const dt=Math.min((now-lastT)/1000,.05); lastT=now; const t=
   for(const f of faces){ const np=performance.now(); let m=f.tex.open; // blink + reactive happy expression (uses existing cheer signal)
     if(np<twCheerUntil) m=f.tex.happy; else { if(np>=f.next){ f.blinkUntil=np+120; f.next=np+2200+Math.random()*2800; } if(np<f.blinkUntil) m=f.tex.blink; }
     if(f.pl.material.map!==m){ f.pl.material.map=m; f.pl.material.needsUpdate=true; } }
-  renderer.render(scene,camera); requestAnimationFrame(tick);
+  renderer.render(scene,camera);
+  if(FPS_ON){ fpsN++; const fn=performance.now(); if(fn-fpsT>=1000){ if(!fpsEl){ fpsEl=document.createElement('div'); fpsEl.style.cssText='position:fixed;left:8px;bottom:8px;z-index:99;background:rgba(0,0,0,.65);color:#7ef0c0;font:700 12px monospace;padding:4px 9px;border-radius:8px;pointer-events:none'; document.body.appendChild(fpsEl); }
+    fpsEl.textContent=Math.round(fpsN*1000/(fn-fpsT))+' fps · '+renderer.info.render.calls+' calls · '+((renderer.info.memory&&renderer.info.memory.geometries)||0)+' geo'; fpsN=0; fpsT=fn; } }
+  requestAnimationFrame(tick);
 }
 addEventListener('resize',()=>{ camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth,innerHeight); });
 applyAvatar(); boot(); requestAnimationFrame(tick);
