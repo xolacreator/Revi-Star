@@ -152,7 +152,7 @@ function birdChirp(){ if(!actx) return; try{ const now=actx.currentTime, base=14
   [0,0.13].forEach((off,i)=>{ const o=actx.createOscillator(),g=actx.createGain(); o.type='sine'; o.frequency.setValueAtTime(base*(i?1.18:1),now+off); o.frequency.exponentialRampToValueAtTime(base*(i?1.45:1.28),now+off+0.07); o.connect(g); g.connect(actx.destination);
     g.gain.setValueAtTime(0.0001,now+off); g.gain.exponentialRampToValueAtTime(0.045,now+off+0.02); g.gain.exponentialRampToValueAtTime(0.0001,now+off+0.16); o.start(now+off); o.stop(now+off+0.2); }); }catch(e){} }
 let avatarPop=0; function avatarReact(){ avatarPop=1; }
-function earnStars(n){ state.avatar.stars+=n; const el=$('star-num'); if(el) el.textContent=state.avatar.stars; save(); } // shop currency: earned by reading + exploring
+function earnStars(n){ state.avatar.stars+=n; if(n>0) SFX.starTick(); const el=$('star-num'); if(el) el.textContent=state.avatar.stars; save(); } // shop currency: earned by reading + exploring
 function collectStar(pos){ burst(pos,'#FFD24D',14); collectChime(); haptic(12); earnStars(1); twCheerUntil=performance.now()+450; heroEmote('cheer',700); // Twinkle + hero celebrate collections
   if(delight.reward===null){ delight.reward=Math.round(performance.now()-launchT); log('first_reward',{ms:delight.reward}); } }
 
@@ -280,7 +280,7 @@ const poleMat=new THREE.MeshToonMaterial({color:'#3f3560',gradientMap:TOON_RAMP}
 const LAMP_POS=[[6.4,-5.2],[-6.4,-5.2],[-6.4,5.6],[6.4,5.6]];
 LAMP_POS.forEach(([x,z])=>{ const pole=new THREE.Mesh(new THREE.CylinderGeometry(0.07,0.1,2.6,8),poleMat); pole.position.set(x,1.3,z);
   const cap=new THREE.Mesh(new THREE.SphereGeometry(0.2,10,10),lampMat); cap.position.set(x,2.7,z);
-  addGlow(cap,{color:'#ffd98a',size:1.5,opacity:0.55}); scene.add(pole,cap); tapProps.push({g:cap,col:'#ffd98a',pop:0}); });
+  addGlow(cap,{color:'#ffd98a',size:1.5,opacity:0.55}); scene.add(pole,cap); tapProps.push({g:cap,col:'#ffd98a',pop:0,snd:'glass'}); });
 // Bunting: one merged triangle-pennant geometry (single draw call), sagging between the lamps.
 { const cols=[[1,0.78,0.24],[1,0.56,0.81],[0.56,0.82,1],[0.49,0.94,0.75],[0.71,0.61,0.94]]; const pos=[],col=[];
   for(let s=0;s<LAMP_POS.length;s++){ const [ax,az]=LAMP_POS[s], [bx,bz]=LAMP_POS[(s+1)%LAMP_POS.length];
@@ -295,20 +295,20 @@ const woodMat=new THREE.MeshToonMaterial({color:'#a8795a',gradientMap:TOON_RAMP}
   const seat=new THREE.Mesh(new THREE.BoxGeometry(1.5,0.12,0.5),woodMat); seat.position.y=0.42;
   const back=new THREE.Mesh(new THREE.BoxGeometry(1.5,0.4,0.09),woodMat); back.position.set(0,0.72,-0.22);
   const legs=new THREE.Mesh(new THREE.BoxGeometry(1.3,0.4,0.4),poleMat); legs.position.y=0.2;
-  g.add(seat,back,legs); g.position.set(x,0,z); g.lookAt(0,0,-6); scene.add(g); tapProps.push({g,col:'#e8b98a',pop:0}); });
+  g.add(seat,back,legs); g.position.set(x,0,z); g.lookAt(0,0,-6); scene.add(g); tapProps.push({g,col:'#e8b98a',pop:0,snd:'wood'}); });
 [[0,7.6],[-7.4,1.2],[7.4,1.2]].forEach(([x,z],pi)=>{ const g=new THREE.Group();
   const pot=new THREE.Mesh(new THREE.CylinderGeometry(0.42,0.34,0.4,10),new THREE.MeshToonMaterial({color:'#c98d68',gradientMap:TOON_RAMP})); pot.position.y=0.2;
   const PCOL=['#ff8fcf','#ffd24d','#8fd0ff','#7ef0c0','#b69cff'];
   g.add(pot); for(let i=0;i<3;i++){ const f=new THREE.Mesh(new THREE.SphereGeometry(0.14,8,8),new THREE.MeshToonMaterial({color:PCOL[(pi+i)%5],gradientMap:TOON_RAMP})); f.position.set((i-1)*0.2,0.52,(i%2)*0.12-0.06); g.add(f); }
-  g.position.set(x,0,z); scene.add(g); tapProps.push({g,col:'#ff8fcf',pop:0}); });
-[[7.9,-3.6,0.3],[7.4,-4.3,-0.2]].forEach(([x,z,ry])=>{ const c=new THREE.Mesh(new THREE.BoxGeometry(0.7,0.7,0.7),woodMat); c.position.set(x,0.35,z); c.rotation.y=ry; c.castShadow=true; scene.add(c); tapProps.push({g:c,col:'#e8b98a',pop:0}); });
+  g.position.set(x,0,z); scene.add(g); tapProps.push({g,col:'#ff8fcf',pop:0,snd:'leaf'}); });
+[[7.9,-3.6,0.3],[7.4,-4.3,-0.2]].forEach(([x,z,ry])=>{ const c=new THREE.Mesh(new THREE.BoxGeometry(0.7,0.7,0.7),woodMat); c.position.set(x,0.35,z); c.rotation.y=ry; c.castShadow=true; scene.add(c); tapProps.push({g:c,col:'#e8b98a',pop:0,snd:'wood'}); });
 // Stylized toon trees (green, mint, and one pink blossom) with a gentle sway
 const trees=[];
 [[-8.2,-4.6,'#5fae6e'],[8.3,-4.2,'#5fae6e'],[-8.5,2.2,'#7ec6a0'],[8.5,2.6,'#7ec6a0'],[-4.4,7.4,'#e995c4'],[4.4,7.4,'#5fae6e']].forEach(([x,z,c],i)=>{
   const g=new THREE.Group(); const trunk=new THREE.Mesh(new THREE.CylinderGeometry(0.13,0.2,1.1,8),new THREE.MeshToonMaterial({color:'#8a5f43',gradientMap:TOON_RAMP})); trunk.position.y=0.55;
   const f1=new THREE.Mesh(new THREE.SphereGeometry(0.85,12,12),new THREE.MeshToonMaterial({color:c,gradientMap:TOON_RAMP})); f1.position.y=1.55; f1.castShadow=true; f1.scale.y=0.9;
   const f2=new THREE.Mesh(new THREE.SphereGeometry(0.55,10,10),new THREE.MeshToonMaterial({color:c,gradientMap:TOON_RAMP})); f2.position.y=2.25; f2.scale.y=0.85;
-  addOutline(f1,'#2a4a34',0.02); g.add(trunk,f1,f2); g.position.set(x,0,z); scene.add(g); trees.push({g,ph:i*1.3}); tapProps.push({g,col:c,pop:0}); });
+  addOutline(f1,'#2a4a34',0.02); g.add(trunk,f1,f2); g.position.set(x,0,z); scene.add(g); trees.push({g,ph:i*1.3}); tapProps.push({g,col:c,pop:0,snd:'leaf'}); });
 // sparkles
 const sparkles=[];
 function makeSparkle(x,z){ const m=new THREE.Mesh(new THREE.OctahedronGeometry(.32),new THREE.MeshStandardMaterial({color:'#FFD24D',emissive:'#FFC83D',emissiveIntensity:.7})); m.position.set(x,1.2,z); addGlow(m,{color:'#FFD24D',size:0.85,opacity:0.6}); scene.add(m); sparkles.push({m,magnet:false,pop:0,seed:Math.random()*6}); }
@@ -371,7 +371,7 @@ const crystals=[];
 function makeCrystal(x,z,col,h){ const g=new THREE.Group();
   const c=new THREE.Mesh(new THREE.ConeGeometry(0.35,h,6),new THREE.MeshToonMaterial({color:col,gradientMap:TOON_RAMP,emissive:new THREE.Color(col),emissiveIntensity:0.5})); c.position.y=h/2; c.castShadow=true;
   const tip=new THREE.Mesh(new THREE.OctahedronGeometry(0.24),new THREE.MeshToonMaterial({color:col,gradientMap:TOON_RAMP,emissive:new THREE.Color(col),emissiveIntensity:0.6})); tip.position.y=h+0.1;
-  g.add(c,tip); addGlow(g,{color:col,size:1.6,opacity:0.5,pos:[0,h*0.7,0]}); g.position.set(x,0,z); g.rotation.y=Math.random()*6; scene.add(g); crystals.push({g,seed:Math.random()*6}); tapProps.push({g,col,pop:0}); }
+  g.add(c,tip); addGlow(g,{color:col,size:1.6,opacity:0.5,pos:[0,h*0.7,0]}); g.position.set(x,0,z); g.rotation.y=Math.random()*6; scene.add(g); crystals.push({g,seed:Math.random()*6}); tapProps.push({g,col,pop:0,snd:'crystal'}); }
 [[-9,-5],[9,-5],[-11,1],[11,2],[-6,6],[6,7]].forEach((p,i)=>makeCrystal(p[0],p[1],CRYSTAL_COLS[i%CRYSTAL_COLS.length],1.1+Math.random()*0.9));
 const glyphs=[];
 function makeGlyph(x,z,col,r){ const g=new THREE.Group();
@@ -568,10 +568,10 @@ let shopPending=false;
 function shopDoorPoint(){ const p=shopHouse.position.clone(); const dir=p.clone().negate().setY(0).normalize(); return p.add(dir.multiplyScalar(2.0)); }
 function enterShopWalk(){ if(!controlEnabled) return; const d=shopDoorPoint(); target.copy(d); target.y=0; setMarker(d); shopPending=true;
   burst(new THREE.Vector3(shopHouse.position.x,1.4,shopHouse.position.z),'#FFD24D',8); haptic(8); }
-function openShop(){ shopPending=false; controlEnabled=false; setMarker(null); chime('good'); wipe(()=>{ renderShop(); show('shop'); }); log('shop_open',{stars:state.avatar.stars}); }
+function openShop(){ shopPending=false; controlEnabled=false; setMarker(null); SFX.bell(); wipe(()=>{ renderShop(); show('shop'); }); log('shop_open',{stars:state.avatar.stars}); }
 function closeShop(){ wipe(()=>{ hide('shop'); controlEnabled=true; }); }
 function spendStars(n,btn){ if(state.avatar.stars<n){ if(btn){ btn.classList.remove('deny'); void btn.offsetWidth; btn.classList.add('deny'); }
-    const tip=$('shop-tip'); if(tip) tip.textContent='Read and collect to earn more ⭐!'; return false; }
+    const tip=$('shop-tip'); if(tip) tip.textContent='Read and collect to earn more ⭐!'; SFX.deny(); return false; }
   state.avatar.stars-=n; earnStars(0); const ss=$('shop-stars'); if(ss) ss.textContent=state.avatar.stars; return true; }
 function applyTrail(color){ state.avatar.color=color; applyAvatar(); }
 let balloonsBuilt=false, twBow=null;
@@ -583,7 +583,7 @@ function buildTwinkleBow(){ if(twBow) return; twBow=new THREE.Group(); const m=n
   const l=new THREE.Mesh(new THREE.SphereGeometry(0.12,8,8),m); l.scale.set(1,0.7,0.6); l.position.x=-0.11;
   const r=l.clone(); r.position.x=0.11; const k=new THREE.Mesh(new THREE.SphereGeometry(0.07,8,8),m);
   twBow.add(l,r,k); twBow.position.set(0,1.58,0.1); twinkle.add(twBow); }
-function fireworksShow(){ confetti(); for(let i=0;i<5;i++){ setTimeout(()=>{ collectChime();
+function fireworksShow(){ confetti(); for(let i=0;i<5;i++){ setTimeout(()=>{ SFX.boom();
   magicBurst(new THREE.Vector3((Math.random()-0.5)*14,6+Math.random()*4,-2-Math.random()*6),40,['#ff4fa6','#ffd24d','#4fd8ff','#7ef0c0'][(Math.random()*4)|0]); },i*450); } }
 function applyShopOwned(){ if(state.shop.owned.includes('balloons')) buildBalloons(); if(state.shop.owned.includes('bow')) buildTwinkleBow(); } // rebuild purchases on load
 function renderShop(){ const ss=$('shop-stars'); if(ss) ss.textContent=state.avatar.stars; const tip=$('shop-tip'); if(tip) tip.textContent='';
@@ -599,7 +599,7 @@ function renderShop(){ const ss=$('shop-stars'); if(ss) ss.textContent=state.ava
       if(spendStars(it.price,b)){ state.shop.owned.push(it.id);
         if(it.trail){ state.shop.trail=it.id; applyTrail(it.trail); }
         if(it.id==='balloons') buildBalloons(); if(it.id==='bow') buildTwinkleBow();
-        save(); chime('good'); confetti(); renderShop(); log('shop_buy',{id:it.id}); } };
+        save(); SFX.fanfare(); confetti(); renderShop(); log('shop_buy',{id:it.id}); } };
     row.appendChild(b); host.appendChild(row); }); }
 // Tapping Rumi in the world → she waves and offers a friendly tip (interactive guide).
 const RUMI_TIPS=["Tap the ground to explore — or hold and drag to walk with me!","Look for the glowing star and listen for its sound!","You're doing amazing. Sound it out nice and slow.","Tap Twinkle to say hello!","Every sound you learn makes you shine brighter!"];
@@ -617,7 +617,7 @@ renderer.domElement.addEventListener('pointerdown',e=>{ if(e.isPrimary===false) 
   shopPending=false; // walking somewhere else cancels a pending shop visit
   dragging=true; tapGround(e.clientX,e.clientY); });
 function propDelight(p){ p.pop=1; const w=new THREE.Vector3(); p.g.getWorldPosition(w); w.y+=0.9;
-  burst(w,p.col,8); chirp(); haptic(8); }
+  burst(w,p.col,8); (SFX[p.snd]||chirp)(); haptic(8); }
 renderer.domElement.addEventListener('pointermove',e=>{ if(e.isPrimary===false||!dragging||!controlEnabled) return;
   if(tapGround(e.clientX,e.clientY,false)){ dragTrailT-=1; if(dragTrailT<=0){ dragTrailT=4; tapRing(e.clientX,e.clientY); } } }); // light dotted feedback as the finger drags
 const endDrag=()=>{ dragging=false; };
@@ -649,7 +649,7 @@ function coachHop(){ const el=$('coach-img')&&!$('coach-img').classList.contains
 function reEnter(el){ if(!el)return; el.classList.remove('enter'); void el.offsetWidth; el.classList.add('enter'); setTimeout(()=>el.classList.remove('enter'),560); }
 // P1b: star-iris "door" transition — covers the screen, swaps scenes under cover, reveals.
 let wiping=false;
-function wipe(mid){ if(wiping){ try{mid&&mid();}catch(e){} return; } wiping=true;
+function wipe(mid){ if(wiping){ try{mid&&mid();}catch(e){} return; } wiping=true; SFX.whoosh();
   const d=document.createElement('div'); d.className='wipe'; document.body.appendChild(d);
   requestAnimationFrame(()=>requestAnimationFrame(()=>d.classList.add('in')));
   setTimeout(()=>{ try{mid&&mid();}catch(e){} d.classList.remove('in');
@@ -673,6 +673,38 @@ function magicRing(pos,color='#FFD24D'){ const g=new THREE.Mesh(new THREE.TorusG
 const spot=new THREE.Mesh(new THREE.CircleGeometry(1.7,40),new THREE.MeshBasicMaterial({color:'#fff3c0',transparent:true,opacity:0,depthWrite:false})); spot.rotation.x=-Math.PI/2; spot.position.y=0.04; scene.add(spot);
 let spotOn=0, cineUntil=0, twSpinUntil=0, twCheerUntil=0;
 function screenFlash(){ const f=document.createElement('div'); f.className='flash'; document.body.appendChild(f); setTimeout(()=>f.remove(),420); }
+// ---------------- P2: synthesized SFX palette (AudioBible specs — zero download, zero quota) ----------------
+function sfx(fn){ try{ if(!audioOn) return; actx=actx||new(window.AudioContext||window.webkitAudioContext)(); fn(actx); }catch(e){} }
+function tone(a,{f=440,f2=null,type='sine',t=0.15,g=0.12,at=0.005,delay=0}={}){ const o=a.createOscillator(),v=a.createGain(); o.type=type; const t0=a.currentTime+delay;
+  o.frequency.setValueAtTime(f,t0); if(f2) o.frequency.exponentialRampToValueAtTime(Math.max(40,f2),t0+t);
+  v.gain.setValueAtTime(0,t0); v.gain.linearRampToValueAtTime(g,t0+at); v.gain.exponentialRampToValueAtTime(0.0001,t0+t);
+  o.connect(v); v.connect(a.destination); o.start(t0); o.stop(t0+t+0.02); }
+function nz(a,{t=0.2,g=0.08,fLow=400,fHigh=2000,delay=0}={}){ const n=a.createBufferSource(),buf=a.createBuffer(1,Math.max(1,a.sampleRate*t)|0,a.sampleRate),d=buf.getChannelData(0);
+  for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*(1-i/d.length); n.buffer=buf;
+  const bp=a.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=(fLow+fHigh)/2; bp.Q.value=0.8;
+  const v=a.createGain(); const t0=a.currentTime+delay; v.gain.setValueAtTime(g,t0); v.gain.exponentialRampToValueAtTime(0.0001,t0+t);
+  n.connect(bp); bp.connect(v); v.connect(a.destination); n.start(t0); }
+let starStreak=0; // rises with consecutive correct answers — the star tick climbs with it
+const SFX={
+  starTick(){ sfx(a=>tone(a,{f:1046*Math.pow(1.122,Math.min(starStreak,6)),t:0.09,g:0.1})); },
+  combo(){ sfx(a=>{ tone(a,{f:784,t:0.12,g:0.12}); tone(a,{f:1046,t:0.22,g:0.12,delay:0.11}); nz(a,{t:0.35,g:0.03,fLow:3000,fHigh:8000,delay:0.1}); }); },
+  wood(){ sfx(a=>{ tone(a,{f:180,f2:90,type:'triangle',t:0.09,g:0.14}); nz(a,{t:0.05,g:0.05,fLow:200,fHigh:600}); }); },
+  glass(){ sfx(a=>tone(a,{f:1318,t:0.25,g:0.09})); },
+  leaf(){ sfx(a=>nz(a,{t:0.18,g:0.06,fLow:1500,fHigh:5000})); },
+  crystal(){ sfx(a=>{ tone(a,{f:880,t:0.3,g:0.07}); tone(a,{f:884,t:0.3,g:0.07}); }); },
+  whoosh(){ sfx(a=>nz(a,{t:0.32,g:0.09,fLow:300,fHigh:1400})); },
+  bell(){ sfx(a=>{ tone(a,{f:659,type:'triangle',t:0.25,g:0.1}); tone(a,{f:523,type:'triangle',t:0.3,g:0.1,delay:0.15}); }); },
+  fanfare(){ sfx(a=>{ [523,659,784].forEach((f,i)=>tone(a,{f,type:'triangle',t:0.18,g:0.11,delay:i*0.09})); nz(a,{t:0.4,g:0.03,fLow:4000,fHigh:9000,delay:0.25}); }); },
+  deny(){ sfx(a=>tone(a,{f:220,f2:180,t:0.25,g:0.1})); }, // kind, not sad
+  boom(){ sfx(a=>{ tone(a,{f:300,f2:900,t:0.5,g:0.06}); nz(a,{t:0.5,g:0.12,fLow:100,fHigh:900,delay:0.45}); nz(a,{t:0.3,g:0.05,fLow:3000,fHigh:9000,delay:0.55}); }); },
+  horn(){ sfx(a=>tone(a,{f:130,type:'triangle',t:0.8,g:0.09,at:0.25})); },
+};
+// Gentle harbor ambience: soft wave swells + rare gull cries. Mutes during lessons; respects 🔊.
+let ambTimer=null;
+function ambLoop(){ const lessonUp=(!$('challenge').classList.contains('hidden'))||(!$('starcheck').classList.contains('hidden'))||(!$('shop').classList.contains('hidden'));
+  if(!lessonUp && audioOn){ sfx(a=>nz(a,{t:2.6,g:0.016,fLow:150,fHigh:600}));
+    if(Math.random()<0.22) sfx(a=>{ tone(a,{f:1200,f2:900,t:0.12,g:0.012}); tone(a,{f:1100,f2:850,t:0.1,g:0.01,delay:0.15}); }); }
+  ambTimer=setTimeout(ambLoop, 6000+Math.random()*3500); }
 function chirp(){ try{ actx=actx||new(window.AudioContext||window.webkitAudioContext)(); const now=actx.currentTime;
   [880,1320].forEach((f,i)=>{ const o=actx.createOscillator(),g=actx.createGain(); o.type='triangle'; o.frequency.value=f; o.connect(g); g.connect(actx.destination); const tt=now+i*0.08; g.gain.setValueAtTime(0.0001,tt); g.gain.exponentialRampToValueAtTime(0.16,tt+0.01); g.gain.exponentialRampToValueAtTime(0.0001,tt+0.16); o.start(tt); o.stop(tt+0.18); }); }catch(e){} }
 function twinkleCheer(ms=900){ twCheerUntil=performance.now()+ms; chirp(); }
@@ -863,7 +895,7 @@ function flyStars(fromEl,count=3){ const bar=$('ch-lights'); if(!bar) return;
       {duration:620+i*90,easing:'cubic-bezier(.3,.7,.4,1)',fill:'forwards'});
     setTimeout(()=>{ s.remove(); if(i===count-1){ const b=$('ch-lights'); if(b){ b.classList.remove('pulse'); void b.offsetWidth; b.classList.add('pulse'); } } },640+i*90); } }
 // P1c: mid-set celebrations every 7th correct — the run gets beats instead of a flatline
-function midSetBeat(){ const done=curIdx; if(done>0 && done%7===0 && done<curList.length){ confetti(); chime('good');
+function midSetBeat(){ const done=curIdx; if(done>0 && done%7===0 && done<curList.length){ confetti(); SFX.combo();
   const msgs={7:"Seven stars! You're on fire!",14:"Halfway superstar!"}; const m=msgs[done]||"Wow, look at all those stars!";
   coach('cheer',m); if(audioOn) say(m,{char:coachChar}); return true; } return false; }
 let mistakes=0, blendProgress=0, itemStart=0, itemHints=0, itemModeled=false;
@@ -960,11 +992,11 @@ function hintActivity(a){ itemHints++; log('hint_used',{skillId:a.skillId}); coa
   const btns=[...$('ch-options').querySelectorAll('.opt')];
   const w=btns.find(b=>b.textContent!==a.answer&&!b.classList.contains('dim')); if(w) w.classList.add('dim');
   const r=btns.find(b=>b.textContent===a.answer); if(r){ r.classList.add('glowhint'); setTimeout(()=>r.classList.remove('glowhint'),1600);} if(audioOn) say(a.say,{char:coachChar}); }
-function wrong(a,btn){ mistakes++; dayMistakes++; itemHints++; btn.classList.add('dim'); btn.classList.remove('wrongshake'); void btn.offsetWidth; btn.classList.add('wrongshake'); coach('think',"Almost! Let's try again."); if(audioOn) say("Almost! Listen again.",{char:coachChar});
+function wrong(a,btn){ mistakes++; starStreak=0; dayMistakes++; itemHints++; btn.classList.add('dim'); btn.classList.remove('wrongshake'); void btn.offsetWidth; btn.classList.add('wrongshake'); coach('think',"Almost! Let's try again."); if(audioOn) say("Almost! Listen again.",{char:coachChar});
   if(mistakes>=2){ itemModeled=true; const r=[...$('ch-options').querySelectorAll('.opt')].find(b=>b.textContent===a.answer);
     if(r){ r.classList.add('glowhint'); if(audioOn) say(`This one says ${a.answer}. Tap it with me!`,{id:'xtra_thisone'}); r.onclick=()=>{ if(audioOn) say(a.answer,{rate:.8,char:coachChar}); correct(a,r);}; } } }
 function correct(a,btn){ btn.classList.remove('glowhint'); btn.classList.add('correct'); chime('good'); burst(lighthouse.position,'#FFE9A8',10); twCheerUntil=performance.now()+900; heroEmote('cheer',900); // Twinkle + hero cheer learning success
-  sparkleAt(btn,12); coachHop(); earnStars(1); flyStars(btn,3); // stars visibly fly to the progress bar — wealth you can see
+  sparkleAt(btn,12); coachHop(); starStreak++; earnStars(1); flyStars(btn,3); // stars visibly fly to the progress bar — wealth you can see
   if(delight.reward===null){ delight.reward=Math.round(performance.now()-launchT); log('first_reward',{ms:delight.reward}); }
   const firstTry=(mistakes===0&&itemHints===0);
   state.history.push({day:state.day,skillId:a.skillId,correct:true,hints:itemHints,modeled:itemModeled,firstTry,ms:Math.round(performance.now()-itemStart)});
@@ -1091,7 +1123,7 @@ function completeDay(){ if(!state.completedDays.includes(state.day)) state.compl
   $('dg-emoji').textContent = state.day>=MAX_DAY?'🏆':(state.day%7===0?'🏅':'🌙');
   $('dg-title').textContent = state.day>=MAX_DAY?'You played 21 days!':(state.day%7===0?`Week ${Math.ceil(state.day/7)} done!`:'See you tomorrow!');
   $('dg-text').textContent = D.tease[0];
-  show('daygate'); if(audioOn) say(D.tease[0],{id:D.teaseId});
+  SFX.horn(); show('daygate'); if(audioOn) say(D.tease[0],{id:D.teaseId});
   if(state.day===3){ /* offer parent re-engagement next time they open parent panel */ state.askReengage=true; save(); }
   $('dg-close').onclick=()=>{ hide('daygate'); };
 }
@@ -1159,7 +1191,7 @@ function boot(){
   const hb=$('hear-btn'); if(hb) hb.onclick=()=>{ if(lastSay) say(lastSay.t,{id:lastSay.id,char:lastSay.char}); }; // 🔊 = hear it again
   if(QS.get('observe')==='1'){ show('observer'); $('mark-smile').onclick=()=>recordExcitement('smile'); $('mark-excited').onclick=()=>recordExcitement('excited'); }
   if(QS.get('reset')==='1'){ localStorage.removeItem(KEY); localStorage.removeItem(EKEY); location.search=''; }
-  $('start-btn').onclick=()=>{ audioOn=true; try{ actx=new(window.AudioContext||window.webkitAudioContext)(); }catch(e){}
+  $('start-btn').onclick=()=>{ audioOn=true; try{ actx=new(window.AudioContext||window.webkitAudioContext)(); }catch(e){} if(!ambTimer) ambLoop();
     initMusic();
     launchT=performance.now(); state.launchCount=(state.launchCount||0)+1; save(); log('app_open',{launchCount:state.launchCount});
     hide('intro');
