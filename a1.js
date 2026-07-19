@@ -252,7 +252,7 @@ const lighthouse=new THREE.Group();
 lighthouse.position.set(0,0,-6); scene.add(lighthouse);
 // Halo position tracks the (taller) lantern via lhLight world y — set after group placement below.
 
-// ---- Houses with life: doors, warm windows, chimneys, color trim ----
+// ---- Character-themed buildings: each idol has a place, each place has a purpose ----
 const winMat=new THREE.MeshStandardMaterial({color:'#ffe1a0',emissive:'#ffb84d',emissiveIntensity:.55,roughness:.6});
 function house(x,z,col,roofCol){ const g=new THREE.Group();
   const b=new THREE.Mesh(new THREE.BoxGeometry(2,1.8,2),new THREE.MeshStandardMaterial({color:col,roughness:.95})); b.position.y=.9; b.castShadow=true;
@@ -262,16 +262,21 @@ function house(x,z,col,roofCol){ const g=new THREE.Group();
   const w2=w1.clone(); w2.position.x=0.55;
   const ch=new THREE.Mesh(new THREE.BoxGeometry(0.3,0.7,0.3),new THREE.MeshToonMaterial({color:'#b9aecb',gradientMap:TOON_RAMP})); ch.position.set(0.6,2.55,-0.4);
   g.add(b,r,d,w1,w2,ch); g.position.set(x,0,z); g.lookAt(0,0,0); g.position.y=0; scene.add(g); return g; }
-const houses=[['#f4b98a',-7,-2,'#e26d5a'],['#9ad2d8',7,-2,'#4f8fae'],['#f3a6c4',-6,3,'#d1567f'],['#cdb8f0',6,3,'#7e5be0']].map(h=>house(h[1],h[2],h[0],h[3]));
-// ---- The Star Shop: the lavender house is enterable — spend reading stars on fun ----
-const shopHouse=houses[3];
-{ const cv=document.createElement('canvas'); cv.width=256; cv.height=80; const x=cv.getContext('2d');
-  x.fillStyle='#2B2233'; x.fillRect(0,6,256,68); x.fillRect(6,0,244,80); // rounded-ish plate without roundRect (older Safari safety)
-  x.fillStyle='#FFC83D'; x.font='800 44px system-ui,sans-serif'; x.textAlign='center'; x.textBaseline='middle'; x.fillText('⭐ SHOP',128,42);
+function buildingSign(g,emoji,label,accent){ const cv=document.createElement('canvas'); cv.width=256; cv.height=110; const x=cv.getContext('2d');
+  x.fillStyle='#2B2233'; x.fillRect(0,8,256,94); x.fillRect(8,0,240,110);
+  x.textAlign='center'; x.font='64px system-ui,sans-serif'; x.textBaseline='middle'; x.fillText(emoji,128,42); // icon-first: pre-readers read the picture
+  x.fillStyle=accent; x.font='800 26px system-ui,sans-serif'; x.fillText(label,128,90);
   const tex=new THREE.CanvasTexture(cv); tex.colorSpace=THREE.SRGBColorSpace;
-  const sign=new THREE.Mesh(new THREE.PlaneGeometry(1.5,0.47),new THREE.MeshBasicMaterial({map:tex,transparent:true})); sign.position.set(0,1.62,1.06); shopHouse.add(sign);
-  const roofStar=new THREE.Mesh(new THREE.OctahedronGeometry(0.3),new THREE.MeshStandardMaterial({color:'#FFD24D',emissive:'#FFC83D',emissiveIntensity:.9})); roofStar.position.set(0,3.25,0); shopHouse.add(roofStar); addGlow(roofStar,{color:'#FFD24D',size:1.6,opacity:0.7});
-  addGlow(shopHouse,{color:'#FFE08A',size:1.3,opacity:0.5,pos:[0,0.7,1.15]}); } // welcoming door glow
+  const sign=new THREE.Mesh(new THREE.PlaneGeometry(1.35,0.58),new THREE.MeshBasicMaterial({map:tex,transparent:true})); sign.position.set(0,1.68,1.06); g.add(sign);
+  addGlow(g,{color:accent,size:1.25,opacity:0.5,pos:[0,0.7,1.15]}); } // themed welcoming door glow
+const buildings=[]; // {g,id,name,act} — tap → walk to door → the building's purpose happens
+function themedBuilding(id,name,emoji,x,z,wall,roof,accent,act){ const g=house(x,z,wall,roof); buildingSign(g,emoji,name,accent); buildings.push({g,id,name,act}); return g; }
+// North pair flanks the lighthouse — visible from spawn. East/west pair frames the plaza.
+const libHouse =themedBuilding('library','LIBRARY','📖',-5.6,-3.9,'#e9d7f7','#7B4FC4','#FFD24D',()=>startPractice());   // Rumi — reading practice
+const acadHouse=themedBuilding('academy','SOUNDS','🎓', 5.6,-3.9,'#cfeaf0','#4f8fae','#8FD0FF',()=>openSoundWall()); // Mira — tap-to-hear letter sounds
+const hallHouse=themedBuilding('hall','MUSIC','🎵',-7.0, 1.0,'#f8d3e6','#d1567f','#FF8FCF',()=>danceParty());        // Zoey — dance party
+const shopHouse=themedBuilding('shop','SHOP','⭐', 7.0, 1.0,'#cdb8f0','#7e5be0','#FFE08A',()=>openShop());           // Twinkle — the Star Shop
+{ const roofStar=new THREE.Mesh(new THREE.OctahedronGeometry(0.3),new THREE.MeshStandardMaterial({color:'#FFD24D',emissive:'#FFC83D',emissiveIntensity:.9})); roofStar.position.set(0,3.25,0); shopHouse.add(roofStar); addGlow(roofStar,{color:'#FFD24D',size:1.6,opacity:0.7}); }
 
 // ---- Plaza dressing: lamp posts, festival bunting, benches, planters, crates, trees ----
 const tapProps=[]; // World Life: props that pop + sparkle when a child taps them {g,col,pop}
@@ -296,7 +301,7 @@ const woodMat=new THREE.MeshToonMaterial({color:'#a8795a',gradientMap:TOON_RAMP}
   const back=new THREE.Mesh(new THREE.BoxGeometry(1.5,0.4,0.09),woodMat); back.position.set(0,0.72,-0.22);
   const legs=new THREE.Mesh(new THREE.BoxGeometry(1.3,0.4,0.4),poleMat); legs.position.y=0.2;
   g.add(seat,back,legs); g.position.set(x,0,z); g.lookAt(0,0,-6); scene.add(g); tapProps.push({g,col:'#e8b98a',pop:0,snd:'wood'}); });
-[[0,7.6],[-7.4,1.2],[7.4,1.2]].forEach(([x,z],pi)=>{ const g=new THREE.Group();
+[[0,7.6],[-4.8,5.6],[4.8,5.6]].forEach(([x,z],pi)=>{ const g=new THREE.Group();
   const pot=new THREE.Mesh(new THREE.CylinderGeometry(0.42,0.34,0.4,10),new THREE.MeshToonMaterial({color:'#c98d68',gradientMap:TOON_RAMP})); pot.position.y=0.2;
   const PCOL=['#ff8fcf','#ffd24d','#8fd0ff','#7ef0c0','#b69cff'];
   g.add(pot); for(let i=0;i<3;i++){ const f=new THREE.Mesh(new THREE.SphereGeometry(0.14,8,8),new THREE.MeshToonMaterial({color:PCOL[(pi+i)%5],gradientMap:TOON_RAMP})); f.position.set((i-1)*0.2,0.52,(i%2)*0.12-0.06); g.add(f); }
@@ -304,7 +309,7 @@ const woodMat=new THREE.MeshToonMaterial({color:'#a8795a',gradientMap:TOON_RAMP}
 [[7.9,-3.6,0.3],[7.4,-4.3,-0.2]].forEach(([x,z,ry])=>{ const c=new THREE.Mesh(new THREE.BoxGeometry(0.7,0.7,0.7),woodMat); c.position.set(x,0.35,z); c.rotation.y=ry; c.castShadow=true; scene.add(c); tapProps.push({g:c,col:'#e8b98a',pop:0,snd:'wood'}); });
 // Stylized toon trees (green, mint, and one pink blossom) with a gentle sway
 const trees=[];
-[[-8.2,-4.6,'#5fae6e'],[8.3,-4.2,'#5fae6e'],[-8.5,2.2,'#7ec6a0'],[8.5,2.6,'#7ec6a0'],[-4.4,7.4,'#e995c4'],[4.4,7.4,'#5fae6e']].forEach(([x,z,c],i)=>{
+[[-8.2,-4.9,'#5fae6e'],[8.3,-4.9,'#5fae6e'],[-8.6,5.0,'#7ec6a0'],[8.6,5.0,'#7ec6a0'],[-4.4,7.4,'#e995c4'],[4.4,7.4,'#5fae6e']].forEach(([x,z,c],i)=>{
   const g=new THREE.Group(); const trunk=new THREE.Mesh(new THREE.CylinderGeometry(0.13,0.2,1.1,8),new THREE.MeshToonMaterial({color:'#8a5f43',gradientMap:TOON_RAMP})); trunk.position.y=0.55;
   const f1=new THREE.Mesh(new THREE.SphereGeometry(0.85,12,12),new THREE.MeshToonMaterial({color:c,gradientMap:TOON_RAMP})); f1.position.y=1.55; f1.castShadow=true; f1.scale.y=0.9;
   const f2=new THREE.Mesh(new THREE.SphereGeometry(0.55,10,10),new THREE.MeshToonMaterial({color:c,gradientMap:TOON_RAMP})); f2.position.y=2.25; f2.scale.y=0.85;
@@ -499,7 +504,7 @@ rumi.position.set(-2.2,0,3); rumi.rotation.y=.4; scene.add(rumi);
 
 // ---- World Life: the other two legends hang out near their houses (idle, dance, wave, greet) ----
 const npcs=[]; // {g,mixer,actions,name,current,waveUntil,nextAct,homeYaw}
-const NPC_SPOTS={rumi:[-3.4,5.0,0.5], mira:[-5.2,3.6,0.7], zoey:[5.2,3.6,-0.7]};
+const NPC_SPOTS={rumi:[-4.3,-2.4,0.55], mira:[4.3,-2.4,-0.55], zoey:[-5.5,-0.1,0.8]}; // each idol stands by her own building
 function playNpc(n,key){ if(!n.mixer||!n.actions[key]||n.current===key) return; const next=n.actions[key];
   Object.values(n.actions).forEach(a=>{ if(a!==next) a.fadeOut(0.3); }); next.reset().fadeIn(0.3).play(); n.current=key; }
 async function loadAmbientIdols(){ if(QS.get('hero3d')==='0') return;
@@ -564,11 +569,11 @@ const SHOP_ITEMS=[
   {id:'balloons',emoji:'🎈',name:'Party Balloons',price:10},
   {id:'bow',emoji:'🎀',name:"Twinkle's Bow",price:12},
 ];
-let shopPending=false;
-function shopDoorPoint(){ const p=shopHouse.position.clone(); const dir=p.clone().negate().setY(0).normalize(); return p.add(dir.multiplyScalar(2.0)); }
-function enterShopWalk(){ if(!controlEnabled) return; const d=shopDoorPoint(); target.copy(d); target.y=0; setMarker(d); shopPending=true;
-  burst(new THREE.Vector3(shopHouse.position.x,1.4,shopHouse.position.z),'#FFD24D',8); haptic(8); }
-function openShop(){ shopPending=false; controlEnabled=false; setMarker(null); SFX.bell(); wipe(()=>{ renderShop(); show('shop'); }); log('shop_open',{stars:state.avatar.stars}); }
+let buildingPending=null; // {g,act} — the building we're walking to
+function doorPoint(g){ const p=g.position.clone(); const dir=p.clone().negate().setY(0).normalize(); return p.add(dir.multiplyScalar(2.0)); }
+function enterBuildingWalk(b){ if(!controlEnabled) return; const d=doorPoint(b.g); target.copy(d); target.y=0; setMarker(d); buildingPending=b;
+  burst(new THREE.Vector3(b.g.position.x,1.4,b.g.position.z),'#FFD24D',8); haptic(8); }
+function openShop(){ buildingPending=null; controlEnabled=false; setMarker(null); SFX.bell(); wipe(()=>{ renderShop(); show('shop'); }); log('shop_open',{stars:state.avatar.stars}); }
 function closeShop(){ wipe(()=>{ hide('shop'); controlEnabled=true; }); }
 function spendStars(n,btn){ if(state.avatar.stars<n){ if(btn){ btn.classList.remove('deny'); void btn.offsetWidth; btn.classList.add('deny'); }
     const tip=$('shop-tip'); if(tip) tip.textContent='Read and collect to earn more ⭐!'; SFX.deny(); return false; }
@@ -601,6 +606,31 @@ function renderShop(){ const ss=$('shop-stars'); if(ss) ss.textContent=state.ava
         if(it.id==='balloons') buildBalloons(); if(it.id==='bow') buildTwinkleBow();
         save(); SFX.fanfare(); confetti(); renderShop(); log('shop_buy',{id:it.id}); } };
     row.appendChild(b); host.appendChild(row); }); }
+// ---------------- Building purposes: Library practice, Academy sound wall, Music Hall dance party ----------------
+function startPractice(){ buildingPending=null; controlEnabled=false; setMarker(null); // Rumi's Library: a 5-question practice visit — extra stars, no pressure
+  const day=state.day>0?state.day:1; const list=genActivities(day,5);
+  if(!list.length){ controlEnabled=true; return; }
+  runActivities(list,()=>{ confetti(); SFX.fanfare();
+    const p=praises[(Math.random()*praises.length)|0]; if(audioOn) say(p,{char:'rumi'});
+    controlEnabled=true; log('practice_done',{}); }); log('practice_start',{}); }
+let swLetters=[];
+function openSoundWall(){ buildingPending=null; controlEnabled=false; setMarker(null); // Mira's Academy: tap a letter, hear its sound (all clips already voiced)
+  const day=state.day>0?state.day:1; const host=$('sw-options'); if(!host){ controlEnabled=true; return; }
+  swLetters=[]; for(let i=0;i<8;i++) swLetters.push(LETTERBANK[(day*3+i)%LETTERBANK.length]);
+  host.innerHTML='';
+  swLetters.forEach(L=>{ const b=document.createElement('button'); b.className='opt'; b.textContent=L[0];
+    b.onclick=()=>{ if(audioOn) say(L[1]); b.classList.remove('correct'); void b.offsetWidth; b.classList.add('correct'); sparkleAt(b,5); haptic(6);
+      setTimeout(()=>b.classList.remove('correct'),700); };
+    host.appendChild(b); });
+  wipe(()=>show('soundwall')); log('soundwall_open',{});
+  const c=$('sw-close'); if(c) c.onclick=()=>{ wipe(()=>{ hide('soundwall'); controlEnabled=true; }); }; }
+function danceParty(){ buildingPending=null; if(!controlEnabled) return; controlEnabled=false; setMarker(null); // Zoey's Music Hall: everyone dances!
+  spotOn=1; confetti(); SFX.combo(); haptic(20); log('dance_party',{});
+  if(rumiActions.dance){ playRumi('dance'); rumiWaveUntil=performance.now()+5200; }
+  for(const n of npcs){ if(n.actions.dance){ playNpc(n,'dance'); n.waveUntil=performance.now()+5200; } }
+  heroEmote('dance',5200); twinkleSpin(5000);
+  setTimeout(()=>{ magicBurst(hallHouse.position.clone().add(new THREE.Vector3(0,2.5,0)),30,'#FF8FCF'); },600);
+  setTimeout(()=>{ spotOn=0; controlEnabled=true; },5400); }
 // Tapping Rumi in the world → she waves and offers a friendly tip (interactive guide).
 const RUMI_TIPS=["Tap the ground to explore — or hold and drag to walk with me!","Look for the glowing star and listen for its sound!","You're doing amazing. Sound it out nice and slow.","Tap Twinkle to say hello!","Every sound you learn makes you shine brighter!"];
 let rumiTipT=0;
@@ -612,9 +642,9 @@ renderer.domElement.addEventListener('pointerdown',e=>{ if(e.isPrimary===false) 
   ndc.x=(e.clientX/innerWidth)*2-1; ndc.y=-(e.clientY/innerHeight)*2+1; ray.setFromCamera(ndc,camera);
   if(rumi.visible && ray.intersectObject(rumi,true).length){ rumiTip(); return; } // tap Rumi → tip
   for(const n of npcs){ if(ray.intersectObject(n.g,true).length){ npcGreet(n); return; } } // tap an idol → wave + hello
-  if(ray.intersectObject(shopHouse,true).length){ enterShopWalk(); return; } // tap the Star Shop → walk over + enter
+  for(const bl of buildings){ if(ray.intersectObject(bl.g,true).length){ enterBuildingWalk(bl); return; } } // tap a building → walk to its door
   for(const p of tapProps){ if(ray.intersectObject(p.g,true).length){ propDelight(p); break; } } // tap a prop → pop + sparkle (still walks)
-  shopPending=false; // walking somewhere else cancels a pending shop visit
+  buildingPending=null; // walking somewhere else cancels a pending visit
   dragging=true; tapGround(e.clientX,e.clientY); });
 function propDelight(p){ p.pop=1; const w=new THREE.Vector3(); p.g.getWorldPosition(w); w.y+=0.9;
   burst(w,p.col,8); (SFX[p.snd]||chirp)(); haptic(8); }
@@ -1006,7 +1036,7 @@ function correct(a,btn){ btn.classList.remove('glowhint'); btn.classList.add('co
   const p=praises[(Math.random()*praises.length)|0]; coach('cheer',p);
   let advanced=false;
   const adv=()=>{ if(advanced) return; advanced=true; curIdx++; renderLights(); // advance once praise ends OR the cap fires
-    if(curIdx<curList.length){ if(midSetBeat()) setTimeout(renderActivity,1700); else renderActivity(); }
+    if(curIdx<curList.length){ setTimeout(renderActivity, midSetBeat()?1700:280); } // a breath between items
     else { wipe(()=>{ hide('challenge'); onListDone(); }); } };
   if(audioOn) say(p,{char:coachChar,then:adv}); else setTimeout(adv,450);
   setTimeout(adv,1700); // safety cap — never let a stuck audio clip freeze the game
@@ -1295,7 +1325,7 @@ function tick(now){ const dt=Math.min((now-lastT)/1000,.05); lastT=now; const t=
       rumiNextWave=np+(near?5000:9000)+Math.random()*5000; }
     if(np>=rumiWaveUntil && rumiCurrent!=='idle') playRumi('idle'); }
   if(reached===false && controlEnabled && Math.hypot(gloomling.position.x-avatar.position.x,gloomling.position.z-avatar.position.z)<2.0){ reachSpot(); }
-  if(shopPending && controlEnabled){ const d=shopDoorPoint(); if(Math.hypot(avatar.position.x-d.x,avatar.position.z-d.z)<1.2) openShop(); }
+  if(buildingPending && controlEnabled){ const d=doorPoint(buildingPending.g); if(Math.hypot(avatar.position.x-d.x,avatar.position.z-d.z)<1.2){ const b=buildingPending; buildingPending=null; b.act(); } }
   if(blooming&&bloom<1){ bloom=Math.min(1,bloom+dt*.6); skyMat.color.copy(new THREE.Color('#9d97b6')).lerp(new THREE.Color('#ffffff'),bloom); scene.fog.color.copy(FOG_GRAY).lerp(FOG_BRIGHT,bloom);
     hemi.intensity=.45+.35*bloom; water.material.color.copy(new THREE.Color('#7fb6bf')).lerp(new THREE.Color('#3fc8d2'),bloom); water.material.emissiveIntensity=0.1*bloom; dock.material.color.copy(new THREE.Color('#e7c9a6')).lerp(new THREE.Color('#ffe3b0'),bloom);
     flowers.forEach((f,i)=>f.scale.setScalar(Math.max(0,Math.min(1,bloom*1.3-i*0.02))*(0.85+0.3*Math.sin(i)))); }

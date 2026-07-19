@@ -14,8 +14,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;700;800;900&family=Baloo+2:wght@500;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="harbor.css?v=92">
-  <link rel="stylesheet" href="a1.css?v=92">
+  <link rel="stylesheet" href="harbor.css?v=93">
+  <link rel="stylesheet" href="a1.css?v=93">
 </head>
 <body>
   <div id="scene-root"></div>
@@ -32,7 +32,7 @@
   <div id="hud" class="hidden">
     <div class="hud-top">
       <div class="day-chip">Day <span id="day-num">1</span> · ⭐<span id="star-num">0</span></div>
-      <div class="energy"><span class="energy-label">Harmony ✨</span><div class="energy-bar"><div id="energy-fill"></div></div></div>
+      <div class="energy"><span class="energy-label">✨ Harmony</span><div class="energy-bar"><div id="energy-fill"></div></div></div>
       <button id="hear-btn" class="hear-btn" title="Hear it again">🔊</button>
       <button id="music-btn" class="hear-btn" title="Music on/off">🎵</button>
       <button id="parent-open" class="parent-open" title="Grown-ups">👪</button>
@@ -91,6 +91,14 @@
         <button id="ch-hint" class="pill">💡 Hint</button>
       </div>
     </div>
+  </div>
+
+  <!-- Sound Wall (Mira's Academy) -->
+  <div id="soundwall" class="overlay soundwall hidden">
+    <h2>🎓 Mira's Sound Wall</h2>
+    <p class="shop-sub">Tap a letter to hear its sound!</p>
+    <div id="sw-options" class="ch-options"></div>
+    <button id="sw-close" class="big-btn">Done ▶</button>
   </div>
 
   <!-- Star Shop -->
@@ -162,7 +170,7 @@
   </div>
 
   <noscript><p style="color:#fff;padding:20px">Please enable JavaScript to play.</p></noscript>
-  <script type="module" src="a1.js?v=92"></script>
+  <script type="module" src="a1.js?v=93"></script>
   <script>
     if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(()=>{}));
   </script>
