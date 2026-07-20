@@ -81,3 +81,14 @@ quota-resilient voice pipeline, correct-answer hang fix, iOS long-press fix.
 3. Every shell-file change bumps SW + `?v=` — no exceptions.
 4. New state fields ship with a migration line.
 5. One pass = one commit with the self-review template.
+
+## 2026-07-17 — /loop cycle 1 (v94–v95)
+- v94 `26f23b9` Back button (founder request): top-left glass circle in
+  lessons/practice/soundwall/shop; lesson pauses at current question,
+  Library resumes; Star Check stays uninterruptible. Headless-verified.
+- v95 P4 Living Water & Sky: counter-rotating water shimmer layer, foam
+  ring at plaza edge, slow sky-dome drift, shooting-star wishes
+  (streak → landing sparkle → tap within 7s = +1⭐), Harmony Hours
+  light tint (morning/day/evening sun/rim/fog/lamps/windows, applied
+  after bloom). Deferred honestly: per-hour sky repaint (paintBackdrop
+  palette refactor) — tint-only this pass.

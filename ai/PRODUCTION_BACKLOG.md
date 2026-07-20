@@ -8,7 +8,7 @@ ChildDevelopmentNotes.md · TechnicalRoadmap.md · QAReport.md · AnalyticsPlan.
 v83 design-flow rebuild · v84 companion fix · v85 environment · v86 cohesion ·
 v87 world life · v88 Star Shop · **v89 HUD fixes · v90 P1 Doors & Choreography ·
 v91 P3 Safety & Truth (week-2 verified, 70 draw calls measured) ·
-v92 P2 Sound of the Harbor** — P1/P2/P3 of the five-pass plan are DONE.
+v92 P2 Sound of the Harbor · v93 World Layout (themed buildings) · v94 Back button · v95 P4 Living Water & Sky** — P1–P4 DONE.
 
 ## 🎯 Planned passes (Lead Dev proposal — approval pending)
 | Pass | Contents | Directors served | Impact | Effort |
@@ -16,7 +16,7 @@ v92 P2 Sound of the Harbor** — P1/P2/P3 of the five-pass plan are DONE.
 | ~~P1 Doors & Choreography~~ | ✅ shipped v89+v90 | | | |
 | ~~P2 Sound of the Harbor~~ | ✅ shipped v92 | | | |
 | ~~P3 Safety & Truth~~ | ✅ shipped v91 | | | |
-| **P4 Living Water & Sky** | 2-layer water shimmer + foam ring · sky star-drift + shooting-star wishes (tap = +1⭐) · harmony-hours 3-state time tint | Art 1/7 · Atmosphere A1/A2 | ★★★★ | M |
+| ~~P4 Living Water & Sky~~ | ✅ shipped v95 (sky repaint per hour deferred — tint-only) | | | |
 | **P5 Story-Wrapped Lessons** | Mission intro per day (host + location tint) · Sound Catch + Word Builder interaction shapes · mastery-adaptive picker | Learning L1-L3 · Child C3 | ★★★★★ | L · **gated on VO quota** |
 | P6 Living Town | NPC schedules · post-lesson fireflies · interactive-scenery upgrades (Atmosphere §4/§3b/§8) | Atmosphere · Gameplay | ★★★ | M |
 

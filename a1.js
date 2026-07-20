@@ -227,6 +227,11 @@ function waterTex(){ const s=512,cv=document.createElement('canvas'); cv.width=c
   x.globalCompositeOperation='source-over'; const t=new THREE.CanvasTexture(cv); t.colorSpace=THREE.SRGBColorSpace; t.center.set(0.5,0.5); return t; }
 const water=new THREE.Mesh(new THREE.CircleGeometry(WORLD_R,64), new THREE.MeshStandardMaterial({color:'#7fb6bf',roughness:.5,map:waterTex()}));
 water.rotation.x=-Math.PI/2; water.receiveShadow=true; scene.add(water);
+// P4: counter-rotating shimmer layer + soft foam ring where water meets the plaza
+const water2=new THREE.Mesh(new THREE.CircleGeometry(WORLD_R,64), new THREE.MeshBasicMaterial({map:waterTex(),transparent:true,opacity:0.20,depthWrite:false,blending:THREE.AdditiveBlending}));
+water2.rotation.x=-Math.PI/2; water2.position.y=0.015; scene.add(water2);
+const foam=new THREE.Mesh(new THREE.RingGeometry(8.92,9.32,64),new THREE.MeshBasicMaterial({color:'#eafcff',transparent:true,opacity:0.32,depthWrite:false,side:THREE.DoubleSide}));
+foam.rotation.x=-Math.PI/2; foam.position.y=0.035; scene.add(foam);
 const dock=new THREE.Mesh(new THREE.CircleGeometry(9,48), new THREE.MeshStandardMaterial({color:'#e7c9a6',roughness:1,map:dockTex()}));
 dock.rotation.x=-Math.PI/2; dock.position.y=0.02; dock.receiveShadow=true; scene.add(dock);
 // ---- Lighthouse: a real landmark (striped tower, stone base, gallery, glass lantern, starred roof) ----
@@ -343,7 +348,7 @@ function paintBackdrop(){ const W=2048,H=1024,cv=document.createElement('canvas'
   const t=new THREE.CanvasTexture(cv); t.colorSpace=THREE.SRGBColorSpace; return t; }
 const skyMat=new THREE.MeshBasicMaterial({map:paintBackdrop(),side:THREE.BackSide,fog:false,depthWrite:false}); skyMat.color.set('#9d97b6'); // dim until harmony returns
 const bgURL=QS.get('bg'); if(bgURL){ try{ new THREE.TextureLoader().load(bgURL,tx=>{ tx.colorSpace=THREE.SRGBColorSpace; skyMat.map=tx; skyMat.needsUpdate=true; }); }catch(e){} } // swap in a custom 2D image
-scene.add(new THREE.Mesh(skyGeo,skyMat)); scene.background=null;
+const skyMesh=new THREE.Mesh(skyGeo,skyMat); scene.add(skyMesh); scene.background=null;
 const clouds=[]; for(let i=0;i<5;i++){ const c=new THREE.Mesh(new THREE.SphereGeometry(2.2+Math.random()*1.5,10,8),new THREE.MeshBasicMaterial({color:'#ffffff',transparent:true,opacity:0.5,fog:false})); c.scale.y=0.45; c.position.set(-30+Math.random()*60,16+Math.random()*8,-18-Math.random()*30); clouds.push(c); scene.add(c); }
 let ambient=null; { const N=90,p=new Float32Array(N*3); for(let i=0;i<N;i++){ const a=Math.random()*Math.PI*2,r=2+Math.random()*18; p[i*3]=Math.cos(a)*r; p[i*3+1]=0.5+Math.random()*10; p[i*3+2]=Math.sin(a)*r; } const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.Float32BufferAttribute(p,3)); ambient=new THREE.Points(g,new THREE.PointsMaterial({color:'#FFE9A8',size:0.3,map:GLOW_TEX,transparent:true,opacity:0,depthWrite:false,blending:THREE.AdditiveBlending})); scene.add(ambient); } // soft round motes, not squares
 function radialTex(){ const cv=document.createElement('canvas'); cv.width=cv.height=64; const x=cv.getContext('2d'); const g=x.createRadialGradient(32,32,0,32,32,32); g.addColorStop(0,'rgba(255,240,180,1)'); g.addColorStop(1,'rgba(255,240,180,0)'); x.fillStyle=g; x.fillRect(0,0,64,64); return new THREE.CanvasTexture(cv); }
@@ -643,6 +648,7 @@ renderer.domElement.addEventListener('pointerdown',e=>{ if(e.isPrimary===false) 
   ndc.x=(e.clientX/innerWidth)*2-1; ndc.y=-(e.clientY/innerHeight)*2+1; ray.setFromCamera(ndc,camera);
   if(rumi.visible && ray.intersectObject(rumi,true).length){ rumiTip(); return; } // tap Rumi → tip
   for(const n of npcs){ if(ray.intersectObject(n.g,true).length){ npcGreet(n); return; } } // tap an idol → wave + hello
+  if(wish && ray.intersectObject(wish,true).length){ burst(wish.position.clone(),'#FFD24D',16); collectChime(); earnStars(1); twinkleCheer(1200); scene.remove(wish); wish=null; return; } // caught a wish!
   for(const bl of buildings){ if(ray.intersectObject(bl.g,true).length){ enterBuildingWalk(bl); return; } } // tap a building → walk to its door
   for(const p of tapProps){ if(ray.intersectObject(p.g,true).length){ propDelight(p); break; } } // tap a prop → pop + sparkle (still walks)
   buildingPending=null; // walking somewhere else cancels a pending visit
@@ -1267,6 +1273,21 @@ function routeDay(){ // restore prior cosmetics/rumi/twinkle visual state
 
 // ---------------- Main loop ----------------
 let lastT=performance.now();
+// P4: Harmony Hours — the harbor greets you differently by time of day (applied after the bloom story beat)
+const HOUR=(new Date()).getHours();
+const HOUR_TINT=(HOUR>=5&&HOUR<11)?{sun:'#ffe9c9',sunI:1.05,rim:'#8fb7ff',rimI:0.55,fog:'#dff2ff',lamp:0.55,win:0.35}
+  :(HOUR>=17||HOUR<5)?{sun:'#ffc98f',sunI:0.9,rim:'#c77dff',rimI:0.9,fog:'#c3aede',lamp:1.15,win:0.9}
+  :{sun:'#fff0d0',sunI:1.0,rim:'#b06aff',rimI:0.7,fog:'#cdefff',lamp:0.85,win:0.55};
+let LAMP_BASE=0.85;
+// P4: shooting-star wishes — a streak crosses the sky; catch the landing sparkle for +1 star
+let wishNext=performance.now()+50000, wish=null, wishStreak=null;
+function launchWish(){ const a=Math.random()*Math.PI*2, r=2.5+Math.random()*4.5;
+  const s2=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW_TEX,color:'#fff6d0',transparent:true,opacity:0.95,blending:THREE.AdditiveBlending,depthWrite:false}));
+  s2.scale.set(1.6,1.6,1); scene.add(s2); SFX.glass();
+  wishStreak={s:s2,f:new THREE.Vector3(-24+Math.random()*10,16,-14),t:new THREE.Vector3(Math.cos(a)*r,0.5,Math.sin(a)*r),p:0}; }
+function landWish(pos){ wish=new THREE.Mesh(new THREE.OctahedronGeometry(0.3),new THREE.MeshStandardMaterial({color:'#FFD24D',emissive:'#FFC83D',emissiveIntensity:1}));
+  wish.position.copy(pos); wish.position.y=0.9; addGlow(wish,{color:'#FFE9A8',size:2.2,opacity:0.85}); scene.add(wish);
+  wish.userData.until=performance.now()+7000; burst(pos.clone(),'#FFE9A8',10); }
 const FPS_ON=QS.get('fps')==='1'; let fpsEl=null,fpsN=0,fpsT=performance.now(); // ?fps=1 → live fps/draw-call overlay for device profiling
 function tick(now){ const dt=Math.min((now-lastT)/1000,.05); lastT=now; const t=now/1000;
   // ---- movement with personality: accel/decel, smooth turn, banking, idle life ----
@@ -1349,7 +1370,15 @@ function tick(now){ const dt=Math.min((now-lastT)/1000,.05); lastT=now; const t=
   // environment ambience: drifting clouds, twinkling motes, lighthouse halo
   for(const c of clouds){ c.position.x+=dt*0.6; if(c.position.x>34) c.position.x=-34; }
   for(const tr of trees) tr.g.rotation.z=Math.sin(t*0.8+tr.ph)*0.018; // gentle wind sway
-  lampMat.emissiveIntensity=0.85+0.15*Math.sin(t*2.1); // soft lamp breathing
+  lampMat.emissiveIntensity=LAMP_BASE+0.15*Math.sin(t*2.1); // soft lamp breathing
+  water2.material.map.rotation-=dt*0.014; foam.material.opacity=0.26+0.12*Math.sin(t*1.6); skyMesh.rotation.y+=dt*0.0045; // living water + drifting sky
+  if(controlEnabled && !wish && !wishStreak && performance.now()>wishNext){ launchWish(); wishNext=performance.now()+60000+Math.random()*60000; }
+  if(wishStreak){ wishStreak.p+=dt/1.1; const q=Math.min(1,wishStreak.p); wishStreak.s.position.lerpVectors(wishStreak.f,wishStreak.t,q); wishStreak.s.material.opacity=0.95*(1-q*0.35);
+    if(q>=1){ scene.remove(wishStreak.s); landWish(wishStreak.t); wishStreak=null; } }
+  if(wish){ wish.rotation.y+=dt*3; wish.position.y=0.9+Math.sin(t*4)*0.15; if(performance.now()>wish.userData.until){ scene.remove(wish); wish=null; } }
+  if(bloom>=1){ const k=Math.min(1,dt/3); sun.color.lerp(new THREE.Color(HOUR_TINT.sun),k); sun.intensity+=(HOUR_TINT.sunI-sun.intensity)*k;
+    rimLight.color.lerp(new THREE.Color(HOUR_TINT.rim),k); rimLight.intensity+=(HOUR_TINT.rimI-rimLight.intensity)*k;
+    scene.fog.color.lerp(new THREE.Color(HOUR_TINT.fog),k); LAMP_BASE+=(HOUR_TINT.lamp-LAMP_BASE)*k; winMat.emissiveIntensity+=(HOUR_TINT.win-winMat.emissiveIntensity)*k; }
   for(const p of tapProps){ if(p.pop>0){ p.pop=Math.max(0,p.pop-dt*2.6); const s=1+0.16*Math.sin((1-p.pop)*Math.PI); p.g.scale.setScalar(s); } } // tapped-prop squash pop
   for(const n of npcs){ if(n.mixer) n.mixer.update(dt); const np2=performance.now(); // ambient idols: never perfectly still
     if(np2>n.nextAct){ const pick=(n.actions.dance&&Math.random()<0.4)?'dance':(n.actions.wave?'wave':null);
