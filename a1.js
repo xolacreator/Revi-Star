@@ -272,7 +272,7 @@ function buildingSign(g,emoji,label,accent){ const cv=document.createElement('ca
 const buildings=[]; // {g,id,name,act} — tap → walk to door → the building's purpose happens
 function themedBuilding(id,name,emoji,x,z,wall,roof,accent,act){ const g=house(x,z,wall,roof); buildingSign(g,emoji,name,accent); buildings.push({g,id,name,act}); return g; }
 // North pair flanks the lighthouse — visible from spawn. East/west pair frames the plaza.
-const libHouse =themedBuilding('library','LIBRARY','📖',-5.6,-3.9,'#e9d7f7','#7B4FC4','#FFD24D',()=>startPractice());   // Rumi — reading practice
+const libHouse =themedBuilding('library','LIBRARY','📖',-5.6,-3.9,'#e9d7f7','#7B4FC4','#FFD24D',()=>{ pausedLesson?resumeLesson():startPractice(); }); // Rumi — practice, or resume a paused lesson
 const acadHouse=themedBuilding('academy','SOUNDS','🎓', 5.6,-3.9,'#cfeaf0','#4f8fae','#8FD0FF',()=>openSoundWall()); // Mira — tap-to-hear letter sounds
 const hallHouse=themedBuilding('hall','MUSIC','🎵',-7.0, 1.0,'#f8d3e6','#d1567f','#FF8FCF',()=>danceParty());        // Zoey — dance party
 const shopHouse=themedBuilding('shop','SHOP','⭐', 7.0, 1.0,'#cdb8f0','#7e5be0','#FFE08A',()=>openShop());           // Twinkle — the Star Shop
@@ -573,8 +573,8 @@ let buildingPending=null; // {g,act} — the building we're walking to
 function doorPoint(g){ const p=g.position.clone(); const dir=p.clone().negate().setY(0).normalize(); return p.add(dir.multiplyScalar(2.0)); }
 function enterBuildingWalk(b){ if(!controlEnabled) return; const d=doorPoint(b.g); target.copy(d); target.y=0; setMarker(d); buildingPending=b;
   burst(new THREE.Vector3(b.g.position.x,1.4,b.g.position.z),'#FFD24D',8); haptic(8); }
-function openShop(){ buildingPending=null; controlEnabled=false; setMarker(null); SFX.bell(); wipe(()=>{ renderShop(); show('shop'); }); log('shop_open',{stars:state.avatar.stars}); }
-function closeShop(){ wipe(()=>{ hide('shop'); controlEnabled=true; }); }
+function openShop(){ buildingPending=null; controlEnabled=false; setMarker(null); SFX.bell(); wipe(()=>{ renderShop(); show('shop'); showBack(closeShop); }); log('shop_open',{stars:state.avatar.stars}); }
+function closeShop(){ wipe(()=>{ hide('shop'); hideBack(); controlEnabled=true; }); }
 function spendStars(n,btn){ if(state.avatar.stars<n){ if(btn){ btn.classList.remove('deny'); void btn.offsetWidth; btn.classList.add('deny'); }
     const tip=$('shop-tip'); if(tip) tip.textContent='Read and collect to earn more ⭐!'; SFX.deny(); return false; }
   state.avatar.stars-=n; earnStars(0); const ss=$('shop-stars'); if(ss) ss.textContent=state.avatar.stars; return true; }
@@ -612,7 +612,7 @@ function startPractice(){ buildingPending=null; controlEnabled=false; setMarker(
   if(!list.length){ controlEnabled=true; return; }
   runActivities(list,()=>{ confetti(); SFX.fanfare();
     const p=praises[(Math.random()*praises.length)|0]; if(audioOn) say(p,{char:'rumi'});
-    controlEnabled=true; log('practice_done',{}); }); log('practice_start',{}); }
+    controlEnabled=true; log('practice_done',{}); },true); log('practice_start',{}); }
 let swLetters=[];
 function openSoundWall(){ buildingPending=null; controlEnabled=false; setMarker(null); // Mira's Academy: tap a letter, hear its sound (all clips already voiced)
   const day=state.day>0?state.day:1; const host=$('sw-options'); if(!host){ controlEnabled=true; return; }
@@ -622,8 +622,9 @@ function openSoundWall(){ buildingPending=null; controlEnabled=false; setMarker(
     b.onclick=()=>{ if(audioOn) say(L[1]); b.classList.remove('correct'); void b.offsetWidth; b.classList.add('correct'); sparkleAt(b,5); haptic(6);
       setTimeout(()=>b.classList.remove('correct'),700); };
     host.appendChild(b); });
-  wipe(()=>show('soundwall')); log('soundwall_open',{});
-  const c=$('sw-close'); if(c) c.onclick=()=>{ wipe(()=>{ hide('soundwall'); controlEnabled=true; }); }; }
+  const closeSW=()=>{ wipe(()=>{ hide('soundwall'); hideBack(); controlEnabled=true; }); };
+  wipe(()=>{ show('soundwall'); showBack(closeSW); }); log('soundwall_open',{});
+  const c=$('sw-close'); if(c) c.onclick=closeSW; }
 function danceParty(){ buildingPending=null; if(!controlEnabled) return; controlEnabled=false; setMarker(null); // Zoey's Music Hall: everyone dances!
   spotOn=1; confetti(); SFX.combo(); haptic(20); log('dance_party',{});
   if(rumiActions.dance){ playRumi('dance'); rumiWaveUntil=performance.now()+5200; }
@@ -677,6 +678,10 @@ function sparkleAt(el,n=10){ if(!el)return; const r=el.getBoundingClientRect(); 
     document.body.appendChild(s); setTimeout(()=>s.remove(),760); } }
 function coachHop(){ const el=$('coach-img')&&!$('coach-img').classList.contains('hidden')?$('coach-img'):$('coach-face'); if(!el)return; el.classList.remove('cheer'); void el.offsetWidth; el.classList.add('cheer'); setTimeout(()=>el.classList.remove('cheer'),640); }
 function reEnter(el){ if(!el)return; el.classList.remove('enter'); void el.offsetWidth; el.classList.add('enter'); setTimeout(()=>el.classList.remove('enter'),560); }
+// Back button (top-left): one consistent way OUT of lessons, practice, sound wall, shop.
+let backAct=null;
+function showBack(fn){ backAct=fn; const b=$('back-btn'); if(b) b.classList.remove('hidden'); }
+function hideBack(){ backAct=null; const b=$('back-btn'); if(b) b.classList.add('hidden'); }
 // P1b: star-iris "door" transition — covers the screen, swaps scenes under cover, reveals.
 let wiping=false;
 function wipe(mid){ if(wiping){ try{mid&&mid();}catch(e){} return; } wiping=true; SFX.whoosh();
@@ -906,7 +911,13 @@ VO_LINES["Let's play Twinkle's Star Check! Just try your best — it's only for 
 // =====================================================================
 const praises=["You did it!","Wonderful reading!","You're a reading star!","Amazing!","Yay! You read it!"];
 let curList=[], curIdx=0, onListDone=null, dayMistakes=0;
-function runActivities(list,done){ curList=list; curIdx=0; onListDone=done; dayMistakes=0; setMarker(null); wipe(()=>{ show('challenge'); renderActivity(); }); }
+let curPractice=false, lessonExited=false, pausedLesson=false;
+function runActivities(list,done,practice){ curList=list; curIdx=0; onListDone=done; dayMistakes=0; curPractice=!!practice; lessonExited=false; pausedLesson=false;
+  setMarker(null); wipe(()=>{ show('challenge'); showBack(exitLesson); renderActivity(); }); }
+function exitLesson(){ stopAudio(); lessonExited=true; hideBack(); // pause, never punish — the day lesson resumes at the same question
+  wipe(()=>{ hide('challenge'); controlEnabled=true; if(!curPractice){ pausedLesson=true; setHint('Tap the 📖 Library to keep reading!'); } }); }
+function resumeLesson(){ lessonExited=false; pausedLesson=false; controlEnabled=false; setMarker(null); $('hint').style.opacity=0;
+  wipe(()=>{ show('challenge'); showBack(exitLesson); renderActivity(); }); }
 function renderLights(){ const el=$('ch-lights'); const n=curList.length; const done=Math.min(curIdx,n);
   // P1c: pre-numeric progress — a filling bar of star nubs (rows of 7, matching the celebration cadence)
   el.classList.remove('count'); el.classList.add('starbar'); el.innerHTML='';
@@ -958,7 +969,7 @@ function drawCoach(mode){ coachCurMode=mode||'smile';
   if(mode==='think'){ g.moveTo(54,ey+22); g.lineTo(66,ey+21); } else { g.moveTo(51,ey+18); g.quadraticCurveTo(60,ey+28,69,ey+18); } g.stroke(); }
 function coach(mode,line){ const l=$('coach-line'); if(l&&line!=null) l.textContent=line; drawCoach(mode||'smile'); }
 setCoachChar('rumi'); // week-1 default; startDay() switches the guide per week
-function renderActivity(){ const a=curList[curIdx]; mistakes=0; itemHints=0; itemModeled=false; itemStart=performance.now();
+function renderActivity(){ if(lessonExited) return; const a=curList[curIdx]; mistakes=0; itemHints=0; itemModeled=false; itemStart=performance.now();
   coach('smile', a.coachLine || a.prompt);
   $('ch-pic').textContent=a.pic; $('ch-prompt').textContent=a.prompt; $('ch-options').innerHTML=''; renderLights();
   reEnter($('ch-pic')); reEnter($('ch-prompt')); // PASS 6: animate the subject + question in on each item
@@ -1035,9 +1046,9 @@ function correct(a,btn){ btn.classList.remove('glowhint'); btn.classList.add('co
   [...$('ch-options').querySelectorAll('.opt')].forEach(b=>b.onclick=null);
   const p=praises[(Math.random()*praises.length)|0]; coach('cheer',p);
   let advanced=false;
-  const adv=()=>{ if(advanced) return; advanced=true; curIdx++; renderLights(); // advance once praise ends OR the cap fires
+  const adv=()=>{ if(advanced||lessonExited) return; advanced=true; curIdx++; renderLights(); // advance once praise ends OR the cap fires
     if(curIdx<curList.length){ setTimeout(renderActivity, midSetBeat()?1700:280); } // a breath between items
-    else { wipe(()=>{ hide('challenge'); onListDone(); }); } };
+    else { hideBack(); wipe(()=>{ hide('challenge'); onListDone(); }); } };
   if(audioOn) say(p,{char:coachChar,then:adv}); else setTimeout(adv,450);
   setTimeout(adv,1700); // safety cap — never let a stuck audio clip freeze the game
 }
@@ -1216,7 +1227,7 @@ function decideDay(){ const forced=QS.get('day'); if(forced){ return Math.max(1,
 function boot(){
   loadVOManifest(); maybeLoadHero(); maybeLoadRumi();
   setTimeout(loadAmbientIdols,2500); // ambient idols load after the essentials so startup stays fast
-  applyShopOwned(); const scb=$('shop-close'); if(scb) scb.onclick=closeShop; // Star Shop: rebuild purchases + wire close
+  applyShopOwned(); const scb=$('shop-close'); if(scb) scb.onclick=closeShop; const bb=$('back-btn'); if(bb) bb.onclick=()=>{ if(backAct){ SFX.whoosh; const f=backAct; f(); } }; // back button routes to the current screen's exit
   updateMusicBtn(); const mb=$('music-btn'); if(mb) mb.onclick=toggleMusic;
   const hb=$('hear-btn'); if(hb) hb.onclick=()=>{ if(lastSay) say(lastSay.t,{id:lastSay.id,char:lastSay.char}); }; // 🔊 = hear it again
   if(QS.get('observe')==='1'){ show('observer'); $('mark-smile').onclick=()=>recordExcitement('smile'); $('mark-excited').onclick=()=>recordExcitement('excited'); }

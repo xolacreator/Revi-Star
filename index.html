@@ -14,8 +14,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;700;800;900&family=Baloo+2:wght@500;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="harbor.css?v=93">
-  <link rel="stylesheet" href="a1.css?v=93">
+  <link rel="stylesheet" href="harbor.css?v=94">
+  <link rel="stylesheet" href="a1.css?v=94">
 </head>
 <body>
   <div id="scene-root"></div>
@@ -39,6 +39,9 @@
     </div>
     <div id="hint" class="hint"></div>
   </div>
+
+  <!-- Back button (top-left, appears inside lessons / sound wall / shop) -->
+  <button id="back-btn" class="back-btn hidden" title="Back">◀</button>
 
   <!-- Speech bubble -->
   <div id="bubble" class="bubble hidden"><span id="bubble-name"></span><p id="bubble-text"></p><button id="bubble-next" class="bubble-next">Tap ▶</button></div>
@@ -170,7 +173,7 @@
   </div>
 
   <noscript><p style="color:#fff;padding:20px">Please enable JavaScript to play.</p></noscript>
-  <script type="module" src="a1.js?v=93"></script>
+  <script type="module" src="a1.js?v=94"></script>
   <script>
     if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(()=>{}));
   </script>

@@ -35,6 +35,10 @@ h1,h2,h3{font-family:var(--font-display);font-weight:700;letter-spacing:.2px}
 .hear-btn:active{transform:scale(.9)}
 .hint{position:absolute;left:0;right:0;bottom:120px;text-align:center;font-weight:700;font-size:18px;color:#fff;text-shadow:0 2px 6px rgba(80,40,120,.7);padding:0 24px;transition:opacity .4s}
 
+/* ---------- Back button (top-left; lessons, sound wall, shop) ---------- */
+.back-btn{position:fixed;top:calc(env(safe-area-inset-top) + 12px);left:12px;z-index:30;width:48px;height:48px;border-radius:50%;border:1.5px solid rgba(255,255,255,.5);background:rgba(20,15,40,.55);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);color:#fff;font-size:20px;padding-right:3px;box-shadow:0 4px 14px rgba(0,0,0,.35);transition:transform .12s}
+.back-btn:active{transform:scale(.88)}
+
 /* ---------- Speech bubble ---------- */
 .bubble{position:fixed;left:16px;right:16px;bottom:calc(24px + env(safe-area-inset-bottom));background:linear-gradient(180deg,#fff,#FBF4FF);border:2px solid rgba(255,255,255,.9);border-radius:26px;padding:18px 20px;box-shadow:var(--sh-md),inset 0 1px 0 rgba(255,255,255,.9);pointer-events:auto;animation:pop .3s cubic-bezier(.34,1.56,.64,1) both;z-index:6}
 #bubble-name{display:inline-block;background:var(--grad-gold);color:#5A3A00;font-family:var(--font-display);font-weight:600;font-size:14px;padding:3px 13px;border-radius:999px;margin-bottom:6px;box-shadow:0 2px 6px rgba(224,153,26,.4)}
