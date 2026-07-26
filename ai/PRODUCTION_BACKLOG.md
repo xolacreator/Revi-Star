@@ -18,15 +18,13 @@ v92 P2 Sound of the Harbor · v93 World Layout (themed buildings) · v94 Back bu
 | ~~P3 Safety & Truth~~ | ✅ shipped v91 | | | |
 | ~~P4 Living Water & Sky~~ | ✅ shipped v95 (sky repaint per hour deferred — tint-only) | | | |
 | **P5 Story-Wrapped Lessons** | Mission intro per day (host + location tint) · Sound Catch + Word Builder interaction shapes · mastery-adaptive picker | Learning L1-L3 · Child C3 | ★★★★★ | L · **gated on VO quota** |
-| P6 Living Town | NPC schedules · post-lesson fireflies · interactive-scenery upgrades (Atmosphere §4/§3b/§8) | Atmosphere · Gameplay | ★★★ | M |
+| ~~P6 Living Town~~ | ✅ shipped v96 (fireflies, petals, lamp flash, Twinkle idle-helper, bigger hit areas; NPC schedules deferred) | | | |
 
 ## 🔴 High (unscheduled)
 - **Voice batches the moment ElevenLabs quota resets** (founder action): blocked
   skills (blend/rhyme/case/sight) → shop lines → mission intros → celebrations
 - Modularize a1.js (T1) — must land before P5/interiors
 - Avatar cosmetics attach to GLB hero bones (Art 8 — transform rewards invisible on real hero)
-- Idle helper: Twinkle flies toward objective after 20s stall (Child C5)
-- Bigger raycast hit-areas for small props (Child C4)
 - Scripted full-day headless QA run (QA top ask)
 
 ## 🟡 Medium

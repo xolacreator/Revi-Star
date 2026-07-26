@@ -92,3 +92,11 @@ quota-resilient voice pipeline, correct-answer hang fix, iOS long-press fix.
   light tint (morning/day/evening sun/rim/fog/lamps/windows, applied
   after bloom). Deferred honestly: per-hour sky repaint (paintBackdrop
   palette refactor) — tint-only this pass.
+
+## /loop cycle 2 — v96 P6 Living Town
+Fireflies orbit the lighthouse after the day's lesson (and on
+already-played boots); trees/planters shed petals on tap; lamps flash;
+Twinkle notices a 20s stall and flies toward what's next (paused lesson
+→ Library, else Gloomling, else Shop; 40s cooldown); invisible tap-target
+spheres double the hit area of lamps/planters/crystals (Child C4+C5
+closed). NPC time-of-day schedules deferred to a later cycle.

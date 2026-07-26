@@ -285,12 +285,14 @@ const shopHouse=themedBuilding('shop','SHOP','⭐', 7.0, 1.0,'#cdb8f0','#7e5be0'
 
 // ---- Plaza dressing: lamp posts, festival bunting, benches, planters, crates, trees ----
 const tapProps=[]; // World Life: props that pop + sparkle when a child taps them {g,col,pop}
+const HITMAT=new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false}); // invisible tap-target expander
+function padHit(obj,r=0.95,y=0){ const h=new THREE.Mesh(new THREE.SphereGeometry(r,6,6),HITMAT); h.position.y=y; obj.add(h); }
 const lampMat=new THREE.MeshStandardMaterial({color:'#ffe9b0',emissive:'#ffcf70',emissiveIntensity:.9,roughness:.5});
 const poleMat=new THREE.MeshToonMaterial({color:'#3f3560',gradientMap:TOON_RAMP});
 const LAMP_POS=[[6.4,-5.2],[-6.4,-5.2],[-6.4,5.6],[6.4,5.6]];
 LAMP_POS.forEach(([x,z])=>{ const pole=new THREE.Mesh(new THREE.CylinderGeometry(0.07,0.1,2.6,8),poleMat); pole.position.set(x,1.3,z);
   const cap=new THREE.Mesh(new THREE.SphereGeometry(0.2,10,10),lampMat); cap.position.set(x,2.7,z);
-  addGlow(cap,{color:'#ffd98a',size:1.5,opacity:0.55}); scene.add(pole,cap); tapProps.push({g:cap,col:'#ffd98a',pop:0,snd:'glass'}); });
+  addGlow(cap,{color:'#ffd98a',size:1.5,opacity:0.55}); padHit(cap,0.9); scene.add(pole,cap); tapProps.push({g:cap,col:'#ffd98a',pop:0,snd:'glass'}); });
 // Bunting: one merged triangle-pennant geometry (single draw call), sagging between the lamps.
 { const cols=[[1,0.78,0.24],[1,0.56,0.81],[0.56,0.82,1],[0.49,0.94,0.75],[0.71,0.61,0.94]]; const pos=[],col=[];
   for(let s=0;s<LAMP_POS.length;s++){ const [ax,az]=LAMP_POS[s], [bx,bz]=LAMP_POS[(s+1)%LAMP_POS.length];
@@ -310,7 +312,7 @@ const woodMat=new THREE.MeshToonMaterial({color:'#a8795a',gradientMap:TOON_RAMP}
   const pot=new THREE.Mesh(new THREE.CylinderGeometry(0.42,0.34,0.4,10),new THREE.MeshToonMaterial({color:'#c98d68',gradientMap:TOON_RAMP})); pot.position.y=0.2;
   const PCOL=['#ff8fcf','#ffd24d','#8fd0ff','#7ef0c0','#b69cff'];
   g.add(pot); for(let i=0;i<3;i++){ const f=new THREE.Mesh(new THREE.SphereGeometry(0.14,8,8),new THREE.MeshToonMaterial({color:PCOL[(pi+i)%5],gradientMap:TOON_RAMP})); f.position.set((i-1)*0.2,0.52,(i%2)*0.12-0.06); g.add(f); }
-  g.position.set(x,0,z); scene.add(g); tapProps.push({g,col:'#ff8fcf',pop:0,snd:'leaf'}); });
+  g.position.set(x,0,z); padHit(g,1.0,0.5); scene.add(g); tapProps.push({g,col:'#ff8fcf',pop:0,snd:'leaf'}); });
 [[7.9,-3.6,0.3],[7.4,-4.3,-0.2]].forEach(([x,z,ry])=>{ const c=new THREE.Mesh(new THREE.BoxGeometry(0.7,0.7,0.7),woodMat); c.position.set(x,0.35,z); c.rotation.y=ry; c.castShadow=true; scene.add(c); tapProps.push({g:c,col:'#e8b98a',pop:0,snd:'wood'}); });
 // Stylized toon trees (green, mint, and one pink blossom) with a gentle sway
 const trees=[];
@@ -381,7 +383,7 @@ const crystals=[];
 function makeCrystal(x,z,col,h){ const g=new THREE.Group();
   const c=new THREE.Mesh(new THREE.ConeGeometry(0.35,h,6),new THREE.MeshToonMaterial({color:col,gradientMap:TOON_RAMP,emissive:new THREE.Color(col),emissiveIntensity:0.5})); c.position.y=h/2; c.castShadow=true;
   const tip=new THREE.Mesh(new THREE.OctahedronGeometry(0.24),new THREE.MeshToonMaterial({color:col,gradientMap:TOON_RAMP,emissive:new THREE.Color(col),emissiveIntensity:0.6})); tip.position.y=h+0.1;
-  g.add(c,tip); addGlow(g,{color:col,size:1.6,opacity:0.5,pos:[0,h*0.7,0]}); g.position.set(x,0,z); g.rotation.y=Math.random()*6; scene.add(g); crystals.push({g,seed:Math.random()*6}); tapProps.push({g,col,pop:0,snd:'crystal'}); }
+  g.add(c,tip); addGlow(g,{color:col,size:1.6,opacity:0.5,pos:[0,h*0.7,0]}); g.position.set(x,0,z); g.rotation.y=Math.random()*6; padHit(g,1.0,0.8); scene.add(g); crystals.push({g,seed:Math.random()*6}); tapProps.push({g,col,pop:0,snd:'crystal'}); }
 [[-9,-5],[9,-5],[-11,1],[11,2],[-6,6],[6,7]].forEach((p,i)=>makeCrystal(p[0],p[1],CRYSTAL_COLS[i%CRYSTAL_COLS.length],1.1+Math.random()*0.9));
 const glyphs=[];
 function makeGlyph(x,z,col,r){ const g=new THREE.Group();
@@ -644,7 +646,7 @@ function rumiTip(){ const np=performance.now(); if(np<rumiTipT) return; rumiTipT
   if(rumiActions.wave){ playRumi('wave'); rumiWaveUntil=np+1500; rumiNextWave=np+8000; }
   burst(new THREE.Vector3(rumi.position.x,1.9,rumi.position.z),'#FFE08A',8);
   if(audioOn){ const ti=(Math.random()*RUMI_TIPS.length)|0; say(RUMI_TIPS[ti],{id:'tip_'+ti}); } }
-renderer.domElement.addEventListener('pointerdown',e=>{ if(e.isPrimary===false) return; tapRing(e.clientX,e.clientY); haptic(8); if(!controlEnabled) return;
+renderer.domElement.addEventListener('pointerdown',e=>{ if(e.isPrimary===false) return; lastInputT=performance.now(); tapRing(e.clientX,e.clientY); haptic(8); if(!controlEnabled) return;
   ndc.x=(e.clientX/innerWidth)*2-1; ndc.y=-(e.clientY/innerHeight)*2+1; ray.setFromCamera(ndc,camera);
   if(rumi.visible && ray.intersectObject(rumi,true).length){ rumiTip(); return; } // tap Rumi → tip
   for(const n of npcs){ if(ray.intersectObject(n.g,true).length){ npcGreet(n); return; } } // tap an idol → wave + hello
@@ -654,7 +656,9 @@ renderer.domElement.addEventListener('pointerdown',e=>{ if(e.isPrimary===false) 
   buildingPending=null; // walking somewhere else cancels a pending visit
   dragging=true; tapGround(e.clientX,e.clientY); });
 function propDelight(p){ p.pop=1; const w=new THREE.Vector3(); p.g.getWorldPosition(w); w.y+=0.9;
-  burst(w,p.col,8); (SFX[p.snd]||chirp)(); haptic(8); }
+  burst(w,p.col,8); (SFX[p.snd]||chirp)(); haptic(8);
+  if(p.snd==='leaf'){ for(let i=0;i<3;i++) setTimeout(()=>spawnStepFlower(w.x+(Math.random()-0.5)*1.2, w.z+(Math.random()-0.5)*1.2), i*140); } // trees & planters shed petals
+  if(p.snd==='glass') burst(new THREE.Vector3(w.x,w.y+1.4,w.z),'#ffffff',6); } // lamps flash bright
 renderer.domElement.addEventListener('pointermove',e=>{ if(e.isPrimary===false||!dragging||!controlEnabled) return;
   if(tapGround(e.clientX,e.clientY,false)){ dragTrailT-=1; if(dragTrailT<=0){ dragTrailT=4; tapRing(e.clientX,e.clientY); } } }); // light dotted feedback as the finger drags
 const endDrag=()=>{ dragging=false; };
@@ -1149,7 +1153,7 @@ function twinkleEvolve(then){ log('twinkle_evolve',{form:2}); state.twinkleForm=
   setTimeout(()=>{ hide('transform'); save(); then(); },3000);
 }
 
-function rewardDay(){ // reward cards per day
+function rewardDay(){ igniteFireflies(); // reward cards per day
   const nm=heroName();
   const week=Math.ceil(state.day/7);
   const cards = state.day===1 ? [['🌟','My Star Hunter','You leveled up!'],['🦊','Twinkle','A new friend!'],['⭐','Reading Star','You read 2 words!']]
@@ -1266,7 +1270,7 @@ function routeDay(){ // restore prior cosmetics/rumi/twinkle visual state
   if(state.avatar.cosmetics.includes('cape')) addCape();
   if(state.rumiStage>=2){ rumiJacket.emissive.set('#FFC83D'); rumiJacket.emissiveIntensity=.6; }
   const d=decideDay();
-  if(d===-1){ $('dg-emoji').textContent='🌙'; $('dg-title').textContent='See you tomorrow!'; $('dg-text').textContent='You already played today — come back tomorrow for the next adventure! (Grown-ups can tap 👪 to continue testing.)'; show('hud'); show('daygate'); $('dg-close').onclick=()=>hide('daygate'); if(audioOn) say("See you tomorrow!"); return; }
+  if(d===-1){ $('dg-emoji').textContent='🌙'; $('dg-title').textContent='See you tomorrow!'; $('dg-text').textContent='You already played today — come back tomorrow for the next adventure! (Grown-ups can tap 👪 to continue testing.)'; show('hud'); show('daygate'); $('dg-close').onclick=()=>hide('daygate'); igniteFireflies(); if(audioOn) say("See you tomorrow!"); return; }
   if(d===-2){ $('dg-emoji').textContent='🏆'; $('dg-title').textContent='You finished all 21 days!'; $('dg-text').textContent='Three weeks of reading — amazing! More is coming soon. 💛'; show('hud'); show('daygate'); $('dg-close').onclick=()=>hide('daygate'); return; }
   startDay(d);
 }
@@ -1281,6 +1285,13 @@ const HOUR_TINT=(HOUR>=5&&HOUR<11)?{sun:'#ffe9c9',sunI:1.05,rim:'#8fb7ff',rimI:0
 let LAMP_BASE=0.85;
 // P4: shooting-star wishes — a streak crosses the sky; catch the landing sparkle for +1 star
 let wishNext=performance.now()+50000, wish=null, wishStreak=null;
+// P6: fireflies orbit the lighthouse once today's lesson is done — the world remembers
+const fireflies=[]; let firefliesOn=false;
+function igniteFireflies(){ if(firefliesOn) return; firefliesOn=true;
+  for(let i=0;i<12;i++){ const s2=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW_TEX,color:'#d8ffb0',transparent:true,opacity:0.8,blending:THREE.AdditiveBlending,depthWrite:false}));
+    s2.scale.set(0.28,0.28,1); scene.add(s2); fireflies.push({s:s2,ph:i*0.52,r:2.6+Math.random()*1.4,h:1+Math.random()*2.4,sp:0.3+Math.random()*0.4}); } }
+// P6: Twinkle notices when a child stalls and flies toward what's next
+let lastInputT=performance.now(), twGuideUntil=0, twGuideCool=0; const twGuideTarget=new THREE.Vector3();
 function launchWish(){ const a=Math.random()*Math.PI*2, r=2.5+Math.random()*4.5;
   const s2=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW_TEX,color:'#fff6d0',transparent:true,opacity:0.95,blending:THREE.AdditiveBlending,depthWrite:false}));
   s2.scale.set(1.6,1.6,1); scene.add(s2); SFX.glass();
@@ -1340,7 +1351,8 @@ function tick(now){ const dt=Math.min((now-lastT)/1000,.05); lastT=now; const t=
   if(gloomling.visible) gloomling.position.y=Math.sin(t*2)*.1;
   if(twinkle.visible){ const np=performance.now(), cheering=np<twCheerUntil, spinning=np<twSpinUntil;
     let baseY=Math.sin(t*3)*.12; if(cheering) baseY=Math.abs(Math.sin(t*12))*0.5; // excited hops
-    if(twinkleFollows){ const yaw=avatar.rotation.y; // float to the avatar's side + slightly behind, OFF the camera axis so it never blocks the characters
+    if(np<twGuideUntil){ twinkle.position.lerp(twGuideTarget,1-Math.exp(-dt*2.2)); } // idle helper: fly toward what's next
+    else if(twinkleFollows){ const yaw=avatar.rotation.y; // float to the avatar's side + slightly behind, OFF the camera axis so it never blocks the characters
       const off=new THREE.Vector3(Math.cos(yaw)*1.7-Math.sin(yaw)*0.5,0,-Math.sin(yaw)*1.7-Math.cos(yaw)*0.5); const goal=avatar.position.clone().add(off);
       twinkle.position.lerp(new THREE.Vector3(goal.x,twinkle.position.y,goal.z),1-Math.exp(-dt*4)); twinkle.position.y=1.6+baseY; }
     else twinkle.position.y=baseY;
@@ -1375,6 +1387,10 @@ function tick(now){ const dt=Math.min((now-lastT)/1000,.05); lastT=now; const t=
   if(controlEnabled && !wish && !wishStreak && performance.now()>wishNext){ launchWish(); wishNext=performance.now()+60000+Math.random()*60000; }
   if(wishStreak){ wishStreak.p+=dt/1.1; const q=Math.min(1,wishStreak.p); wishStreak.s.position.lerpVectors(wishStreak.f,wishStreak.t,q); wishStreak.s.material.opacity=0.95*(1-q*0.35);
     if(q>=1){ scene.remove(wishStreak.s); landWish(wishStreak.t); wishStreak=null; } }
+  for(const f of fireflies){ const a2=t*f.sp+f.ph; f.s.position.set(Math.cos(a2)*f.r, f.h+Math.sin(t*2+f.ph)*0.3, -6+Math.sin(a2)*f.r); f.s.material.opacity=0.5+0.4*Math.sin(t*3+f.ph); }
+  { const np3=performance.now(); if(controlEnabled && twinkle.visible && twinkleFollows && np3-lastInputT>20000 && np3>twGuideCool){
+      const g2=pausedLesson?libHouse.position:(gloomling.visible?gloomling.position:shopHouse.position);
+      twGuideTarget.set(g2.x,1.8,g2.z); twGuideUntil=np3+3600; twGuideCool=np3+40000; chirp(); } }
   if(wish){ wish.rotation.y+=dt*3; wish.position.y=0.9+Math.sin(t*4)*0.15; if(performance.now()>wish.userData.until){ scene.remove(wish); wish=null; } }
   if(bloom>=1){ const k=Math.min(1,dt/3); sun.color.lerp(new THREE.Color(HOUR_TINT.sun),k); sun.intensity+=(HOUR_TINT.sunI-sun.intensity)*k;
     rimLight.color.lerp(new THREE.Color(HOUR_TINT.rim),k); rimLight.intensity+=(HOUR_TINT.rimI-rimLight.intensity)*k;
