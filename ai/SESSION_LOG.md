@@ -100,3 +100,16 @@ Twinkle notices a 20s stall and flies toward what's next (paused lesson
 → Library, else Gloomling, else Shop; 40s cooldown); invisible tap-target
 spheres double the hit area of lamps/planters/crystals (Child C4+C5
 closed). NPC time-of-day schedules deferred to a later cycle.
+
+## /loop cycle 3 — v97 Building Identity + Telemetry
+Each building now has a nameable silhouette: Library gets a gabled
+open-book roof + porch lamp, Academy a bell tower with speaker horns,
+Music Hall a neon marquee arch + note + bulbs, Shop a striped awning.
+Camera pulled to (0,6.9,13.6) so the whole town frames from spawn.
+Telemetry (Analytics rev.2): session_end (duration/items/hints/stars/
+props/npc/shops/wishes, fires on daygate + tab-hide), lesson_pace every
+7th item, vo_missing per absent clip — the explore blind spot is closed
+and voice-coverage debt now reports itself from the field.
+Harness caught a real TDZ bug pre-ship (libraryDress used lampMat
+before init) — `node -c` passed, the browser probe did not. Standing
+lesson #1 re-earned.

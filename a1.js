@@ -29,6 +29,10 @@ if(!state.v) state.v=1; // save-schema version — bump with a migrate step when
 // ?allskills=1 bypass voiced-only filter · ?observe=1 researcher bar · ?bg=<url> custom sky · ?hero=<url> custom rig
 let events = (()=>{ try{ return JSON.parse(localStorage.getItem(EKEY))||[]; }catch(e){ return []; } })();
 let launchT = 0, delight={interaction:null,reward:null,smile:null,excited:null};
+const SESS={props:0,npc:0,shops:0,items:0,hints:0,stars0:0,wishes:0,ended:false};
+function sessionEnd(why){ if(SESS.ended||!launchT) return; SESS.ended=true;
+  log('session_end',{why,dur_s:Math.round((performance.now()-launchT)/1000),items:SESS.items,hints:SESS.hints,
+    stars_earned:state.avatar.stars-SESS.stars0,props:SESS.props,npc:SESS.npc,shops:SESS.shops,wishes:SESS.wishes}); }
 function log(ev,data={}){ events.push({t:Date.now(), rel: launchT?Math.round((performance.now()-launchT)):null, ev, day:state.day, ...data});
   try{ localStorage.setItem(EKEY, JSON.stringify(events)); }catch(e){} }
 
@@ -98,9 +102,11 @@ function playClip(a,then){ try{ stopAudio(); a.currentTime=0; curClip=a; if(type
   const p=a.play(); if(p&&p.catch) p.catch(()=>{ if(curClip===a) curClip=null; if(typeof duckMusic==='function') duckMusic(false); if(then) setTimeout(then,300); }); return true; }catch(e){ return false; } }
 const ALLOW_TTS=false; // device/robotic voice fully disabled — real character clips only
 let lastSay=null; // remembered so the HUD 🔊 can replay the last line
+const VO_MISS={};
 function say(t,{rate=null,pitch=null,then=null,char='narrator',id=null}={}){
   if(t||id) lastSay={t,id,char};
   const cid=clipIdFor(t,id); if(cid && audioOn){ const ck=charProfile(char); const pick=VO_HAVE[cid+'__'+ck]||VO_HAVE[cid]; if(pick && playClip(pick,then)) return; } // per-character AI clip, then generic
+  if(cid && audioOn && !VO_MISS[cid]){ VO_MISS[cid]=1; log('vo_missing',{clip:cid}); } // live voice-coverage debt
   if(!ALLOW_TTS || !audioOn || !('speechSynthesis' in window)){ stopAudio(); if(then) setTimeout(then,500); return; } // no clip → silent (no robotic), keep flow alive
   const pr=VOICE_PROFILE[charProfile(char)]||VOICE_PROFILE.narrator;
   try{ stopAudio(); const u=new SpeechSynthesisUtterance(t); u.rate=(rate!=null?rate:pr.rate); u.pitch=(pitch!=null?pitch:pr.pitch);
@@ -165,7 +171,7 @@ const scene=new THREE.Scene();
 const FOG_GRAY=new THREE.Color('#b9b3c6'), FOG_BRIGHT=new THREE.Color('#cdefff');
 scene.background=FOG_GRAY.clone(); scene.fog=new THREE.Fog(FOG_GRAY.clone(),22,60);
 const camera=new THREE.PerspectiveCamera(56, innerWidth/innerHeight,0.1,200);
-const CAM_OFF=new THREE.Vector3(0,5.9,11.2); // lower, more cinematic angle: shows the skyline + town, not just ground
+const CAM_OFF=new THREE.Vector3(0,6.9,13.6); // lower, more cinematic angle: shows the skyline + town, not just ground
 // ---- Stylized 3-point lighting (warm KEY / cool-blue FILL / purple RIM) — HUNTRIX stage look ----
 const hemi=new THREE.HemisphereLight('#eaf2ff','#b6a9d8',0.45); scene.add(hemi); // soft ambient keeps characters readable
 const sun=new THREE.DirectionalLight('#fff0d0',1.0); sun.position.set(8,16,6); sun.castShadow=true; // KEY (warm)
@@ -276,11 +282,30 @@ function buildingSign(g,emoji,label,accent){ const cv=document.createElement('ca
   addGlow(g,{color:accent,size:1.25,opacity:0.5,pos:[0,0.7,1.15]}); } // themed welcoming door glow
 const buildings=[]; // {g,id,name,act} — tap → walk to door → the building's purpose happens
 function themedBuilding(id,name,emoji,x,z,wall,roof,accent,act){ const g=house(x,z,wall,roof); buildingSign(g,emoji,name,accent); buildings.push({g,id,name,act}); return g; }
+// Each building gets a silhouette a child can name from across the plaza.
+function libraryDress(g){ const m=new THREE.MeshToonMaterial({color:'#f3e6ff',gradientMap:TOON_RAMP}); // gabled book-roof + open-book sign
+  const spine=new THREE.Mesh(new THREE.BoxGeometry(0.22,0.5,1.9),new THREE.MeshToonMaterial({color:'#7B4FC4',gradientMap:TOON_RAMP})); spine.position.set(0,2.95,0); g.add(spine);
+  [-1,1].forEach(sx=>{ const page=new THREE.Mesh(new THREE.BoxGeometry(1.05,0.12,1.85),m); page.position.set(sx*0.55,2.82,0); page.rotation.z=sx*0.34; g.add(page); });
+  const lamp=new THREE.Mesh(new THREE.SphereGeometry(0.16,10,10),new THREE.MeshStandardMaterial({color:'#ffe9b0',emissive:'#ffcf70',emissiveIntensity:.9,roughness:.5})); lamp.position.set(-0.95,1.5,1.0); g.add(lamp); addGlow(lamp,{color:'#ffd98a',size:1.1,opacity:0.5}); }
+function academyDress(g){ const tm=new THREE.MeshToonMaterial({color:'#cfeaf0',gradientMap:TOON_RAMP}); // bell tower + speaker horns
+  const tower=new THREE.Mesh(new THREE.BoxGeometry(0.8,1.5,0.8),tm); tower.position.set(-0.75,2.8,0); g.add(tower);
+  const cap=new THREE.Mesh(new THREE.ConeGeometry(0.65,0.7,4),new THREE.MeshToonMaterial({color:'#4f8fae',gradientMap:TOON_RAMP})); cap.position.set(-0.75,3.85,0); cap.rotation.y=Math.PI/4; g.add(cap);
+  const bell=new THREE.Mesh(new THREE.SphereGeometry(0.2,10,8),new THREE.MeshStandardMaterial({color:'#FFD24D',emissive:'#FFC83D',emissiveIntensity:.5})); bell.position.set(-0.75,2.9,0.42); g.add(bell);
+  [-1,1].forEach(sx=>{ const horn=new THREE.Mesh(new THREE.ConeGeometry(0.26,0.5,10,1,true),tm); horn.position.set(sx*0.72,2.35,0.5); horn.rotation.x=Math.PI/2.1; g.add(horn); }); }
+function hallDress(g){ const nm=new THREE.MeshStandardMaterial({color:'#ff8fcf',emissive:'#ff4fa6',emissiveIntensity:.8,roughness:.5}); // marquee arch + neon note
+  const arch=new THREE.Mesh(new THREE.TorusGeometry(0.95,0.1,8,20,Math.PI),nm); arch.position.set(0,2.5,0.6); g.add(arch); addGlow(arch,{color:'#ff8fcf',size:2.4,opacity:0.45});
+  const note=new THREE.Mesh(new THREE.SphereGeometry(0.2,10,10),nm); note.position.set(0,3.35,0.2); g.add(note);
+  const stem=new THREE.Mesh(new THREE.BoxGeometry(0.06,0.5,0.06),nm); stem.position.set(0.16,3.6,0.2); g.add(stem);
+  [-1,1].forEach(sx=>{ const b=new THREE.Mesh(new THREE.SphereGeometry(0.13,8,8),new THREE.MeshStandardMaterial({color:'#FFD24D',emissive:'#FFC83D',emissiveIntensity:.7})); b.position.set(sx*1.1,2.2,1.0); g.add(b); }); }
+function shopDress(g){ const cols=['#FFD24D','#FF8FCF']; // striped awning over the door
+  for(let i=0;i<6;i++){ const p=new THREE.Mesh(new THREE.BoxGeometry(0.31,0.06,0.62),new THREE.MeshToonMaterial({color:cols[i%2],gradientMap:TOON_RAMP}));
+    p.position.set(-0.78+i*0.31,1.42,1.28); p.rotation.x=-0.32; g.add(p); } }
 // North pair flanks the lighthouse — visible from spawn. East/west pair frames the plaza.
 const libHouse =themedBuilding('library','LIBRARY','📖',-5.6,-3.9,'#e9d7f7','#7B4FC4','#FFD24D',()=>{ pausedLesson?resumeLesson():startPractice(); }); // Rumi — practice, or resume a paused lesson
 const acadHouse=themedBuilding('academy','SOUNDS','🎓', 5.6,-3.9,'#cfeaf0','#4f8fae','#8FD0FF',()=>openSoundWall()); // Mira — tap-to-hear letter sounds
 const hallHouse=themedBuilding('hall','MUSIC','🎵',-7.0, 1.0,'#f8d3e6','#d1567f','#FF8FCF',()=>danceParty());        // Zoey — dance party
 const shopHouse=themedBuilding('shop','SHOP','⭐', 7.0, 1.0,'#cdb8f0','#7e5be0','#FFE08A',()=>openShop());           // Twinkle — the Star Shop
+libraryDress(libHouse); academyDress(acadHouse); hallDress(hallHouse); shopDress(shopHouse);
 { const roofStar=new THREE.Mesh(new THREE.OctahedronGeometry(0.3),new THREE.MeshStandardMaterial({color:'#FFD24D',emissive:'#FFC83D',emissiveIntensity:.9})); roofStar.position.set(0,3.25,0); shopHouse.add(roofStar); addGlow(roofStar,{color:'#FFD24D',size:1.6,opacity:0.7}); }
 
 // ---- Plaza dressing: lamp posts, festival bunting, benches, planters, crates, trees ----
@@ -526,7 +551,7 @@ async function loadAmbientIdols(){ if(QS.get('hero3d')==='0') return;
       npcs.push({g,mixer:m.mixer,actions:m.actions,name,current:'idle',waveUntil:0,nextAct:performance.now()+5000+Math.random()*6000,homeYaw:ry});
     }catch(e){} res(); },undefined,()=>res()); }); } }
 let npcGreetT=0;
-function npcGreet(n){ const np=performance.now(); if(np<npcGreetT) return; npcGreetT=np+1400;
+function npcGreet(n){ const np=performance.now(); if(np<npcGreetT) return; npcGreetT=np+1400; SESS.npc++;
   if(n.actions.wave){ playNpc(n,'wave'); n.waveUntil=np+1600; }
   const p=n.g.position; burst(new THREE.Vector3(p.x,1.9,p.z),'#FFE08A',10); haptic(10);
   if(audioOn) say(praises[(Math.random()*praises.length)|0],{char:n.name}); } // voiced via each idol's own clips
@@ -580,7 +605,7 @@ let buildingPending=null; // {g,act} — the building we're walking to
 function doorPoint(g){ const p=g.position.clone(); const dir=p.clone().negate().setY(0).normalize(); return p.add(dir.multiplyScalar(2.0)); }
 function enterBuildingWalk(b){ if(!controlEnabled) return; const d=doorPoint(b.g); target.copy(d); target.y=0; setMarker(d); buildingPending=b;
   burst(new THREE.Vector3(b.g.position.x,1.4,b.g.position.z),'#FFD24D',8); haptic(8); }
-function openShop(){ buildingPending=null; controlEnabled=false; setMarker(null); SFX.bell(); wipe(()=>{ renderShop(); show('shop'); showBack(closeShop); }); log('shop_open',{stars:state.avatar.stars}); }
+function openShop(){ buildingPending=null; controlEnabled=false; setMarker(null); SFX.bell(); wipe(()=>{ renderShop(); show('shop'); showBack(closeShop); }); SESS.shops++; log('shop_open',{stars:state.avatar.stars}); }
 function closeShop(){ wipe(()=>{ hide('shop'); hideBack(); controlEnabled=true; }); }
 function spendStars(n,btn){ if(state.avatar.stars<n){ if(btn){ btn.classList.remove('deny'); void btn.offsetWidth; btn.classList.add('deny'); }
     const tip=$('shop-tip'); if(tip) tip.textContent='Read and collect to earn more ⭐!'; SFX.deny(); return false; }
@@ -650,12 +675,12 @@ renderer.domElement.addEventListener('pointerdown',e=>{ if(e.isPrimary===false) 
   ndc.x=(e.clientX/innerWidth)*2-1; ndc.y=-(e.clientY/innerHeight)*2+1; ray.setFromCamera(ndc,camera);
   if(rumi.visible && ray.intersectObject(rumi,true).length){ rumiTip(); return; } // tap Rumi → tip
   for(const n of npcs){ if(ray.intersectObject(n.g,true).length){ npcGreet(n); return; } } // tap an idol → wave + hello
-  if(wish && ray.intersectObject(wish,true).length){ burst(wish.position.clone(),'#FFD24D',16); collectChime(); earnStars(1); twinkleCheer(1200); scene.remove(wish); wish=null; return; } // caught a wish!
+  if(wish && ray.intersectObject(wish,true).length){ burst(wish.position.clone(),'#FFD24D',16); collectChime(); earnStars(1); SESS.wishes++; twinkleCheer(1200); scene.remove(wish); wish=null; return; } // caught a wish!
   for(const bl of buildings){ if(ray.intersectObject(bl.g,true).length){ enterBuildingWalk(bl); return; } } // tap a building → walk to its door
   for(const p of tapProps){ if(ray.intersectObject(p.g,true).length){ propDelight(p); break; } } // tap a prop → pop + sparkle (still walks)
   buildingPending=null; // walking somewhere else cancels a pending visit
   dragging=true; tapGround(e.clientX,e.clientY); });
-function propDelight(p){ p.pop=1; const w=new THREE.Vector3(); p.g.getWorldPosition(w); w.y+=0.9;
+function propDelight(p){ SESS.props++; p.pop=1; const w=new THREE.Vector3(); p.g.getWorldPosition(w); w.y+=0.9;
   burst(w,p.col,8); (SFX[p.snd]||chirp)(); haptic(8);
   if(p.snd==='leaf'){ for(let i=0;i<3;i++) setTimeout(()=>spawnStepFlower(w.x+(Math.random()-0.5)*1.2, w.z+(Math.random()-0.5)*1.2), i*140); } // trees & planters shed petals
   if(p.snd==='glass') burst(new THREE.Vector3(w.x,w.y+1.4,w.z),'#ffffff',6); } // lamps flash bright
@@ -946,7 +971,8 @@ function flyStars(fromEl,count=3){ const bar=$('ch-lights'); if(!bar) return;
       {duration:620+i*90,easing:'cubic-bezier(.3,.7,.4,1)',fill:'forwards'});
     setTimeout(()=>{ s.remove(); if(i===count-1){ const b=$('ch-lights'); if(b){ b.classList.remove('pulse'); void b.offsetWidth; b.classList.add('pulse'); } } },640+i*90); } }
 // P1c: mid-set celebrations every 7th correct — the run gets beats instead of a flatline
-function midSetBeat(){ const done=curIdx; if(done>0 && done%7===0 && done<curList.length){ confetti(); SFX.combo();
+function midSetBeat(){ const done=curIdx; if(done>0 && done%7===0) log('lesson_pace',{idx:done,hints:SESS.hints});
+  if(done>0 && done%7===0 && done<curList.length){ confetti(); SFX.combo();
   const msgs={7:"Seven stars! You're on fire!",14:"Halfway superstar!"}; const m=msgs[done]||"Wow, look at all those stars!";
   coach('cheer',m); if(audioOn) say(m,{char:coachChar}); return true; } return false; }
 let mistakes=0, blendProgress=0, itemStart=0, itemHints=0, itemModeled=false;
@@ -1051,7 +1077,7 @@ function correct(a,btn){ btn.classList.remove('glowhint'); btn.classList.add('co
   if(delight.reward===null){ delight.reward=Math.round(performance.now()-launchT); log('first_reward',{ms:delight.reward}); }
   const firstTry=(mistakes===0&&itemHints===0);
   state.history.push({day:state.day,skillId:a.skillId,correct:true,hints:itemHints,modeled:itemModeled,firstTry,ms:Math.round(performance.now()-itemStart)});
-  log('activity_item',{skillId:a.skillId,correct:true,hints:itemHints,modeled:itemModeled,firstTry});
+  SESS.items++; SESS.hints+=itemHints; log('activity_item',{skillId:a.skillId,correct:true,hints:itemHints,modeled:itemModeled,firstTry});
   save();
   [...$('ch-options').querySelectorAll('.opt')].forEach(b=>b.onclick=null);
   const p=praises[(Math.random()*praises.length)|0]; coach('cheer',p);
@@ -1174,7 +1200,7 @@ function completeDay(){ if(!state.completedDays.includes(state.day)) state.compl
   $('dg-emoji').textContent = state.day>=MAX_DAY?'🏆':(state.day%7===0?'🏅':'🌙');
   $('dg-title').textContent = state.day>=MAX_DAY?'You played 21 days!':(state.day%7===0?`Week ${Math.ceil(state.day/7)} done!`:'See you tomorrow!');
   $('dg-text').textContent = D.tease[0];
-  SFX.horn(); show('daygate'); if(audioOn) say(D.tease[0],{id:D.teaseId});
+  SFX.horn(); sessionEnd('daygate'); show('daygate'); if(audioOn) say(D.tease[0],{id:D.teaseId});
   if(state.day===3){ /* offer parent re-engagement next time they open parent panel */ state.askReengage=true; save(); }
   $('dg-close').onclick=()=>{ hide('daygate'); };
 }
@@ -1237,6 +1263,7 @@ function decideDay(){ const forced=QS.get('day'); if(forced){ return Math.max(1,
 function boot(){
   loadVOManifest(); maybeLoadHero(); maybeLoadRumi();
   setTimeout(loadAmbientIdols,2500); // ambient idols load after the essentials so startup stays fast
+  SESS.stars0=state.avatar.stars; document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='hidden') sessionEnd('hidden'); });
   applyShopOwned(); const scb=$('shop-close'); if(scb) scb.onclick=closeShop; const bb=$('back-btn'); if(bb) bb.onclick=()=>{ if(backAct){ SFX.whoosh; const f=backAct; f(); } }; // back button routes to the current screen's exit
   updateMusicBtn(); const mb=$('music-btn'); if(mb) mb.onclick=toggleMusic;
   const hb=$('hear-btn'); if(hb) hb.onclick=()=>{ if(lastSay) say(lastSay.t,{id:lastSay.id,char:lastSay.char}); }; // 🔊 = hear it again
