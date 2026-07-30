@@ -336,6 +336,66 @@
       "batch": "letters"
     },
     {
+      "id": "ph_aah",
+      "character": "narrator",
+      "text": "aah",
+      "batch": "letters"
+    },
+    {
+      "id": "q_snd_a",
+      "character": "narrator",
+      "text": "Which letter says aah, like apple?",
+      "batch": "letters"
+    },
+    {
+      "id": "ph_eh",
+      "character": "narrator",
+      "text": "eh",
+      "batch": "letters"
+    },
+    {
+      "id": "q_snd_e",
+      "character": "narrator",
+      "text": "Which letter says eh, like egg?",
+      "batch": "letters"
+    },
+    {
+      "id": "ph_ih",
+      "character": "narrator",
+      "text": "ih",
+      "batch": "letters"
+    },
+    {
+      "id": "q_snd_i",
+      "character": "narrator",
+      "text": "Which letter says ih, like igloo?",
+      "batch": "letters"
+    },
+    {
+      "id": "ph_awe",
+      "character": "narrator",
+      "text": "awe",
+      "batch": "letters"
+    },
+    {
+      "id": "q_snd_o",
+      "character": "narrator",
+      "text": "Which letter says awe, like octopus?",
+      "batch": "letters"
+    },
+    {
+      "id": "ph_uh",
+      "character": "narrator",
+      "text": "uh",
+      "batch": "letters"
+    },
+    {
+      "id": "q_snd_u",
+      "character": "narrator",
+      "text": "Which letter says uh, like umbrella?",
+      "batch": "letters"
+    },
+    {
       "id": "q_trace_s",
       "character": "narrator",
       "text": "sss. Trace the S with your finger!",
@@ -369,6 +429,30 @@
       "id": "q_trace_c",
       "character": "narrator",
       "text": "kuh. Trace the C with your finger!",
+      "batch": "letters"
+    },
+    {
+      "id": "q_trace_a",
+      "character": "narrator",
+      "text": "aah. Trace the A with your finger!",
+      "batch": "letters"
+    },
+    {
+      "id": "q_trace_i",
+      "character": "narrator",
+      "text": "ih. Trace the I with your finger!",
+      "batch": "letters"
+    },
+    {
+      "id": "q_trace_o",
+      "character": "narrator",
+      "text": "awe. Trace the O with your finger!",
+      "batch": "letters"
+    },
+    {
+      "id": "q_trace_u",
+      "character": "narrator",
+      "text": "uh. Trace the U with your finger!",
       "batch": "letters"
     },
     {
@@ -744,6 +828,36 @@
       "batch": "words"
     },
     {
+      "id": "q_first_apple",
+      "character": "narrator",
+      "text": "What sound does apple start with? aah, aah, apple.",
+      "batch": "words"
+    },
+    {
+      "id": "q_first_egg",
+      "character": "narrator",
+      "text": "What sound does egg start with? eh, eh, egg.",
+      "batch": "words"
+    },
+    {
+      "id": "q_first_igloo",
+      "character": "narrator",
+      "text": "What sound does igloo start with? ih, ih, igloo.",
+      "batch": "words"
+    },
+    {
+      "id": "q_first_octopus",
+      "character": "narrator",
+      "text": "What sound does octopus start with? awe, awe, octopus.",
+      "batch": "words"
+    },
+    {
+      "id": "q_first_umbrella",
+      "character": "narrator",
+      "text": "What sound does umbrella start with? uh, uh, umbrella.",
+      "batch": "words"
+    },
+    {
       "id": "q_blend_cat",
       "character": "narrator",
       "text": "Tap the sounds in order. c… a… t… cat!",
@@ -756,21 +870,9 @@
       "batch": "blend"
     },
     {
-      "id": "ph_aah",
-      "character": "narrator",
-      "text": "aah",
-      "batch": "blend"
-    },
-    {
       "id": "q_blend_sun",
       "character": "narrator",
       "text": "Tap the sounds in order. s… u… n… sun!",
-      "batch": "blend"
-    },
-    {
-      "id": "ph_uh",
-      "character": "narrator",
-      "text": "uh",
       "batch": "blend"
     },
     {
@@ -780,33 +882,15 @@
       "batch": "blend"
     },
     {
-      "id": "ph_awe",
-      "character": "narrator",
-      "text": "awe",
-      "batch": "blend"
-    },
-    {
       "id": "q_blend_pig",
       "character": "narrator",
       "text": "Tap the sounds in order. p… i… g… pig!",
       "batch": "blend"
     },
     {
-      "id": "ph_ih",
-      "character": "narrator",
-      "text": "ih",
-      "batch": "blend"
-    },
-    {
       "id": "q_blend_hen",
       "character": "narrator",
       "text": "Tap the sounds in order. h… e… n… hen!",
-      "batch": "blend"
-    },
-    {
-      "id": "ph_eh",
-      "character": "narrator",
-      "text": "eh",
       "batch": "blend"
     },
     {
@@ -1500,6 +1584,36 @@
       "batch": "case"
     },
     {
+      "id": "q_case_a",
+      "character": "narrator",
+      "text": "Find the little letter that says aah!",
+      "batch": "case"
+    },
+    {
+      "id": "q_case_e",
+      "character": "narrator",
+      "text": "Find the little letter that says eh!",
+      "batch": "case"
+    },
+    {
+      "id": "q_case_i",
+      "character": "narrator",
+      "text": "Find the little letter that says ih!",
+      "batch": "case"
+    },
+    {
+      "id": "q_case_o",
+      "character": "narrator",
+      "text": "Find the little letter that says awe!",
+      "batch": "case"
+    },
+    {
+      "id": "q_case_u",
+      "character": "narrator",
+      "text": "Find the little letter that says uh!",
+      "batch": "case"
+    },
+    {
       "id": "q_last_cat",
       "character": "narrator",
       "text": "What sound does cat end with?",
@@ -2152,6 +2266,708 @@
       "character": "narrator",
       "text": "Three whole weeks of reading! You're a true Star Hunter!",
       "batch": "extra"
+    },
+    {
+      "id": "q_mid_cat",
+      "character": "narrator",
+      "text": "What sound is in the middle of cat?",
+      "batch": "middle"
+    },
+    {
+      "id": "q_mid_sun",
+      "character": "narrator",
+      "text": "What sound is in the middle of sun?",
+      "batch": "middle"
+    },
+    {
+      "id": "q_mid_dog",
+      "character": "narrator",
+      "text": "What sound is in the middle of dog?",
+      "batch": "middle"
+    },
+    {
+      "id": "q_mid_pig",
+      "character": "narrator",
+      "text": "What sound is in the middle of pig?",
+      "batch": "middle"
+    },
+    {
+      "id": "q_mid_hen",
+      "character": "narrator",
+      "text": "What sound is in the middle of hen?",
+      "batch": "middle"
+    },
+    {
+      "id": "q_mid_bed",
+      "character": "narrator",
+      "text": "What sound is in the middle of bed?",
+      "batch": "middle"
+    },
+    {
+      "id": "q_mid_top",
+      "character": "narrator",
+      "text": "What sound is in the middle of top?",
+      "batch": "middle"
+    },
+    {
+      "id": "q_mid_bug",
+      "character": "narrator",
+      "text": "What sound is in the middle of bug?",
+      "batch": "middle"
+    },
+    {
+      "id": "q_mid_map",
+      "character": "narrator",
+      "text": "What sound is in the middle of map?",
+      "batch": "middle"
+    },
+    {
+      "id": "q_mid_fan",
+      "character": "narrator",
+      "text": "What sound is in the middle of fan?",
+      "batch": "middle"
+    },
+    {
+      "id": "q_mid_net",
+      "character": "narrator",
+      "text": "What sound is in the middle of net?",
+      "batch": "middle"
+    },
+    {
+      "id": "q_mid_cup",
+      "character": "narrator",
+      "text": "What sound is in the middle of cup?",
+      "batch": "middle"
+    },
+    {
+      "id": "q_mid_box",
+      "character": "narrator",
+      "text": "What sound is in the middle of box?",
+      "batch": "middle"
+    },
+    {
+      "id": "q_mid_log",
+      "character": "narrator",
+      "text": "What sound is in the middle of log?",
+      "batch": "middle"
+    },
+    {
+      "id": "q_mid_mop",
+      "character": "narrator",
+      "text": "What sound is in the middle of mop?",
+      "batch": "middle"
+    },
+    {
+      "id": "q_mid_jam",
+      "character": "narrator",
+      "text": "What sound is in the middle of jam?",
+      "batch": "middle"
+    },
+    {
+      "id": "q_mid_ten",
+      "character": "narrator",
+      "text": "What sound is in the middle of ten?",
+      "batch": "middle"
+    },
+    {
+      "id": "q_mid_rug",
+      "character": "narrator",
+      "text": "What sound is in the middle of rug?",
+      "batch": "middle"
+    },
+    {
+      "id": "q_mid_van",
+      "character": "narrator",
+      "text": "What sound is in the middle of van?",
+      "batch": "middle"
+    },
+    {
+      "id": "q_mid_web",
+      "character": "narrator",
+      "text": "What sound is in the middle of web?",
+      "batch": "middle"
+    },
+    {
+      "id": "q_mid_zip",
+      "character": "narrator",
+      "text": "What sound is in the middle of zip?",
+      "batch": "middle"
+    },
+    {
+      "id": "q_mid_rat",
+      "character": "narrator",
+      "text": "What sound is in the middle of rat?",
+      "batch": "middle"
+    },
+    {
+      "id": "q_mid_mat",
+      "character": "narrator",
+      "text": "What sound is in the middle of mat?",
+      "batch": "middle"
+    },
+    {
+      "id": "q_mid_sit",
+      "character": "narrator",
+      "text": "What sound is in the middle of sit?",
+      "batch": "middle"
+    },
+    {
+      "id": "q_mid_hop",
+      "character": "narrator",
+      "text": "What sound is in the middle of hop?",
+      "batch": "middle"
+    },
+    {
+      "id": "q_mid_fox",
+      "character": "narrator",
+      "text": "What sound is in the middle of fox?",
+      "batch": "middle"
+    },
+    {
+      "id": "q_mid_bat",
+      "character": "narrator",
+      "text": "What sound is in the middle of bat?",
+      "batch": "middle"
+    },
+    {
+      "id": "q_mid_pen",
+      "character": "narrator",
+      "text": "What sound is in the middle of pen?",
+      "batch": "middle"
+    },
+    {
+      "id": "q_mid_cub",
+      "character": "narrator",
+      "text": "What sound is in the middle of cub?",
+      "batch": "middle"
+    },
+    {
+      "id": "q_mid_gum",
+      "character": "narrator",
+      "text": "What sound is in the middle of gum?",
+      "batch": "middle"
+    },
+    {
+      "id": "q_mid_hut",
+      "character": "narrator",
+      "text": "What sound is in the middle of hut?",
+      "batch": "middle"
+    },
+    {
+      "id": "q_mid_lip",
+      "character": "narrator",
+      "text": "What sound is in the middle of lip?",
+      "batch": "middle"
+    },
+    {
+      "id": "q_mid_nut",
+      "character": "narrator",
+      "text": "What sound is in the middle of nut?",
+      "batch": "middle"
+    },
+    {
+      "id": "q_mid_wet",
+      "character": "narrator",
+      "text": "What sound is in the middle of wet?",
+      "batch": "middle"
+    },
+    {
+      "id": "q_mid_kid",
+      "character": "narrator",
+      "text": "What sound is in the middle of kid?",
+      "batch": "middle"
+    },
+    {
+      "id": "q_mid_mud",
+      "character": "narrator",
+      "text": "What sound is in the middle of mud?",
+      "batch": "middle"
+    },
+    {
+      "id": "q_mid_jet",
+      "character": "narrator",
+      "text": "What sound is in the middle of jet?",
+      "batch": "middle"
+    },
+    {
+      "id": "q_mid_gem",
+      "character": "narrator",
+      "text": "What sound is in the middle of gem?",
+      "batch": "middle"
+    },
+    {
+      "id": "q_mid_fin",
+      "character": "narrator",
+      "text": "What sound is in the middle of fin?",
+      "batch": "middle"
+    },
+    {
+      "id": "q_mid_pup",
+      "character": "narrator",
+      "text": "What sound is in the middle of pup?",
+      "batch": "middle"
+    },
+    {
+      "id": "q_mid_tag",
+      "character": "narrator",
+      "text": "What sound is in the middle of tag?",
+      "batch": "middle"
+    },
+    {
+      "id": "q_mid_win",
+      "character": "narrator",
+      "text": "What sound is in the middle of win?",
+      "batch": "middle"
+    },
+    {
+      "id": "q_mid_dig",
+      "character": "narrator",
+      "text": "What sound is in the middle of dig?",
+      "batch": "middle"
+    },
+    {
+      "id": "q_mid_lid",
+      "character": "narrator",
+      "text": "What sound is in the middle of lid?",
+      "batch": "middle"
+    },
+    {
+      "id": "q_mid_pot",
+      "character": "narrator",
+      "text": "What sound is in the middle of pot?",
+      "batch": "middle"
+    },
+    {
+      "id": "q_mid_dot",
+      "character": "narrator",
+      "text": "What sound is in the middle of dot?",
+      "batch": "middle"
+    },
+    {
+      "id": "q_mid_fit",
+      "character": "narrator",
+      "text": "What sound is in the middle of fit?",
+      "batch": "middle"
+    },
+    {
+      "id": "q_mid_rib",
+      "character": "narrator",
+      "text": "What sound is in the middle of rib?",
+      "batch": "middle"
+    },
+    {
+      "id": "q_mid_bin",
+      "character": "narrator",
+      "text": "What sound is in the middle of bin?",
+      "batch": "middle"
+    },
+    {
+      "id": "q_fam_at",
+      "character": "narrator",
+      "text": "Which word ends with at?",
+      "batch": "family"
+    },
+    {
+      "id": "q_fam_ig",
+      "character": "narrator",
+      "text": "Which word ends with ig?",
+      "batch": "family"
+    },
+    {
+      "id": "q_fam_un",
+      "character": "narrator",
+      "text": "Which word ends with un?",
+      "batch": "family"
+    },
+    {
+      "id": "q_fam_og",
+      "character": "narrator",
+      "text": "Which word ends with og?",
+      "batch": "family"
+    },
+    {
+      "id": "q_fam_en",
+      "character": "narrator",
+      "text": "Which word ends with en?",
+      "batch": "family"
+    },
+    {
+      "id": "q_fam_op",
+      "character": "narrator",
+      "text": "Which word ends with op?",
+      "batch": "family"
+    },
+    {
+      "id": "q_fam_ug",
+      "character": "narrator",
+      "text": "Which word ends with ug?",
+      "batch": "family"
+    },
+    {
+      "id": "q_fam_ed",
+      "character": "narrator",
+      "text": "Which word ends with ed?",
+      "batch": "family"
+    },
+    {
+      "id": "q_fam_an",
+      "character": "narrator",
+      "text": "Which word ends with an?",
+      "batch": "family"
+    },
+    {
+      "id": "word_tip",
+      "character": "narrator",
+      "text": "tip",
+      "batch": "family"
+    },
+    {
+      "id": "q_fam_ap",
+      "character": "narrator",
+      "text": "Which word ends with ap?",
+      "batch": "family"
+    },
+    {
+      "id": "q_dig_sh",
+      "character": "narrator",
+      "text": "Which two letters say shh, like ship?",
+      "batch": "digraph"
+    },
+    {
+      "id": "dg_sh",
+      "character": "narrator",
+      "text": "shh",
+      "batch": "digraph"
+    },
+    {
+      "id": "q_dig_ch",
+      "character": "narrator",
+      "text": "Which two letters say chh, like chick?",
+      "batch": "digraph"
+    },
+    {
+      "id": "dg_ch",
+      "character": "narrator",
+      "text": "chh",
+      "batch": "digraph"
+    },
+    {
+      "id": "q_dig_th",
+      "character": "narrator",
+      "text": "Which two letters say thh, like thumb?",
+      "batch": "digraph"
+    },
+    {
+      "id": "dg_th",
+      "character": "narrator",
+      "text": "thh",
+      "batch": "digraph"
+    },
+    {
+      "id": "q_dig_wh",
+      "character": "narrator",
+      "text": "Which two letters say wh, like whale?",
+      "batch": "digraph"
+    },
+    {
+      "id": "dg_wh",
+      "character": "narrator",
+      "text": "wh",
+      "batch": "digraph"
+    },
+    {
+      "id": "q_syl_rabbit",
+      "character": "narrator",
+      "text": "How many parts do you hear in rabbit?",
+      "batch": "syll"
+    },
+    {
+      "id": "word_rabbit",
+      "character": "narrator",
+      "text": "rabbit",
+      "batch": "syll"
+    },
+    {
+      "id": "q_syl_tiger",
+      "character": "narrator",
+      "text": "How many parts do you hear in tiger?",
+      "batch": "syll"
+    },
+    {
+      "id": "word_tiger",
+      "character": "narrator",
+      "text": "tiger",
+      "batch": "syll"
+    },
+    {
+      "id": "q_syl_apple",
+      "character": "narrator",
+      "text": "How many parts do you hear in apple?",
+      "batch": "syll"
+    },
+    {
+      "id": "word_apple",
+      "character": "narrator",
+      "text": "apple",
+      "batch": "syll"
+    },
+    {
+      "id": "q_syl_butterfly",
+      "character": "narrator",
+      "text": "How many parts do you hear in butterfly?",
+      "batch": "syll"
+    },
+    {
+      "id": "word_butterfly",
+      "character": "narrator",
+      "text": "butterfly",
+      "batch": "syll"
+    },
+    {
+      "id": "q_syl_banana",
+      "character": "narrator",
+      "text": "How many parts do you hear in banana?",
+      "batch": "syll"
+    },
+    {
+      "id": "word_banana",
+      "character": "narrator",
+      "text": "banana",
+      "batch": "syll"
+    },
+    {
+      "id": "q_syl_pencil",
+      "character": "narrator",
+      "text": "How many parts do you hear in pencil?",
+      "batch": "syll"
+    },
+    {
+      "id": "word_pencil",
+      "character": "narrator",
+      "text": "pencil",
+      "batch": "syll"
+    },
+    {
+      "id": "q_syl_elephant",
+      "character": "narrator",
+      "text": "How many parts do you hear in elephant?",
+      "batch": "syll"
+    },
+    {
+      "id": "word_elephant",
+      "character": "narrator",
+      "text": "elephant",
+      "batch": "syll"
+    },
+    {
+      "id": "q_syl_flower",
+      "character": "narrator",
+      "text": "How many parts do you hear in flower?",
+      "batch": "syll"
+    },
+    {
+      "id": "word_flower",
+      "character": "narrator",
+      "text": "flower",
+      "batch": "syll"
+    },
+    {
+      "id": "q_syl_dinosaur",
+      "character": "narrator",
+      "text": "How many parts do you hear in dinosaur?",
+      "batch": "syll"
+    },
+    {
+      "id": "word_dinosaur",
+      "character": "narrator",
+      "text": "dinosaur",
+      "batch": "syll"
+    },
+    {
+      "id": "q_syl_cookie",
+      "character": "narrator",
+      "text": "How many parts do you hear in cookie?",
+      "batch": "syll"
+    },
+    {
+      "id": "word_cookie",
+      "character": "narrator",
+      "text": "cookie",
+      "batch": "syll"
+    },
+    {
+      "id": "num_1",
+      "character": "narrator",
+      "text": "1",
+      "batch": "syll"
+    },
+    {
+      "id": "num_2",
+      "character": "narrator",
+      "text": "2",
+      "batch": "syll"
+    },
+    {
+      "id": "num_3",
+      "character": "narrator",
+      "text": "3",
+      "batch": "syll"
+    },
+    {
+      "id": "shop_welcome",
+      "character": "zoey",
+      "text": "Welcome to the Star Shop!",
+      "batch": "shop"
+    },
+    {
+      "id": "shop_thanks1",
+      "character": "zoey",
+      "text": "Ooh, great pick!",
+      "batch": "shop"
+    },
+    {
+      "id": "shop_thanks2",
+      "character": "zoey",
+      "text": "Enjoy it, superstar!",
+      "batch": "shop"
+    },
+    {
+      "id": "shop_deny",
+      "character": "zoey",
+      "text": "Almost! Read a little more to earn more stars!",
+      "batch": "shop"
+    },
+    {
+      "id": "shop_item_fireworks",
+      "character": "zoey",
+      "text": "A firework show!",
+      "batch": "shop"
+    },
+    {
+      "id": "shop_item_trail",
+      "character": "zoey",
+      "text": "A sparkle trail!",
+      "batch": "shop"
+    },
+    {
+      "id": "shop_item_balloons",
+      "character": "zoey",
+      "text": "Party balloons!",
+      "batch": "shop"
+    },
+    {
+      "id": "shop_item_bow",
+      "character": "zoey",
+      "text": "A bow for Twinkle!",
+      "batch": "shop"
+    },
+    {
+      "id": "shop_bye",
+      "character": "zoey",
+      "text": "Come back soon!",
+      "batch": "shop"
+    },
+    {
+      "id": "shop_equip",
+      "character": "zoey",
+      "text": "Looking great!",
+      "batch": "shop"
+    },
+    {
+      "id": "mis_letters",
+      "character": "rumi",
+      "text": "The harbor signs lost their letters. Help me find them!",
+      "batch": "mission",
+      "rotating": true
+    },
+    {
+      "id": "mis_sounds",
+      "character": "rumi",
+      "text": "Listen close. The sounds are hiding today!",
+      "batch": "mission",
+      "rotating": true
+    },
+    {
+      "id": "mis_words",
+      "character": "rumi",
+      "text": "The bakery orders are all mixed up. Read them with me!",
+      "batch": "mission",
+      "rotating": true
+    },
+    {
+      "id": "mis_rhyme",
+      "character": "rumi",
+      "text": "The Music Hall needs rhymes for tonight song!",
+      "batch": "mission",
+      "rotating": true
+    },
+    {
+      "id": "mis_blend",
+      "character": "rumi",
+      "text": "Let us stretch sounds together until they make a word!",
+      "batch": "mission",
+      "rotating": true
+    },
+    {
+      "id": "mis_sight",
+      "character": "rumi",
+      "text": "Quick words light the lighthouse fastest. Ready?",
+      "batch": "mission",
+      "rotating": true
+    },
+    {
+      "id": "cel_7",
+      "character": "rumi",
+      "text": "Seven stars already? You are on fire!",
+      "batch": "mission",
+      "rotating": true
+    },
+    {
+      "id": "cel_14",
+      "character": "rumi",
+      "text": "Halfway, superstar!",
+      "batch": "mission",
+      "rotating": true
+    },
+    {
+      "id": "cel_18",
+      "character": "rumi",
+      "text": "Just three to go. You have got this!",
+      "batch": "mission",
+      "rotating": true
+    },
+    {
+      "id": "cel_a",
+      "character": "rumi",
+      "text": "Wow, look at all those stars!",
+      "batch": "mission",
+      "rotating": true
+    },
+    {
+      "id": "cel_b",
+      "character": "rumi",
+      "text": "You are shining brighter and brighter!",
+      "batch": "mission",
+      "rotating": true
+    },
+    {
+      "id": "cel_c",
+      "character": "rumi",
+      "text": "Keep going, reading star!",
+      "batch": "mission",
+      "rotating": true
+    },
+    {
+      "id": "night_1",
+      "character": "narrator",
+      "text": "The harbor is getting sleepy. Great reading today.",
+      "batch": "night"
+    },
+    {
+      "id": "night_2",
+      "character": "narrator",
+      "text": "The stars will wait for you. Goodnight, Star Hunter.",
+      "batch": "night"
     }
   ]
 }

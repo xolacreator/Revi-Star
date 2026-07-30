@@ -849,7 +849,7 @@ const DAYS = {
 };
 const MAX_DAY = 21; // the daily loop now runs three weeks
 // ---- Procedural content for days 4..21: rotating skills, offset indexing so items vary day to day ----
-const LETTERBANK=[['S','sss','sun','☀️'],['M','mmm','moon','🌙'],['T','tuh','top','🔝'],['F','fff','fish','🐟'],['B','buh','bee','🐝'],['N','nnn','net','🥅'],['P','puh','pig','🐷'],['D','duh','dog','🐶'],['L','lll','leaf','🍃'],['R','rrr','red','🔴'],['C','kuh','cat','🐱'],['H','huh','hat','🎩'],['G','guh','goat','🐐'],['K','kuh','kite','🪁'],['V','vvv','van','🚐'],['W','wuh','web','🕸️'],['Z','zzz','zip','🤐'],['J','juh','jam','🍓']];
+const LETTERBANK=[['S','sss','sun','☀️'],['M','mmm','moon','🌙'],['T','tuh','top','🔝'],['F','fff','fish','🐟'],['B','buh','bee','🐝'],['N','nnn','net','🥅'],['P','puh','pig','🐷'],['D','duh','dog','🐶'],['L','lll','leaf','🍃'],['R','rrr','red','🔴'],['C','kuh','cat','🐱'],['H','huh','hat','🎩'],['G','guh','goat','🐐'],['K','kuh','kite','🪁'],['V','vvv','van','🚐'],['W','wuh','web','🕸️'],['Z','zzz','zip','🤐'],['J','juh','jam','🍓'],['A','aah','apple','🍎'],['E','eh','egg','🥚'],['I','ih','igloo','🧊'],['O','awe','octopus','🐙'],['U','uh','umbrella','☂️']];
 const SIGHTBANK=[['cat','🐱','dog','sun'],['dog','🐶','cat','bus'],['sun','☀️','net','pig'],['red','🔴','mom','big'],['pig','🐷','bus','hat'],['bus','🚌','red','net'],['hat','🎩','dog','sun'],['mom','👩','big','net'],['big','🔵','pig','bus'],['net','🥅','cat','mom'],['box','📦','fox','dog'],['fox','🦊','box','sun'],['hen','🐔','dog','cat'],['top','🔝','net','sun'],['bug','🐛','box','pig'],['cup','☕','bus','mom'],['bed','🛏️','red','dog'],['van','🚐','fox','sun'],['jam','🍓','big','net'],['map','🗺️','mom','cat'],['fan','🪭','pig','box'],['rug','🧶','red','bus']];
 const PH={a:'aah',e:'eh',i:'ih',o:'awe',u:'uh',b:'buh',c:'cuh',d:'duh',f:'fff',g:'guh',h:'huh',j:'juh',k:'kuh',l:'lll',m:'mmm',n:'nnn',p:'puh',r:'rrr',s:'sss',t:'tuh',v:'vvv',w:'wuh',x:'ks',y:'yuh',z:'zzz'};
 const CVCWORDS=[['cat','🐱'],['sun','☀️'],['dog','🐶'],['pig','🐷'],['hen','🐔'],['bed','🛏️'],['top','🔝'],['bug','🐛'],['map','🗺️'],['fan','🪭'],['net','🥅'],['cup','☕'],['box','📦'],['log','🪵'],['mop','🧹'],['jam','🍓'],['ten','🔟'],['rug','🧶'],['van','🚐'],['web','🕸️'],['zip','🤐'],['rat','🐀'],['mat','🟫'],['sit','🪑'],['hop','🐰'],['fox','🦊'],['bat','🦇'],['pen','🖊️'],['cub','🐻'],['gum','🍬'],['hut','🛖'],['lip','👄'],['nut','🥜'],['wet','💧'],['kid','🧒'],['mud','🟤'],['jet','✈️'],['gem','💎'],['fin','🐠'],['pup','🐶'],['tag','🏷️'],['win','🏆'],['dig','⛏️'],['lid','🥫'],['pot','🍲'],['dot','🔴'],['fit','🏋️'],['rib','🍖'],['bin','🗑️']];
@@ -871,6 +871,28 @@ const vRhyme=w=>`What rhymes with ${w}?`;
 const vCase=L=>`Find the little letter that says ${L[1]}!`;
 const vLast=W=>`What sound does ${W[0]} end with?`;
 const vSight=w=>`Tap the word — ${w}.`;
+// ---- Curriculum expansion: medial vowels, word families, digraphs, syllables ----
+const VOWELS=[['A','aah'],['E','eh'],['I','ih'],['O','awe'],['U','uh']];
+const FAMILYBANK=[['at','🐱','cat','bus','pig'],['ig','🐷','pig','hat','sun'],['un','☀️','sun','cat','bed'],['og','🐶','dog','net','cup'],['en','🐔','hen','map','bug'],['op','🔝','top','fan','rat'],['ug','🐛','bug','pen','lid'],['ed','🛏️','bed','fox','jam'],['an','🪭','fan','dog','tip'],['ap','🗺️','map','hen','rug']];
+const DIGRAPHBANK=[['sh','shh','ship','🚢'],['ch','chh','chick','🐤'],['th','thh','thumb','👍'],['wh','wh','whale','🐳']];
+const SYLLBANK=[['rabbit','🐰',2],['tiger','🐯',2],['apple','🍎',2],['butterfly','🦋',3],['banana','🍌',3],['pencil','✏️',2],['elephant','🐘',3],['flower','🌸',2],['dinosaur','🦕',3],['cookie','🍪',2]];
+const vMiddle=w=>`What sound is in the middle of ${w}?`;
+const vFamily=r=>`Which word ends with ${r}?`;
+const vDigraph=D=>`Which two letters say ${D[1]}, like ${D[2]}?`;
+const vSyll=w=>`How many parts do you hear in ${w}?`;
+function pick2(list,not,salt){ const out=[]; for(let k=0;k<list.length&&out.length<2;k++){ const c=list[(salt+k*3)%list.length]; if(c!==not&&!out.includes(c)) out.push(c); } return out; }
+function itMiddle(W,salt){ const w=W[0], v=PH[w[1]]||w[1]; const d=pick2(VOWELS.map(x=>x[1]),v,salt);
+  return {template:'choose',skillId:'phon.vowel.medial',pic:W[1],prompt:`What sound is in the middle of  ${w}?`,say:vMiddle(w),
+    options:shuffleSeed([{t:v,say:v},{t:d[0],say:d[0]},{t:d[1],say:d[1]}],salt),answer:v}; }
+function itFamily(F){ return {template:'choose',skillId:'read.wordfamily',pic:F[1],prompt:`Which word ends with  -${F[0]}?`,say:vFamily(F[0]),
+    options:shuffleSeed([{t:F[2],say:F[2]},{t:F[3],say:F[3]},{t:F[4],say:F[4]}],F[0].length),answer:F[2]}; }
+function itDigraph(D,salt){ const d=pick2(DIGRAPHBANK.map(x=>x[0]),D[0],salt);
+  return {template:'choose',skillId:'phon.digraph',pic:D[3],prompt:`Which two letters say  ${D[1]}?`,say:vDigraph(D),
+    options:shuffleSeed([{t:D[0],say:D[1]},{t:d[0],say:d[0]},{t:d[1],say:d[1]}],salt),answer:D[0]}; }
+function itSyll(S){ const n=String(S[2]);
+  return {template:'choose',skillId:'phon.syllable',pic:S[1],prompt:`How many parts in  ${S[0]}?`,say:vSyll(S[0]),
+    options:[{t:'1',say:'1'},{t:'2',say:'2'},{t:'3',say:'3'}],answer:n}; }
+function shuffleSeed(arr,seed){ const a=arr.slice(); for(let i=a.length-1;i>0;i--){ const j=(seed+i*7)%(i+1); [a[i],a[j]]=[a[j],a[i]]; } return a; }
 // Batches "letters" + "words" + "blend" + "rhyme": map prompts/sounds/words to AI clip ids.
 (function(){ const phId=p=>'ph_'+p.replace(/[^a-z]/gi,'');
   LETTERBANK.forEach(L=>{ VO_LINES[L[1]]=phId(L[1]); VO_LINES[vSound(L)]='q_snd_'+L[0].toLowerCase(); VO_LINES[vFirst(L)]='q_first_'+L[2]; });
@@ -881,6 +903,12 @@ const vSight=w=>`Tap the word — ${w}.`;
   RHYMEBANK.forEach(R=>{ VO_LINES[vRhyme(R[0])]='q_rhyme_'+R[0]; [R[2],R[3],R[4]].forEach(w=>{ if(!VO_LINES[w]) VO_LINES[w]='word_'+w; }); });
   LETTERBANK.forEach(L=>{ VO_LINES[vCase(L)]='q_case_'+L[0].toLowerCase(); });
   LASTWORDS.forEach(W=>{ VO_LINES[vLast(W)]='q_last_'+W[0]; });
+  CVCWORDS.forEach(W=>{ VO_LINES[vMiddle(W[0])]='q_mid_'+W[0]; });
+  VOWELS.forEach(v=>{ VO_LINES[v[1]]=phId(v[1]); });
+  FAMILYBANK.forEach(F=>{ VO_LINES[vFamily(F[0])]='q_fam_'+F[0]; [F[2],F[3],F[4]].forEach(w=>{ if(!VO_LINES[w]) VO_LINES[w]='word_'+w; }); });
+  DIGRAPHBANK.forEach(D=>{ VO_LINES[vDigraph(D)]='q_dig_'+D[0]; VO_LINES[D[1]]='dg_'+D[0]; });
+  SYLLBANK.forEach(S=>{ VO_LINES[vSyll(S[0])]='q_syl_'+S[0]; VO_LINES[S[0]]='word_'+S[0]; });
+  ['1','2','3'].forEach(n=>{ VO_LINES[n]='num_'+n; });
   SIGHTWORDS.forEach(W=>{ VO_LINES[vSight(W[0])]='q_sight_'+W[0]; W.forEach(w=>{ if(!VO_LINES[w]) VO_LINES[w]='word_'+w; }); });
 })();
 // ---- Activity item builders + scalable day generator ----
@@ -901,7 +929,7 @@ function allocCounts(weights,N){ const ks=Object.keys(weights), raw=ks.map(k=>we
   let rem=N-counts.reduce((a,b)=>a+b,0); const fr=raw.map((x,idx)=>[idx,x-Math.floor(x)]).sort((a,b)=>b[1]-a[1]);
   for(let j=0;j<rem;j++) counts[fr[j%fr.length][0]]++; const o={}; ks.forEach((k,idx)=>o[k]=counts[idx]); return o; }
 function genActivities(day,N){ const i=day, t=Math.min(1,Math.max(0,(i-1)/16)), L=(a,b)=>a+(b-a)*t; // t: 0 (day1) → 1 (day17+) ramps difficulty
-  const c=allocCounts({trace:L(.22,.06),sound:L(.20,.10),case:L(.14,.06),first:L(.12,.10),word:L(.12,.12),last:L(.06,.12),rhyme:L(.06,.14),sight:L(.04,.14),blend:L(.04,.16)},N);
+  const c=allocCounts({trace:L(.20,.05),sound:L(.17,.08),case:L(.12,.05),first:L(.10,.08),word:L(.10,.10),middle:L(.07,.10),family:L(.05,.10),last:L(.05,.09),rhyme:L(.05,.10),syll:L(.04,.07),sight:L(.03,.10),digraph:L(.01,.08),blend:L(.01,.10)},N);
   // Only serve questions whose prompt is already voiced (so the game is fully voiced with whatever clips exist).
   // As more clips get generated, more skill types appear automatically. ?allskills=1 disables the filter.
   const filterOn = Object.keys(VO_HAVE).length>=10 && QS.get('allskills')!=='1';
@@ -915,10 +943,15 @@ function genActivities(day,N){ const i=day, t=Math.min(1,Math.max(0,(i-1)/16)), 
   const cases=V(pickN(LETTERBANK,c.case,i,43).map((Lx,k)=>itCase(Lx,i*4+k*5+2)));
   const sights=V(pickN(SIGHTWORDS,c.sight,i,61).map(itSight));
   const blends=V(pickN(CVCWORDS,c.blend,i,17).map(itBlend));
-  const groups=[traces,sounds,firsts,lasts,words,rhymes,cases,sights,blends], acts=[]; let safety=0; // round-robin interleave for variety
+  const middles=V(pickN(CVCWORDS,c.middle,i,71).map((W,k)=>itMiddle(W,i*3+k*4+2)));
+  const families=V(pickN(FAMILYBANK,c.family,i,83).map(itFamily));
+  const digraphs=V(pickN(DIGRAPHBANK,c.digraph,i,97).map((D,k)=>itDigraph(D,i*2+k*5+1)));
+  const sylls=V(pickN(SYLLBANK,c.syll,i,101).map(itSyll));
+  const groups=[traces,sounds,firsts,middles,lasts,words,families,rhymes,cases,sylls,sights,digraphs,blends], acts=[]; let safety=0; // round-robin interleave for variety
   while(acts.length<N && safety++<400){ let added=false; for(const g of groups){ if(g.length){ acts.push(g.shift()); added=true; if(acts.length>=N) break; } } if(!added) break; }
   while(acts.length<N){ acts.push(itSound(LETTERBANK[(i*7+acts.length*3)%LETTERBANK.length], i+acts.length)); } // backfill safety
   return acts; }
+window.__gen=(d,n)=>genActivities(d,n); // test hook: validate curriculum generation
 function genDay(day){ const i=day, gn=coachNameFor(day), GN=gn.charAt(0).toUpperCase()+gn.slice(1), labels=['Letter sounds','Reading words','Blending words'];
   return { skillLabel:labels[i%3], greet:[GN,GENGREET[i%GENGREET.length],"Let's read! ▶"], greetId:'greet_g'+(i%GENGREET.length), activities:genActivities(day,QUESTIONS_PER_DAY),
     tease:[ day>=MAX_DAY ? "Three whole weeks of reading — you're a true Star Hunter! 🌟" : "Come back tomorrow for more sounds, words, and sparkles!" ], teaseId: day>=MAX_DAY?'tease_wk3':'tease_more' }; }

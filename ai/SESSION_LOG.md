@@ -113,3 +113,21 @@ and voice-coverage debt now reports itself from the field.
 Harness caught a real TDZ bug pre-ship (libraryDress used lampMat
 before init) — `node -c` passed, the browser probe did not. Standing
 lesson #1 re-earned.
+
+## /loop cycle 4 — v98 Curriculum Expansion + voice pipeline for it
+Engine grew 9 → 13 skill types. NEW: medial vowels (What sound is in
+the middle of cat?), word families (-at/-ig/-un…), digraphs (sh/ch/th/
+wh), syllable counting (rab-bit = 2). Also fixed a real curriculum gap:
+LETTERBANK had NO vowels — A/E/I/O/U added, which also feeds sound/
+first/case/trace and grows TRBANK from 6 to 10 traceable letters.
+Difficulty weights rebalanced across 13 skills.
+Voice: build-lines.mjs mirrors every new bank; lines.json 382 → 540
+clips and now includes the AudioBible packs (shop 10, mission+
+celebrations 36 rotating, goodnight 2). Workflow dropdown reordered by
+impact: extra → shop → mission → night → middle → family → digraph →
+syll → …
+Validated both states: voiced-only today = 21/21 valid days, 0
+malformed, 5 skills (game stays fully voiced); ?allskills=1 = 13 skills
+evenly distributed, 0 malformed. Harness caught two real scope bugs
+pre-ship (TDZ, then an IIFE capturing the new builders) that `node -c`
+passed — standing lesson #1 twice over.

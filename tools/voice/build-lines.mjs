@@ -5,7 +5,7 @@
 import { readFile, writeFile } from 'node:fs/promises';
 
 // ---- mirror of the in-game banks/templates (keep identical to a1.js) ----
-const LETTERBANK=[['S','sss','sun'],['M','mmm','moon'],['T','tuh','top'],['F','fff','fish'],['B','buh','bee'],['N','nnn','net'],['P','puh','pig'],['D','duh','dog'],['L','lll','leaf'],['R','rrr','red'],['C','kuh','cat'],['H','huh','hat'],['G','guh','goat'],['K','kuh','kite'],['V','vvv','van'],['W','wuh','web'],['Z','zzz','zip'],['J','juh','jam']];
+const LETTERBANK=[['S','sss','sun'],['M','mmm','moon'],['T','tuh','top'],['F','fff','fish'],['B','buh','bee'],['N','nnn','net'],['P','puh','pig'],['D','duh','dog'],['L','lll','leaf'],['R','rrr','red'],['C','kuh','cat'],['H','huh','hat'],['G','guh','goat'],['K','kuh','kite'],['V','vvv','van'],['W','wuh','web'],['Z','zzz','zip'],['J','juh','jam'],['A','aah','apple'],['E','eh','egg'],['I','ih','igloo'],['O','awe','octopus'],['U','uh','umbrella']];
 const SIGHTBANK=[['cat','🐱','dog','sun'],['dog','🐶','cat','bus'],['sun','☀️','net','pig'],['red','🔴','mom','big'],['pig','🐷','bus','hat'],['bus','🚌','red','net'],['hat','🎩','dog','sun'],['mom','👩','big','net'],['big','🔵','pig','bus'],['net','🥅','cat','mom'],['box','📦','fox','dog'],['fox','🦊','box','sun'],['hen','🐔','dog','cat'],['top','🔝','net','sun'],['bug','🐛','box','pig'],['cup','☕','bus','mom'],['bed','🛏️','red','dog'],['van','🚐','fox','sun'],['jam','🍓','big','net'],['map','🗺️','mom','cat'],['fan','🪭','pig','box'],['rug','🧶','red','bus']];
 const PH={a:'aah',e:'eh',i:'ih',o:'awe',u:'uh',b:'buh',c:'cuh',d:'duh',f:'fff',g:'guh',h:'huh',j:'juh',k:'kuh',l:'lll',m:'mmm',n:'nnn',p:'puh',r:'rrr',s:'sss',t:'tuh',v:'vvv',w:'wuh',x:'ks',y:'yuh',z:'zzz'};
 const CVCWORDS=['cat','sun','dog','pig','hen','bed','top','bug','map','fan','net','cup','box','log','mop','jam','ten','rug','van','web','zip','rat','mat','sit','hop','fox','bat','pen','cub','gum','hut','lip','nut','wet','kid','mud','jet','gem','fin','pup','tag','win','dig','lid','pot','dot','fit','rib','bin'];
@@ -16,6 +16,14 @@ const vLast=w=>`What sound does ${w} end with?`;
 const LASTWORDS=CVCWORDS.filter(w=>'SMTFBNPDLRCHGKVWZJ'.includes(w.slice(-1).toUpperCase()));
 const vSight=w=>`Tap the word — ${w}.`;
 const SIGHTWORDS=[['the','and','to'],['and','the','it'],['is','in','it'],['to','go','so'],['in','it','is'],['it','in','at'],['you','we','my'],['my','me','we'],['see','we','me'],['we','me','he'],['go','so','up'],['up','at','on'],['at','on','in'],['on','at','up'],['can','me','he'],['he','we','me']];
+const VOWELS=[['A','aah'],['E','eh'],['I','ih'],['O','awe'],['U','uh']];
+const FAMILYBANK=[['at','cat','bus','pig'],['ig','pig','hat','sun'],['un','sun','cat','bed'],['og','dog','net','cup'],['en','hen','map','bug'],['op','top','fan','rat'],['ug','bug','pen','lid'],['ed','bed','fox','jam'],['an','fan','dog','tip'],['ap','map','hen','rug']];
+const DIGRAPHBANK=[['sh','shh','ship'],['ch','chh','chick'],['th','thh','thumb'],['wh','wh','whale']];
+const SYLLBANK=[['rabbit',2],['tiger',2],['apple',2],['butterfly',3],['banana',3],['pencil',2],['elephant',3],['flower',2],['dinosaur',3],['cookie',2]];
+const vMiddle=w=>`What sound is in the middle of ${w}?`;
+const vFamily=r=>`Which word ends with ${r}?`;
+const vDigraph=D=>`Which two letters say ${D[1]}, like ${D[2]}?`;
+const vSyll=w=>`How many parts do you hear in ${w}?`;
 const TRSET=['S','C','O','U','A','M','N','I','L','T'], TRBANK=LETTERBANK.filter(e=>TRSET.includes(e[0]));
 const vSound=L=>`Which letter says ${L[1]}, like ${L[2]}?`;
 const vTrace=L=>`${L[1]}. Trace the ${L[0]} with your finger!`;
@@ -86,9 +94,53 @@ const extra=[
   ['tease_wk3', N, "Three whole weeks of reading! You're a true Star Hunter!"],
 ].map(([id,character,text])=>({id,character,text,batch:'extra'}));
 
+const middle=[];
+for(const w of CVCWORDS){ push(middle,'q_mid_'+w,vMiddle(w),'middle'); }
+for(const v of VOWELS) push(middle,phId(v[1]),v[1],'middle');
+
+const family=[];
+for(const F of FAMILYBANK){ push(family,'q_fam_'+F[0],vFamily(F[0]),'family'); for(const w of [F[1],F[2],F[3]]) push(family,'word_'+w,w,'family'); }
+
+const digraph=[];
+for(const D of DIGRAPHBANK){ push(digraph,'q_dig_'+D[0],vDigraph(D),'digraph'); push(digraph,'dg_'+D[0],D[1],'digraph'); }
+
+const syll=[];
+for(const S of SYLLBANK){ push(syll,'q_syl_'+S[0],vSyll(S[0]),'syll'); push(syll,'word_'+S[0],S[0],'syll'); }
+for(const n of ['1','2','3']) push(syll,'num_'+n,n,'syll');
+
+// ---- AudioBible packs: shop voice (Zoey), mission intros + celebrations (rotating guides), goodnight ----
+const shop=[
+  ['shop_welcome','Welcome to the Star Shop!'],['shop_thanks1','Ooh, great pick!'],
+  ['shop_thanks2','Enjoy it, superstar!'],['shop_deny','Almost! Read a little more to earn more stars!'],
+  ['shop_item_fireworks','A firework show!'],['shop_item_trail','A sparkle trail!'],
+  ['shop_item_balloons','Party balloons!'],['shop_item_bow','A bow for Twinkle!'],
+  ['shop_bye','Come back soon!'],['shop_equip','Looking great!'],
+].map(([id,text])=>({id,character:'zoey',text,batch:'shop'}));
+
+const mission=[
+  ['mis_letters','The harbor signs lost their letters. Help me find them!'],
+  ['mis_sounds','Listen close. The sounds are hiding today!'],
+  ['mis_words','The bakery orders are all mixed up. Read them with me!'],
+  ['mis_rhyme','The Music Hall needs rhymes for tonight song!'],
+  ['mis_blend','Let us stretch sounds together until they make a word!'],
+  ['mis_sight','Quick words light the lighthouse fastest. Ready?'],
+  ['cel_7','Seven stars already? You are on fire!'],
+  ['cel_14','Halfway, superstar!'],
+  ['cel_18','Just three to go. You have got this!'],
+  ['cel_a','Wow, look at all those stars!'],
+  ['cel_b','You are shining brighter and brighter!'],
+  ['cel_c','Keep going, reading star!'],
+].map(([id,text])=>({id,character:'rumi',text,batch:'mission',rotating:true}));
+
+const night=[
+  ['night_1','The harbor is getting sleepy. Great reading today.'],
+  ['night_2','The stars will wait for you. Goodnight, Star Hunter.'],
+].map(([id,text])=>({id,character:NARR,text,batch:'night'}));
+
 // ---- merge: keep core, replace rebuilt gameplay batches ----
 const doc=JSON.parse(await readFile('tools/voice/lines.json','utf8'));
-const kept=doc.lines.filter(l=>!['letters','words','blend','rhyme','case','last','sight','check','extra'].includes(l.batch));
-doc.lines=[...kept,...letters,...words,...blend,...rhyme,...kase,...last,...sight,...check,...extra];
+const kept=doc.lines.filter(l=>!['letters','words','blend','rhyme','case','last','sight','check','extra','middle','family','digraph','syll','shop','mission','night'].includes(l.batch));
+doc.lines=[...kept,...letters,...words,...blend,...rhyme,...kase,...last,...sight,...check,...extra,...middle,...family,...digraph,...syll,...shop,...mission,...night];
 await writeFile('tools/voice/lines.json', JSON.stringify(doc,null,2)+'\n');
+console.log(`+new: ${middle.length} middle, ${family.length} family, ${digraph.length} digraph, ${syll.length} syll, ${shop.length} shop, ${mission.length} mission, ${night.length} night`);
 console.log(`lines.json: ${kept.length} kept + ${letters.length} L + ${words.length} W + ${blend.length} blend + ${rhyme.length} rhyme + ${kase.length} case + ${last.length} last + ${sight.length} sight + ${check.length} check + ${extra.length} extra = ${doc.lines.length} total`);
