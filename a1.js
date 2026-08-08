@@ -606,6 +606,7 @@ function doorPoint(g){ const p=g.position.clone(); const dir=p.clone().negate().
 function enterBuildingWalk(b){ if(!controlEnabled) return; const d=doorPoint(b.g); target.copy(d); target.y=0; setMarker(d); buildingPending=b;
   burst(new THREE.Vector3(b.g.position.x,1.4,b.g.position.z),'#FFD24D',8); haptic(8); }
 function openShop(){ buildingPending=null; controlEnabled=false; setMarker(null); SFX.bell(); wipe(()=>{ renderShop(); show('shop'); showBack(closeShop); }); SESS.shops++; log('shop_open',{stars:state.avatar.stars}); }
+window.__openShop=()=>openShop(); // test hook
 function closeShop(){ wipe(()=>{ hide('shop'); hideBack(); controlEnabled=true; }); }
 function spendStars(n,btn){ if(state.avatar.stars<n){ if(btn){ btn.classList.remove('deny'); void btn.offsetWidth; btn.classList.add('deny'); }
     const tip=$('shop-tip'); if(tip) tip.textContent='Read and collect to earn more ⭐!'; SFX.deny(); return false; }
@@ -627,9 +628,13 @@ function renderShop(){ const ss=$('shop-stars'); if(ss) ss.textContent=state.ava
   const host=$('shop-items'); if(!host) return; host.innerHTML='';
   SHOP_ITEMS.forEach(it=>{ const owned=state.shop.owned.includes(it.id), eq=it.trail&&state.shop.trail===it.id;
     const row=document.createElement('div'); row.className='shop-item';
-    const label=it.instant?`${it.price} ⭐`:owned?(it.trail?(eq?'On! ✓':'Wear'):'Yours ✓'):`${it.price} ⭐`;
+    const priceTag=it.price<=5?'⭐'.repeat(it.price):`⭐×${it.price}`; // price as countable stars, not a numeral to decode
+    const label=it.instant?priceTag:owned?(it.trail?(eq?'✓':'👕'):'✓'):priceTag;
+    const afford=state.avatar.stars>=it.price;
     row.innerHTML=`<div class="si-ico">${it.emoji}</div><b>${it.name}</b>`;
-    const b=document.createElement('button'); b.className='si-buy'+(owned&&!it.instant?' owned':'')+(eq?' eq':''); b.textContent=label;
+    const b=document.createElement('button'); b.className='si-buy'+(owned&&!it.instant?' owned':'')+(eq?' eq':'')+(!owned&&!afford?' short':''); b.textContent=label;
+    b.setAttribute('aria-label',it.name+(owned?' owned':' costs '+it.price+' stars'));
+    if(owned&&!it.instant) row.classList.add('owned-row'); if(eq) row.classList.add('eq-row');
     b.onclick=()=>{ const has=state.shop.owned.includes(it.id);
       if(it.instant){ if(spendStars(it.price,b)){ fireworksShow(); log('shop_buy',{id:it.id}); } return; }
       if(has){ if(it.trail){ state.shop.trail=it.id; applyTrail(it.trail); save(); renderShop(); } return; }
@@ -928,8 +933,23 @@ function itSight(W){ return {template:'sightRec',skillId:'read.sightword.hf',pic
 function allocCounts(weights,N){ const ks=Object.keys(weights), raw=ks.map(k=>weights[k]*N), counts=raw.map(x=>Math.floor(x));
   let rem=N-counts.reduce((a,b)=>a+b,0); const fr=raw.map((x,idx)=>[idx,x-Math.floor(x)]).sort((a,b)=>b[1]-a[1]);
   for(let j=0;j<rem;j++) counts[fr[j%fr.length][0]]++; const o={}; ks.forEach((k,idx)=>o[k]=counts[idx]); return o; }
+// Learning L3: adapt to THIS child. Rolling first-try accuracy per skill biases the mix —
+// struggling skills get more practice, mastered ones step back and resurface as spiral review.
+const SKILL_OF={trace:'phon.letter.form',sound:'phon.letter.sound',case:'read.letter.case',first:'phon.onset',
+  word:'read.sightword',middle:'phon.vowel.medial',family:'read.wordfamily',last:'phon.coda',rhyme:'phon.rhyme',
+  syll:'phon.syllable',sight:'read.sightword.hf',digraph:'phon.digraph',blend:'phon.cvc.blend'};
+function skillMastery(){ const m={}, h=state.history||[];
+  for(let i=Math.max(0,h.length-120);i<h.length;i++){ const e=h[i]; if(!e||!e.skillId) continue;
+    const r=m[e.skillId]||(m[e.skillId]={n:0,ok:0}); r.n++; if(e.firstTry) r.ok++; }
+  for(const k in m) m[k].acc=m[k].n?m[k].ok/m[k].n:null;
+  return m; }
+function adaptWeights(w){ const m=skillMastery(); const out={};
+  for(const k in w){ const r=m[SKILL_OF[k]]; let f=1;
+    if(r && r.n>=4){ if(r.acc<0.6) f=1.65; else if(r.acc>0.9) f=0.55; else if(r.acc<0.75) f=1.25; }
+    out[k]=Math.max(0.005,w[k]*f); }
+  return out; }
 function genActivities(day,N){ const i=day, t=Math.min(1,Math.max(0,(i-1)/16)), L=(a,b)=>a+(b-a)*t; // t: 0 (day1) → 1 (day17+) ramps difficulty
-  const c=allocCounts({trace:L(.20,.05),sound:L(.17,.08),case:L(.12,.05),first:L(.10,.08),word:L(.10,.10),middle:L(.07,.10),family:L(.05,.10),last:L(.05,.09),rhyme:L(.05,.10),syll:L(.04,.07),sight:L(.03,.10),digraph:L(.01,.08),blend:L(.01,.10)},N);
+  const c=allocCounts(adaptWeights({trace:L(.20,.05),sound:L(.17,.08),case:L(.12,.05),first:L(.10,.08),word:L(.10,.10),middle:L(.07,.10),family:L(.05,.10),last:L(.05,.09),rhyme:L(.05,.10),syll:L(.04,.07),sight:L(.03,.10),digraph:L(.01,.08),blend:L(.01,.10)}),N);
   // Only serve questions whose prompt is already voiced (so the game is fully voiced with whatever clips exist).
   // As more clips get generated, more skill types appear automatically. ?allskills=1 disables the filter.
   const filterOn = Object.keys(VO_HAVE).length>=10 && QS.get('allskills')!=='1';
@@ -1227,7 +1247,7 @@ function rewardDay(){ igniteFireflies(); // reward cards per day
 }
 
 function completeDay(){ if(!state.completedDays.includes(state.day)) state.completedDays.push(state.day);
-  state.lastCompletedDate=todayStr(); save(); log('day_complete',{day:state.day, stars:state.avatar.stars, rumiStage:state.rumiStage, twinkleForm:state.twinkleForm});
+  state.lastCompletedDate=todayStr(); save(); log('skill_mastery',skillMastery()); log('day_complete',{day:state.day, stars:state.avatar.stars, rumiStage:state.rumiStage, twinkleForm:state.twinkleForm});
   buildDashboard();
   const D=getDay(state.day);
   $('dg-emoji').textContent = state.day>=MAX_DAY?'🏆':(state.day%7===0?'🏅':'🌙');

@@ -131,3 +131,18 @@ malformed, 5 skills (game stays fully voiced); ?allskills=1 = 13 skills
 evenly distributed, 0 malformed. Harness caught two real scope bugs
 pre-ship (TDZ, then an IIFE capturing the new builders) that `node -c`
 passed — standing lesson #1 twice over.
+
+## /loop cycle 5 — v99 Adaptive Learning + pre-reader Shop
+Learning L3 CLOSED: the engine now adapts to the individual child.
+Rolling first-try accuracy per skill (last 120 items) biases the daily
+mix — <60% = 1.65x weight, <75% = 1.25x, >90% = 0.55x (spiral review,
+never dropped). Verified with seeded profiles: a child struggling at
+rhyme gets 54 rhyme items across 21 days vs 33 baseline (+64%); a child
+who has mastered it gets 21 (-36%). 441/441 items valid in every case.
+skill_mastery now logged at day_complete for the parent dashboard.
+Child C1 (shop needed reading) largely closed: prices are countable
+stars (⭐⭐⭐) or ⭐×N, owned items show a mint ✓ on a mint-lit card,
+the equipped item's icon bounces, unaffordable items dim instead of
+relying on a text refusal. aria-labels added for screen readers.
+No new VO clips landed this cycle (still 175/540) — both features were
+chosen precisely because they need none.

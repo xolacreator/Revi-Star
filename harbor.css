@@ -251,6 +251,12 @@ h1,h2,h3{font-family:var(--font-display);font-weight:700;letter-spacing:.2px}
 .si-buy.owned{background:rgba(126,240,192,.18);color:#9FE9C8;border:1.5px solid rgba(126,240,192,.7);box-shadow:none}
 .si-buy.eq{background:var(--mint);color:#0c3b2b;border:none}
 .si-buy.deny{animation:wwobble .5s ease}
+.si-buy{font-size:16px;letter-spacing:-1px}
+.si-buy.short{opacity:.55;filter:saturate(.5)}                 /* can't afford yet — visibly quiet, still tappable */
+.si-buy.owned,.si-buy.eq{font-size:20px;letter-spacing:0;padding:9px 20px}
+.owned-row{border-color:rgba(126,240,192,.55);background:rgba(126,240,192,.10)}  /* yours: mint-lit card */
+.owned-row .si-ico{filter:drop-shadow(0 0 12px rgba(126,240,192,.8))}
+.eq-row .si-ico{animation:bob 1.6s ease-in-out infinite}       /* wearing it: the icon bounces */
 #shop-tip{min-height:20px;color:#9FE9C8;font-weight:800;font-size:14px;margin:0}
 
 /* ---- Storybook Transform ---- */
